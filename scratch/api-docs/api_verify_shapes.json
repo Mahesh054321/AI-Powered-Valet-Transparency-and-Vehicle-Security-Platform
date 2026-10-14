@@ -1,0 +1,277 @@
+{
+  "PATCH /inspections/detections/<id>/verification": {
+    "status": 200,
+    "body": {
+      "data": {
+        "algorithm_params": {
+          "alignment": {
+            "applied": true,
+            "inliers": 30,
+            "matches": 30,
+            "quality": 1.0,
+            "reason": null
+          },
+          "angle": "FRONT",
+          "pipeline": {
+            "bloblike_aspect_ratio": 2.5,
+            "border_margin_fraction": 0.015,
+            "chroma_weight": 1.0,
+            "dent_bipolarity": 0.7,
+            "difference_blur_kernel": 5,
+            "difference_threshold": 22.0,
+            "diffuse_mean_ceiling": 12.0,
+            "diffuse_region_fraction": 0.35,
+            "edge_floor_minimum": 3.0,
+            "edge_floor_percentile": 99.0,
+            "edge_weight": 0.8,
+            "elongated_aspect_ratio": 3.0,
+            "lighting_correction_strength": 0.85,
+            "low_alignment_penalty": 0.6,
+            "luminance_floor": 8.0,
+            "luminance_weight": 1.0,
+            "match_ratio": 0.75,
+            "max_gain_deviation": 0.45,
+            "merge_iou": 0.3,
+            "min_alignment_quality": 0.25,
+            "min_confidence": 0.05,
+            "min_image_dimension": 96,
+            "min_matches": 12,
+            "min_region_area_fraction": 0.0006,
+            "morph_kernel_size": 5,
+            "new_edge_saturation": 2.0,
+            "orb_features": 2000,
+            "pre_existing_edge_ceiling": 40.0,
+            "ransac_threshold": 4.0,
+            "residue_chroma_fraction": 0.5,
+            "saturation_difference": 70.0,
+            "significant_chroma": 14.0,
+            "significant_luminance_change": 10.0,
+            "sobel_kernel": 3,
+            "version": "classical-cv/1.0.0",
+            "working_width": 1024
+          },
+          "region_mapping": {
+            "basis": "Mapped from the middle-right third of a front view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+            "grid_cell": [
+              1,
+              2
+            ],
+            "mapped": true,
+            "region": "HOOD",
+            "viewpoint": "FRONT"
+          },
+          "region_statistics": {
+            "area": 543,
+            "area_fraction": 0.013575,
+            "aspect_ratio": 1.769,
+            "bbox": [
+              99,
+              93,
+              69,
+              39
+            ],
+            "fill_ratio": 0.2018,
+            "fragments": 1,
+            "mean_abs_delta_l": 39.042,
+            "mean_chroma": 3.451,
+            "mean_delta_a": 0.488,
+            "mean_delta_b": 3.416,
+            "mean_delta_l": 39.042,
+            "mean_difference": 65.575,
+            "mean_edge": 193.481,
+            "mean_pre_existing_edge": 0.0,
+            "normalised_bbox": {
+              "height": 0.195,
+              "width": 0.345,
+              "x": 0.495,
+              "y": 0.465
+            },
+            "peak_difference": 89.506
+          }
+        },
+        "angle": "FRONT",
+        "bounding_box": {
+          "height": 0.195,
+          "width": 0.345,
+          "x": 0.495,
+          "y": 0.465
+        },
+        "comparison_image_path": "comparisons/2026/09/12/cc3ddfdcb2a74d4982e9fa3efd3e7b25.png",
+        "comparison_url": "/media/comparisons/2026/09/12/cc3ddfdcb2a74d4982e9fa3efd3e7b25.png",
+        "confidence": 0.915,
+        "damage_type": "DENT",
+        "detection_reasoning": "Region flagged as a potential change: mean difference 65.6 (threshold 22.0), peak 89.5, covering 1.36% of the frame. Labelled DENT because a localised region changed brightness substantially (mean absolute delta L 39.0) with no colour change (chroma 3.5), which is how a depression reads: it alters how the panel catches light without altering the paint. Bipolar shading scores 0.00, which is lower than a textbook depression would give, so this label is weak. This label is a heuristic reading of shape and colour statistics, not a classification by a trained model, and needs human confirmation. Mapped from the middle-right third of a front view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+        "evidence_image_path": "evidence/2026/09/12/a47cc03f25d6434b8ad639a243ebb19e.png",
+        "evidence_url": "/media/evidence/2026/09/12/a47cc03f25d6434b8ad639a243ebb19e.png",
+        "id": "102df4b4-fc1f-447f-85fa-1a1192d7bb71",
+        "inspection_id": "feb48b3b-5c10-4c73-8740-f9536dffb363",
+        "is_pre_existing": false,
+        "is_verified": true,
+        "method": "CLASSICAL_CV",
+        "model_version": null,
+        "presentation_label": "Confirmed Damage",
+        "region": "HOOD",
+        "requires_customer_attention": true,
+        "severity": "SEVERE",
+        "type_confidence": 0.536,
+        "verification_notes": "Confirmed on review.",
+        "verification_status": "CONFIRMED",
+        "verified_at": "2026-09-12T15:26:52.176723+00:00",
+        "verified_by_id": "24758677-b3ca-581e-bc94-9dea4082aba2"
+      },
+      "meta": {
+        "request_id": "6d3f125db3634373b850f0ccabb175ed",
+        "server_time": 1789226812.1862175
+      },
+      "success": true
+    }
+  },
+  "PATCH ... (reject)": {
+    "status": 200,
+    "body": {
+      "data": {
+        "algorithm_params": {
+          "alignment": {
+            "applied": true,
+            "inliers": 30,
+            "matches": 30,
+            "quality": 1.0,
+            "reason": null
+          },
+          "angle": "FRONT",
+          "pipeline": {
+            "bloblike_aspect_ratio": 2.5,
+            "border_margin_fraction": 0.015,
+            "chroma_weight": 1.0,
+            "dent_bipolarity": 0.7,
+            "difference_blur_kernel": 5,
+            "difference_threshold": 22.0,
+            "diffuse_mean_ceiling": 12.0,
+            "diffuse_region_fraction": 0.35,
+            "edge_floor_minimum": 3.0,
+            "edge_floor_percentile": 99.0,
+            "edge_weight": 0.8,
+            "elongated_aspect_ratio": 3.0,
+            "lighting_correction_strength": 0.85,
+            "low_alignment_penalty": 0.6,
+            "luminance_floor": 8.0,
+            "luminance_weight": 1.0,
+            "match_ratio": 0.75,
+            "max_gain_deviation": 0.45,
+            "merge_iou": 0.3,
+            "min_alignment_quality": 0.25,
+            "min_confidence": 0.05,
+            "min_image_dimension": 96,
+            "min_matches": 12,
+            "min_region_area_fraction": 0.0006,
+            "morph_kernel_size": 5,
+            "new_edge_saturation": 2.0,
+            "orb_features": 2000,
+            "pre_existing_edge_ceiling": 40.0,
+            "ransac_threshold": 4.0,
+            "residue_chroma_fraction": 0.5,
+            "saturation_difference": 70.0,
+            "significant_chroma": 14.0,
+            "significant_luminance_change": 10.0,
+            "sobel_kernel": 3,
+            "version": "classical-cv/1.0.0",
+            "working_width": 1024
+          },
+          "region_mapping": {
+            "basis": "Mapped from the middle-right third of a front view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+            "grid_cell": [
+              1,
+              2
+            ],
+            "mapped": true,
+            "region": "HOOD",
+            "viewpoint": "FRONT"
+          },
+          "region_statistics": {
+            "area": 543,
+            "area_fraction": 0.013575,
+            "aspect_ratio": 1.769,
+            "bbox": [
+              99,
+              93,
+              69,
+              39
+            ],
+            "fill_ratio": 0.2018,
+            "fragments": 1,
+            "mean_abs_delta_l": 39.042,
+            "mean_chroma": 3.451,
+            "mean_delta_a": 0.488,
+            "mean_delta_b": 3.416,
+            "mean_delta_l": 39.042,
+            "mean_difference": 65.575,
+            "mean_edge": 193.481,
+            "mean_pre_existing_edge": 0.0,
+            "normalised_bbox": {
+              "height": 0.195,
+              "width": 0.345,
+              "x": 0.495,
+              "y": 0.465
+            },
+            "peak_difference": 89.506
+          }
+        },
+        "angle": "FRONT",
+        "bounding_box": {
+          "height": 0.195,
+          "width": 0.345,
+          "x": 0.495,
+          "y": 0.465
+        },
+        "comparison_image_path": "comparisons/2026/09/12/cc3ddfdcb2a74d4982e9fa3efd3e7b25.png",
+        "comparison_url": "/media/comparisons/2026/09/12/cc3ddfdcb2a74d4982e9fa3efd3e7b25.png",
+        "confidence": 0.915,
+        "damage_type": "DENT",
+        "detection_reasoning": "Region flagged as a potential change: mean difference 65.6 (threshold 22.0), peak 89.5, covering 1.36% of the frame. Labelled DENT because a localised region changed brightness substantially (mean absolute delta L 39.0) with no colour change (chroma 3.5), which is how a depression reads: it alters how the panel catches light without altering the paint. Bipolar shading scores 0.00, which is lower than a textbook depression would give, so this label is weak. This label is a heuristic reading of shape and colour statistics, not a classification by a trained model, and needs human confirmation. Mapped from the middle-right third of a front view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+        "evidence_image_path": "evidence/2026/09/12/a47cc03f25d6434b8ad639a243ebb19e.png",
+        "evidence_url": "/media/evidence/2026/09/12/a47cc03f25d6434b8ad639a243ebb19e.png",
+        "id": "102df4b4-fc1f-447f-85fa-1a1192d7bb71",
+        "inspection_id": "feb48b3b-5c10-4c73-8740-f9536dffb363",
+        "is_pre_existing": false,
+        "is_verified": true,
+        "method": "CLASSICAL_CV",
+        "model_version": null,
+        "presentation_label": "Dismissed - Not Damage",
+        "region": "HOOD",
+        "requires_customer_attention": true,
+        "severity": "SEVERE",
+        "type_confidence": 0.536,
+        "verification_notes": "False positive.",
+        "verification_status": "REJECTED",
+        "verified_at": "2026-09-12T15:26:52.193140+00:00",
+        "verified_by_id": "24758677-b3ca-581e-bc94-9dea4082aba2"
+      },
+      "meta": {
+        "request_id": "1a4c8633751f4875b42cfda3b93f3f84",
+        "server_time": 1789226812.2024655
+      },
+      "success": true
+    }
+  },
+  "ERR verification by operator (403)": {
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "AUTHORIZATION_ERROR",
+        "details": {
+          "required": [
+            "VALET_MANAGER",
+            "ADMIN"
+          ],
+          "role": "VALET_OPERATOR"
+        },
+        "message": "Only a manager or administrator can verify a damage finding; 'VALET_OPERATOR' cannot. Verification is deliberately restricted so the person who photographed the vehicle is not the only one judging the algorithm's output."
+      },
+      "meta": {
+        "request_id": "2d4e12c3f0a04b2b9646280adc1e1e75",
+        "server_time": 1789226812.2081423
+      },
+      "success": false
+    }
+  }
+}

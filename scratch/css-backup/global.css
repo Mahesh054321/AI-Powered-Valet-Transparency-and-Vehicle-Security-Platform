@@ -1,0 +1,224 @@
+/* ============================================================================
+   PAGE-LEVEL STYLES
+   ----------------------------------------------------------------------------
+   Screen-specific layout only. Every primitive — buttons, fields, panels,
+   badges, tables, dialogs, toasts, states — lives in components.css, and the
+   frame (sidebar, topbar, content) lives in shell.css. Nothing here may
+   redefine one of those: if a screen needs a different button, that is a new
+   variant in the design system, not an override here.
+
+   Load order is tokens → base → shell → components → this file, so a rule
+   below can compose a primitive but a same-specificity duplicate would
+   silently win. Keep it that way and the system stays honest.
+   ============================================================================ */
+
+/* -------------------------------------------------------------- data list */
+
+.data-list {
+  margin: 0;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.data-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 40%) 1fr;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--color-border);
+  margin: 0;
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+.data-row dt {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.data-row dd {
+  margin: 0;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------- notice */
+
+.notice {
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+}
+
+.notice p {
+  margin: 0;
+}
+
+.notice--error {
+  background: var(--color-danger-soft);
+  border-color: #fecaca;
+  color: var(--color-danger);
+}
+.notice--warning {
+  background: var(--color-warning-soft);
+  border-color: #fde68a;
+  color: var(--color-warning);
+}
+.notice--info {
+  background: var(--color-info-soft);
+  border-color: #a5f3fc;
+  color: var(--color-info);
+}
+
+/* -------------------------------------------------------------- spinner */
+
+.spinner-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  border-top-color: var(--color-primary);
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------------------------------------------------ prose list */
+
+.prose-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.prose-list--tight {
+  gap: 0.25rem;
+  font-size: 0.87rem;
+}
+
+/* ------------------------------------------------------------ auth page */
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1d4ed8 100%);
+}
+
+.auth-page__panel {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
+  width: min(1000px, 100%);
+}
+
+.auth-page__intro {
+  color: #e2e8f0;
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-page__intro h1 {
+  color: #fff;
+  font-size: 1.75rem;
+}
+
+.auth-page__intro p {
+  color: #cbd5e1;
+  max-width: 44ch;
+}
+
+.auth-page__intro .prose-list {
+  color: #bfdbfe;
+}
+
+.auth-page__form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-page__note {
+  font-size: 0.78rem;
+  margin: 0;
+}
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 960px) {
+  .auth-page__panel {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .auth-page__intro {
+    text-align: center;
+    justify-items: center;
+  }
+}
+
+@media (max-width: 820px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .shell__sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(300px, 84vw);
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+    z-index: 40;
+  }
+
+  .shell__sidebar.is-open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-md);
+  }
+
+  .topbar__toggle {
+    display: inline-flex;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+
+  .topbar__identity {
+    display: none;
+  }
+
+  .data-row {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+}
+
+/* Respect users who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */

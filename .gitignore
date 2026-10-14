@@ -1,0 +1,72 @@
+# ==============================================================================
+#  SECRETS - never commit these
+# ==============================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.*
+
+# ==============================================================================
+#  Python
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# ==============================================================================
+#  Node / React
+# ==============================================================================
+node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ==============================================================================
+#  Runtime data
+# ==============================================================================
+# Uploaded vehicle photos and generated comparison images live here.
+backend/storage/media/
+!backend/storage/media/.gitkeep
+
+# Trained artifacts and generated training data. Both are regenerable from the
+# scripts that produce them, and a checked-in copy drifts out of step with the
+# code that reads it - a stale artifact whose feature order no longer matches is
+# refused at load, so committing one only creates a confusing failure. Train
+# locally:
+#   python utils/scripts/train_security_model.py
+#   python utils/scripts/train_retrieval_model.py
+backend/storage/models/*.json
+backend/storage/data/
+!backend/storage/models/.gitkeep
+!backend/storage/data/.gitkeep
+*.log
+logs/
+*.sqlite3
+
+# ==============================================================================
+#  Editors / OS
+# ==============================================================================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

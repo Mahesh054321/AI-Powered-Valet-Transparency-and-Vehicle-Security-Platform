@@ -1,0 +1,477 @@
+/* ============================================================================
+   TRACKING, ALERTS AND THE CLASSIFIER PANELS
+   ----------------------------------------------------------------------------
+   The map is the centrepiece, so it gets the width and the panels stack beside
+   it. Everything here also has to survive being read on a phone at the gate,
+   where the map becomes the first thing and the panels follow.
+   ============================================================================ */
+
+.tracking-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.tracking-layout__side {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
+.tracking-layout__note {
+  font-size: var(--text-xs);
+}
+
+/* --------------------------------------------------------------- the map --- */
+
+.tracking-map {
+  position: relative;
+  height: 480px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-sunken);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Leaflet sizes its container from CSS, so the height above is load-bearing.
+   With no fixes there is nothing to centre on, and an empty grey box reads as
+   a broken map rather than "no position yet" — so say so. */
+.tracking-map--empty {
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+}
+
+/* Leaflet injects its own controls into the container, so these are plain
+   descendant selectors — :global() is CSS Modules syntax and does nothing in a
+   stylesheet that is not a module. Kept scoped under .tracking-map so the
+   override cannot leak into any other map instance on the page. */
+.tracking-map .leaflet-control-attribution {
+  font-size: var(--text-2xs);
+  background: rgb(255 255 255 / 85%);
+}
+
+.tracking-map .leaflet-container {
+  /* ROOT CAUSE of the blank map: react-leaflet's MapContainer renders its own
+     <div class="leaflet-container"> with no height. The 480px above sits on
+     the wrapper, so the map itself collapsed to 0px. */
+  height: 100%;
+  width: 100%;
+  min-height: 240px;
+  font: inherit;
+}
+
+.tracking-marker {
+  background: transparent;
+  border: 0;
+}
+
+.tracking-marker__dot {
+  display: block;
+  border-radius: 50%;
+  background: var(--marker-color, #2563eb);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 35%);
+}
+
+.tracking-marker__dot--pulse {
+  animation: tracking-pulse 1.8s ease-out infinite;
+}
+
+@keyframes tracking-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(37 99 235 / 45%); }
+  100% { box-shadow: 0 0 0 14px rgb(37 99 235 / 0%); }
+}
+
+.tracking-map__notice {
+  position: absolute;
+  z-index: 1000;
+  left: var(--space-3);
+  right: var(--space-3);
+  top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: #fff7e0;
+  border: 1px solid #f0d58a;
+  color: #6b4e00;
+  font-size: var(--text-sm);
+}
+
+.tracking-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.tracking-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tracking-legend__swatch {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 3px solid #5b6b80;
+}
+
+.tracking-legend__swatch--zone {
+  height: 12px;
+  border: 2px solid #2563eb;
+  background: rgb(37 99 235 / 10%);
+  border-radius: 2px;
+}
+
+.tracking-legend__swatch--dot {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 35%);
+}
+
+/* --------------------------------------------------------- alert cards ---- */
+
+.alert-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.alert-card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-xs);
+}
+
+.alert-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.alert-card__titles {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.alert-card__titles strong {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.alert-card__titles .muted {
+  font-size: var(--text-xs);
+}
+
+.alert-card__badges {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  flex: none;
+}
+
+.alert-card__reason {
+  margin: 0;
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.alert-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.alert-card__meta dt {
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+}
+
+.alert-card__meta dd {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.alert-card__notes {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.alert-card__evidence {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.alert-card__evidence-body {
+  margin: 0;
+  padding: var(--space-3);
+  max-height: 260px;
+  overflow: auto;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+}
+
+.alert-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.alert-card__resolve {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.alert-card__resolve input {
+  flex: 1 1 200px;
+}
+
+.alert-actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* An unread marker that is not a colour wash, so severity colouring on the same
+   row stays the loudest thing about it. */
+.alert-unread-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--info);
+}
+
+/* ---------------------------------------------------- classifier output --- */
+
+.ml-verdict {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+/* Absent means "no classifier ran", not "the classifier found nothing". An
+   empty card would imply a clean bill of health, so the absence is styled as a
+   statement rather than left blank. */
+.ml-verdict--absent {
+  border-style: dashed;
+  background: transparent;
+}
+
+.ml-verdict__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ml-verdict__probability {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.ml-verdict__probability strong {
+  font-variant-numeric: var(--font-numeric);
+  color: var(--text-primary);
+}
+
+/* The two directions a prototype can disagree with a measurement. Both are
+   stated, because a dissent against a measurement is exactly what a reviewer
+   needs to see rather than have silently dropped. */
+.ml-verdict__escalation {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius-sm);
+  background: var(--warning-subtle);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.ml-verdict__disagreement {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--info);
+  border-radius: var(--radius-sm);
+  background: var(--info-subtle);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.ml-verdict__reason {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.ml-verdict__factors {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-2);
+}
+
+.ml-verdict__factors summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+
+.ml-verdict__factors ul {
+  display: grid;
+  gap: 2px;
+  margin-top: var(--space-2);
+  list-style: none;
+}
+
+.ml-verdict__factors li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  padding: 2px 0;
+}
+
+.ml-verdict__factor-name {
+  color: var(--text-secondary);
+}
+
+.ml-verdict__footer {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--border-default);
+}
+
+.ml-verdict__version {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+/* The standing caveat. Rendered in the client as well as the API payload, so a
+   screenshot of this card alone cannot be read as a production claim. */
+.ml-verdict__notice {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  line-height: var(--leading-relaxed);
+}
+
+/* ------------------------------------------------------- model provenance - */
+
+.ml-panel__meta,
+.ml-panel__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.ml-panel__meta dt,
+.ml-panel__metrics dt {
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+}
+
+.ml-panel__meta dd,
+.ml-panel__metrics dd {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+}
+
+.ml-panel__matrix {
+  display: grid;
+  gap: var(--space-2);
+  overflow-x: auto;
+}
+
+.ml-panel__matrix p {
+  margin: 0;
+  font-size: var(--text-xs);
+}
+
+.ml-panel__matrix-table {
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  font-variant-numeric: var(--font-numeric);
+}
+
+.ml-panel__matrix-table th,
+.ml-panel__matrix-table td {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-default);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ml-panel__matrix-table th {
+  background: var(--surface-sunken);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.ml-panel__notice {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--info);
+  border-radius: var(--radius-sm);
+  background: var(--info-subtle);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+@media (max-width: 1023px) {
+  .tracking-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-map {
+    height: 320px;
+  }
+
+  .ml-verdict__factors li {
+    grid-template-columns: 1fr;
+    gap: 1px;
+  }
+}

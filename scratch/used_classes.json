@@ -1,0 +1,1220 @@
+{
+ "'": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "''": [
+  "pages/AlertsPage.jsx"
+ ],
+ "''}": [
+  "components/dashboard/DashboardCards.jsx",
+  "components/inspections/DamageCard.jsx",
+  "components/manager/Tables.jsx",
+  "components/valet/VehicleTable.jsx",
+  "layouts/MainLayout.jsx",
+  "pages/CheckInPage.jsx"
+ ],
+ "'btn--ghost'}": [
+  "pages/TicketListPage.jsx"
+ ],
+ "'btn--primary'": [
+  "pages/TicketListPage.jsx"
+ ],
+ "'custody'}": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "'empty'}": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "'finding--potential'": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "'finding__flag--warn'": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "'is-open'": [
+  "layouts/MainLayout.jsx"
+ ],
+ "'mgr-table__row--alert'": [
+  "components/manager/Tables.jsx"
+ ],
+ "'mgr-table__row--unread'}": [
+  "pages/AlertsPage.jsx"
+ ],
+ "'photo-card--filled'": [
+  "pages/CheckInPage.jsx"
+ ],
+ "'valet-table__row--alert'": [
+  "components/valet/VehicleTable.jsx"
+ ],
+ "0": [
+  "components/manager/Tables.jsx"
+ ],
+ ":": [
+  "components/dashboard/DashboardCards.jsx",
+  "components/inspections/DamageCard.jsx",
+  "components/manager/Tables.jsx",
+  "components/valet/VehicleTable.jsx",
+  "layouts/MainLayout.jsx",
+  "pages/AlertsPage.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/TicketListPage.jsx"
+ ],
+ "===": [
+  "pages/TicketListPage.jsx"
+ ],
+ ">": [
+  "components/manager/Tables.jsx"
+ ],
+ "?": [
+  "components/dashboard/DashboardCards.jsx",
+  "components/inspections/DamageCard.jsx",
+  "components/manager/Tables.jsx",
+  "components/valet/VehicleTable.jsx",
+  "layouts/MainLayout.jsx",
+  "pages/AlertsPage.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/TicketListPage.jsx"
+ ],
+ "??": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "alert-actions": [
+  "pages/AlertsPage.jsx"
+ ],
+ "alert-banner": [
+  "components/ui/index.jsx"
+ ],
+ "alert-banner__body": [
+  "components/ui/index.jsx"
+ ],
+ "alert-banner__figures": [
+  "pages/CustomerDashboardPage.jsx"
+ ],
+ "alert-banner__title": [
+  "components/ui/index.jsx"
+ ],
+ "alert-card": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__actions": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__badges": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__evidence": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__evidence-body": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__head": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__meta": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__notes": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__reason": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__resolve": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-card__titles": [
+  "components/tracking/AlertCard.jsx"
+ ],
+ "alert-list": [
+  "pages/TrackingPage.jsx"
+ ],
+ "alert-unread-dot": [
+  "pages/AlertsPage.jsx"
+ ],
+ "audit": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__action": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__cell-time": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__detail": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__empty": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__filter-actions": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__filters": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__header": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__lede": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__lifecycle-flag": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__mode-switch": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__pager": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__row": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__table": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__table-wrap": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "audit__timeline-picker": [
+  "pages/AuditLogPage.jsx"
+ ],
+ "auth-page": [
+  "pages/LoginPage.jsx",
+  "pages/RegisterPage.jsx"
+ ],
+ "auth-page__form": [
+  "pages/LoginPage.jsx",
+  "pages/RegisterPage.jsx"
+ ],
+ "auth-page__intro": [
+  "pages/LoginPage.jsx",
+  "pages/RegisterPage.jsx"
+ ],
+ "auth-page__note": [
+  "pages/LoginPage.jsx",
+  "pages/RegisterPage.jsx"
+ ],
+ "auth-page__panel": [
+  "pages/LoginPage.jsx",
+  "pages/RegisterPage.jsx"
+ ],
+ "badge": [
+  "pages/CheckInPage.jsx",
+  "routes/index.jsx"
+ ],
+ "badge--danger": [
+  "pages/CheckInPage.jsx"
+ ],
+ "badge--muted": [
+  "routes/index.jsx"
+ ],
+ "bell": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__button": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__count": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__empty": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__foot": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__head": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__item": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__item-button": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__item-message": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__item-time": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__item-top": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__item-type": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__item-vehicle": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__list": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__mode": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "bell__panel": [
+  "components/alerts/NotificationBell.jsx"
+ ],
+ "brand": [
+  "layouts/MainLayout.jsx"
+ ],
+ "brand__text": [
+  "layouts/MainLayout.jsx"
+ ],
+ "btn": [
+  "components/alerts/NotificationBell.jsx",
+  "components/inspections/DamageCard.jsx",
+  "components/manager/Tables.jsx",
+  "components/retrieval/RetrievalEstimateCard.jsx",
+  "components/tracking/AlertCard.jsx",
+  "components/ui/index.jsx",
+  "components/valet/Sections.jsx",
+  "components/vehicles/VehicleForm.jsx",
+  "layouts/MainLayout.jsx",
+  "pages/AlertsPage.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/CustomerDashboardPage.jsx",
+  "pages/InspectionCapturePage.jsx",
+  "pages/LoginPage.jsx",
+  "pages/ManagerDashboardPage.jsx",
+  "pages/NotFoundPage.jsx",
+  "pages/RegisterPage.jsx",
+  "pages/SystemStatusPage.jsx",
+  "pages/TicketDetailPage.jsx",
+  "pages/TicketListPage.jsx",
+  "pages/TrackingPage.jsx",
+  "pages/ValetDashboardPage.jsx",
+  "pages/VehicleDetailPage.jsx",
+  "pages/VehicleListPage.jsx",
+  "routes/RequireRole.jsx"
+ ],
+ "btn--block": [
+  "pages/CheckInPage.jsx",
+  "pages/LoginPage.jsx",
+  "pages/RegisterPage.jsx"
+ ],
+ "btn--danger": [
+  "components/inspections/DamageCard.jsx",
+  "pages/TicketDetailPage.jsx",
+  "pages/VehicleDetailPage.jsx"
+ ],
+ "btn--ghost": [
+  "components/alerts/NotificationBell.jsx",
+  "components/inspections/DamageCard.jsx",
+  "components/manager/Tables.jsx",
+  "components/tracking/AlertCard.jsx",
+  "components/ui/index.jsx",
+  "components/valet/Sections.jsx",
+  "components/vehicles/VehicleForm.jsx",
+  "layouts/MainLayout.jsx",
+  "pages/AlertsPage.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/CustomerDashboardPage.jsx",
+  "pages/InspectionCapturePage.jsx",
+  "pages/ManagerDashboardPage.jsx",
+  "pages/SystemStatusPage.jsx",
+  "pages/TicketDetailPage.jsx",
+  "pages/TrackingPage.jsx",
+  "pages/ValetDashboardPage.jsx",
+  "pages/VehicleDetailPage.jsx"
+ ],
+ "btn--lg": [
+  "pages/CustomerDashboardPage.jsx"
+ ],
+ "btn--primary": [
+  "components/tracking/AlertCard.jsx",
+  "components/vehicles/VehicleForm.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/CustomerDashboardPage.jsx",
+  "pages/InspectionCapturePage.jsx",
+  "pages/LoginPage.jsx",
+  "pages/RegisterPage.jsx",
+  "pages/TicketDetailPage.jsx",
+  "pages/TrackingPage.jsx",
+  "pages/VehicleListPage.jsx"
+ ],
+ "btn--secondary": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "btn--sm": [
+  "components/alerts/NotificationBell.jsx",
+  "components/ui/index.jsx",
+  "components/valet/Sections.jsx",
+  "pages/AlertsPage.jsx",
+  "pages/ManagerDashboardPage.jsx",
+  "pages/ValetDashboardPage.jsx"
+ ],
+ "btn--small": [
+  "components/tracking/AlertCard.jsx",
+  "pages/TrackingPage.jsx"
+ ],
+ "btn-row": [
+  "components/vehicles/VehicleForm.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/CustomerDashboardPage.jsx",
+  "pages/TicketDetailPage.jsx",
+  "pages/TicketListPage.jsx",
+  "pages/VehicleDetailPage.jsx",
+  "pages/VehicleListPage.jsx"
+ ],
+ "chart": [
+  "components/manager/Charts.jsx"
+ ],
+ "chart-grid": [
+  "pages/ManagerDashboardPage.jsx"
+ ],
+ "chart__head": [
+  "components/manager/Charts.jsx"
+ ],
+ "chart__insufficient": [
+  "components/manager/Charts.jsx"
+ ],
+ "chart__note": [
+  "components/manager/Charts.jsx"
+ ],
+ "chart__plot": [
+  "components/manager/Charts.jsx"
+ ],
+ "chart__stats": [
+  "components/manager/Charts.jsx"
+ ],
+ "comparison": [
+  "pages/ConditionReportPage.jsx"
+ ],
+ "comparison__image": [
+  "pages/ConditionReportPage.jsx"
+ ],
+ "comparison__meta": [
+  "pages/ConditionReportPage.jsx"
+ ],
+ "comparison__warnings": [
+  "pages/ConditionReportPage.jsx",
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "content": [
+  "layouts/MainLayout.jsx"
+ ],
+ "dash-card": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__big": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__empty": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__head": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__headline": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__interval": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__label": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__list": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__muted": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__notice": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__provenance": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__row": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__summary": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__unit": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-card__value--mono'": [
+  "components/dashboard/DashboardCards.jsx"
+ ],
+ "dash-empty": [
+  "pages/CustomerDashboardPage.jsx"
+ ],
+ "dash-footnote": [
+  "pages/AlertsPage.jsx",
+  "pages/CustomerDashboardPage.jsx",
+  "pages/ManagerDashboardPage.jsx",
+  "pages/ValetDashboardPage.jsx"
+ ],
+ "dash-grid": [
+  "pages/CustomerDashboardPage.jsx"
+ ],
+ "dash-request": [
+  "pages/CustomerDashboardPage.jsx"
+ ],
+ "data-list": [
+  "components/tickets/TicketCard.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/SystemStatusPage.jsx",
+  "pages/TicketDetailPage.jsx",
+  "pages/VehicleDetailPage.jsx"
+ ],
+ "data-row": [
+  "components/ui/index.jsx"
+ ],
+ "dialog": [
+  "components/ui/index.jsx"
+ ],
+ "dialog__actions": [
+  "components/ui/index.jsx"
+ ],
+ "dialog__backdrop": [
+  "components/ui/index.jsx"
+ ],
+ "dialog__body": [
+  "components/ui/index.jsx"
+ ],
+ "dialog__fact": [
+  "pages/ValetDashboardPage.jsx"
+ ],
+ "dialog__note": [
+  "pages/ValetDashboardPage.jsx"
+ ],
+ "dialog__title": [
+  "components/ui/index.jsx"
+ ],
+ "error-text": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "field": [
+  "components/ui/index.jsx",
+  "pages/AlertsPage.jsx",
+  "pages/TrackingPage.jsx"
+ ],
+ "field__error": [
+  "components/ui/index.jsx"
+ ],
+ "field__hint": [
+  "components/ui/index.jsx",
+  "pages/TrackingPage.jsx"
+ ],
+ "field__label": [
+  "components/ui/index.jsx",
+  "pages/TrackingPage.jsx"
+ ],
+ "filter-bar": [
+  "components/manager/Tables.jsx",
+  "pages/AlertsPage.jsx"
+ ],
+ "filter-bar__check": [
+  "pages/AlertsPage.jsx"
+ ],
+ "filter-bar__field": [
+  "components/manager/Tables.jsx",
+  "pages/AlertsPage.jsx"
+ ],
+ "filter-bar__field--wide": [
+  "components/manager/Tables.jsx"
+ ],
+ "filter.value": [
+  "pages/TicketListPage.jsx"
+ ],
+ "finding": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__badges": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__caveat": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__flag": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__header": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__images": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__metric-label": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__metrics": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__notes": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__reasoning": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__stats": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__title": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__verify": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__verify-actions": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "finding__where": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "findings": [
+  "pages/ConditionReportPage.jsx",
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "footer": [
+  "layouts/MainLayout.jsx"
+ ],
+ "form-row": [
+  "pages/TrackingPage.jsx"
+ ],
+ "grid": [
+  "components/vehicles/VehicleForm.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/SystemStatusPage.jsx",
+  "pages/TicketDetailPage.jsx"
+ ],
+ "grid--2": [
+  "components/vehicles/VehicleForm.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/SystemStatusPage.jsx",
+  "pages/TicketDetailPage.jsx"
+ ],
+ "meter": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "meter__fill": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "meter__track": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "meter__value": [
+  "components/inspections/DamageCard.jsx"
+ ],
+ "metric-card": [
+  "pages/ManagerDashboardPage.jsx"
+ ],
+ "metric-card__label": [
+  "pages/ManagerDashboardPage.jsx"
+ ],
+ "metric-card__note": [
+  "pages/ManagerDashboardPage.jsx"
+ ],
+ "metric-card__scope": [
+  "pages/ManagerDashboardPage.jsx"
+ ],
+ "metric-card__value": [
+  "pages/ManagerDashboardPage.jsx"
+ ],
+ "metric-grid": [
+  "pages/ManagerDashboardPage.jsx"
+ ],
+ "mgr-table": [
+  "components/manager/Tables.jsx",
+  "pages/AlertsPage.jsx"
+ ],
+ "mgr-table--7": [
+  "components/manager/Tables.jsx",
+  "pages/AlertsPage.jsx"
+ ],
+ "mgr-table__muted": [
+  "components/manager/Tables.jsx",
+  "pages/AlertsPage.jsx"
+ ],
+ "mgr-table__row": [
+  "components/manager/Tables.jsx",
+  "pages/AlertsPage.jsx"
+ ],
+ "mgr-table__row--head": [
+  "components/manager/Tables.jsx",
+  "pages/AlertsPage.jsx"
+ ],
+ "ml-panel__matrix": [
+  "components/tracking/SecurityModelPanel.jsx"
+ ],
+ "ml-panel__matrix-table": [
+  "components/tracking/SecurityModelPanel.jsx"
+ ],
+ "ml-panel__meta": [
+  "components/tracking/SecurityModelPanel.jsx"
+ ],
+ "ml-panel__metrics": [
+  "components/tracking/SecurityModelPanel.jsx"
+ ],
+ "ml-panel__notice": [
+  "components/tracking/SecurityModelPanel.jsx"
+ ],
+ "ml-verdict": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict--absent": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__disagreement": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__escalation": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__factor-name": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__factors": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__footer": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__head": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__notice": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__probability": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__reason": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "ml-verdict__version": [
+  "components/tracking/MlVerdictCard.jsx"
+ ],
+ "mono": [
+  "components/audit/CustodyTimeline.jsx",
+  "components/manager/Tables.jsx",
+  "components/tickets/TicketCard.jsx",
+  "components/tracking/AlertCard.jsx",
+  "components/tracking/MlVerdictCard.jsx",
+  "components/tracking/SecurityModelPanel.jsx",
+  "components/ui/index.jsx",
+  "components/valet/VehicleTable.jsx",
+  "pages/AuditLogPage.jsx",
+  "pages/LoginPage.jsx",
+  "pages/TicketListPage.jsx",
+  "pages/TrackingPage.jsx",
+  "pages/VehicleDetailPage.jsx"
+ ],
+ "muted": [
+  "components/inspections/DamageCard.jsx",
+  "components/retrieval/RetrievalEstimateCard.jsx",
+  "components/tickets/TicketCard.jsx",
+  "components/tracking/AlertCard.jsx",
+  "components/tracking/MlVerdictCard.jsx",
+  "components/tracking/SecurityModelPanel.jsx",
+  "components/tracking/TrackingMap.jsx",
+  "components/ui/index.jsx",
+  "components/valet/Sections.jsx",
+  "layouts/MainLayout.jsx",
+  "pages/AlertsPage.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/ConditionReportPage.jsx",
+  "pages/CustomerDashboardPage.jsx",
+  "pages/InspectionCapturePage.jsx",
+  "pages/LoginPage.jsx",
+  "pages/ManagerDashboardPage.jsx",
+  "pages/NotFoundPage.jsx",
+  "pages/RegisterPage.jsx",
+  "pages/SystemStatusPage.jsx",
+  "pages/TicketDetailPage.jsx",
+  "pages/TicketListPage.jsx",
+  "pages/TrackingPage.jsx",
+  "pages/ValetDashboardPage.jsx",
+  "pages/VehicleDetailPage.jsx",
+  "pages/VehicleListPage.jsx",
+  "pages/VehicleRegisterPage.jsx",
+  "routes/index.jsx"
+ ],
+ "nav": [
+  "layouts/MainLayout.jsx"
+ ],
+ "nav__icon": [
+  "layouts/MainLayout.jsx"
+ ],
+ "nav__soon": [
+  "layouts/MainLayout.jsx"
+ ],
+ "notice": [
+  "components/ui/index.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/LoginPage.jsx",
+  "pages/SystemStatusPage.jsx",
+  "pages/TrackingPage.jsx",
+  "pages/VehicleDetailPage.jsx"
+ ],
+ "notice--error": [
+  "components/ui/index.jsx",
+  "pages/SystemStatusPage.jsx"
+ ],
+ "notice--info": [
+  "pages/TrackingPage.jsx",
+  "pages/VehicleDetailPage.jsx"
+ ],
+ "notice--inline": [
+  "pages/TrackingPage.jsx"
+ ],
+ "notice--warning": [
+  "pages/CheckInPage.jsx",
+  "pages/LoginPage.jsx",
+  "pages/TrackingPage.jsx"
+ ],
+ "page": [
+  "pages/AlertsPage.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/CustomerDashboardPage.jsx",
+  "pages/ManagerDashboardPage.jsx",
+  "pages/NotFoundPage.jsx",
+  "pages/SystemStatusPage.jsx",
+  "pages/TicketDetailPage.jsx",
+  "pages/TicketListPage.jsx",
+  "pages/TrackingPage.jsx",
+  "pages/ValetDashboardPage.jsx",
+  "pages/VehicleDetailPage.jsx",
+  "pages/VehicleListPage.jsx",
+  "pages/VehicleRegisterPage.jsx"
+ ],
+ "page__actions": [
+  "pages/AlertsPage.jsx",
+  "pages/ManagerDashboardPage.jsx",
+  "pages/ValetDashboardPage.jsx"
+ ],
+ "page__footnote": [
+  "pages/TrackingPage.jsx"
+ ],
+ "page__header": [
+  "pages/AlertsPage.jsx",
+  "pages/CheckInPage.jsx",
+  "pages/CustomerDashboardPage.jsx",
+  "pages/ManagerDashboardPage.jsx",
+  "pages/SystemStatusPage.jsx",
+  "pages/TicketDetailPage.jsx",
+  "pages/TicketListPage.jsx",
+  "pages/TrackingPage.jsx",
+  "pages/ValetDashboardPage.jsx",
+  "pages/VehicleDetailPage.jsx",
+  "pages/VehicleListPage.jsx",
+  "pages/VehicleRegisterPage.jsx"
+ ],
+ "panel": [
+  "routes/RequireRole.jsx",
+  "routes/index.jsx"
+ ],
+ "panel--alert": [
+  "routes/RequireRole.jsx"
+ ],
+ "panel__actions": [
+  "components/ui/index.jsx",
+  "pages/ConditionReportPage.jsx"
+ ],
+ "panel__body": [
+  "components/ui/index.jsx"
+ ],
+ "panel__header": [
+  "components/ui/index.jsx",
+  "routes/RequireRole.jsx",
+  "routes/index.jsx"
+ ],
+ "panel__subtitle": [
+  "components/ui/index.jsx"
+ ],
+ "photo-card": [
+  "pages/CheckInPage.jsx"
+ ],
+ "photo-card__label": [
+  "pages/CheckInPage.jsx"
+ ],
+ "photo-grid": [
+  "pages/CheckInPage.jsx",
+  "pages/ConditionReportPage.jsx",
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "photo-grid__wide": [
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "pick-list": [
+  "pages/CheckInPage.jsx"
+ ],
+ "picker-list": [
+  "pages/TrackingPage.jsx"
+ ],
+ "picker-list__link": [
+  "pages/TrackingPage.jsx"
+ ],
+ "pickup-upload": [
+  "pages/ValetDashboardPage.jsx"
+ ],
+ "pickup-upload__angle": [
+  "pages/ValetDashboardPage.jsx"
+ ],
+ "pickup-upload__angles": [
+  "pages/ValetDashboardPage.jsx"
+ ],
+ "pickup-upload__row": [
+  "pages/ValetDashboardPage.jsx"
+ ],
+ "prose-list": [
+  "pages/LoginPage.jsx",
+  "pages/RegisterPage.jsx",
+  "pages/SystemStatusPage.jsx"
+ ],
+ "prose-list--tight": [
+  "pages/LoginPage.jsx",
+  "pages/RegisterPage.jsx"
+ ],
+ "queued-photo": [
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "queued-photo__controls": [
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "queued-photos": [
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "region-bars": [
+  "components/manager/Charts.jsx"
+ ],
+ "region-bars__count": [
+  "components/manager/Charts.jsx"
+ ],
+ "region-bars__fill": [
+  "components/manager/Charts.jsx"
+ ],
+ "region-bars__label": [
+  "components/manager/Charts.jsx"
+ ],
+ "region-bars__track": [
+  "components/manager/Charts.jsx"
+ ],
+ "report__disclaimer": [
+  "pages/ConditionReportPage.jsx",
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "report__identity": [
+  "pages/ConditionReportPage.jsx"
+ ],
+ "report__incomplete": [
+  "pages/ConditionReportPage.jsx"
+ ],
+ "report__stages": [
+  "pages/ConditionReportPage.jsx"
+ ],
+ "report__unmatched": [
+  "pages/ConditionReportPage.jsx",
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "retrieval-card": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card--absent": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card--loading": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__basis": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__factor-name": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__factor-value": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__factors": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__figure": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__figure--primary": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__figures": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__head": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__interval": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__meta": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__notice": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "retrieval-card__reason": [
+  "components/retrieval/RetrievalEstimateCard.jsx"
+ ],
+ "section__count": [
+  "components/valet/SectionShell.jsx"
+ ],
+ "section__empty": [
+  "components/manager/Tables.jsx",
+  "components/valet/SectionShell.jsx",
+  "components/valet/VehicleTable.jsx",
+  "pages/AlertsPage.jsx"
+ ],
+ "section__fault": [
+  "components/valet/SectionShell.jsx"
+ ],
+ "segmented": [
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "shell": [
+  "layouts/MainLayout.jsx"
+ ],
+ "shell__main": [
+  "layouts/MainLayout.jsx"
+ ],
+ "shell__sidebar": [
+  "layouts/MainLayout.jsx"
+ ],
+ "shell__sidebar-footer": [
+  "layouts/MainLayout.jsx"
+ ],
+ "spinner": [
+  "components/ui/index.jsx"
+ ],
+ "spinner-wrap": [
+  "components/ui/index.jsx"
+ ],
+ "stack": [
+  "pages/ConditionReportPage.jsx",
+  "pages/InspectionCapturePage.jsx"
+ ],
+ "status-counts": [
+  "pages/TrackingPage.jsx"
+ ],
+ "status-counts__item": [
+  "pages/TrackingPage.jsx"
+ ],
+ "status-counts__label": [
+  "pages/TrackingPage.jsx"
+ ],
+ "status-counts__value": [
+  "pages/TrackingPage.jsx"
+ ],
+ "table": [
+  "pages/TicketListPage.jsx",
+  "pages/VehicleDetailPage.jsx",
+  "pages/VehicleListPage.jsx"
+ ],
+ "table__link": [
+  "pages/TicketListPage.jsx",
+  "pages/VehicleDetailPage.jsx",
+  "pages/VehicleListPage.jsx"
+ ],
+ "ticket": [
+  "components/tickets/TicketCard.jsx"
+ ],
+ "ticket__body": [
+  "components/tickets/TicketCard.jsx"
+ ],
+ "ticket__code": [
+  "components/tickets/TicketCard.jsx"
+ ],
+ "ticket__head": [
+  "components/tickets/TicketCard.jsx"
+ ],
+ "ticket__plate": [
+  "pages/CheckInPage.jsx",
+  "pages/TicketListPage.jsx",
+  "pages/VehicleDetailPage.jsx",
+  "pages/VehicleListPage.jsx"
+ ],
+ "ticket__qr": [
+  "components/tickets/TicketCard.jsx"
+ ],
+ "timeline": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__action": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__body": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__dot": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__failure": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__gutter": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__head": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__meta": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__metadata": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__scope": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__summary": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-event__time": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-progress": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-progress__action": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-progress__heading": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-progress__list": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline-progress__note": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline__empty": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline__events": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline__facts": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline__incident": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "timeline__scope-note": [
+  "components/audit/CustodyTimeline.jsx"
+ ],
+ "topbar": [
+  "layouts/MainLayout.jsx"
+ ],
+ "topbar__identity": [
+  "layouts/MainLayout.jsx"
+ ],
+ "topbar__title": [
+  "layouts/MainLayout.jsx"
+ ],
+ "topbar__toggle": [
+  "layouts/MainLayout.jsx"
+ ],
+ "topbar__user": [
+  "layouts/MainLayout.jsx"
+ ],
+ "tracking-layout": [
+  "pages/TrackingPage.jsx"
+ ],
+ "tracking-layout__note": [
+  "pages/TrackingPage.jsx"
+ ],
+ "tracking-layout__side": [
+  "pages/TrackingPage.jsx"
+ ],
+ "tracking-map": [
+  "components/tracking/TrackingMap.jsx"
+ ],
+ "tracking-map--empty": [
+  "components/tracking/TrackingMap.jsx"
+ ],
+ "valet-alerts": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-alerts__actions": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-alerts__body": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-alerts__head": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-alerts__item": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-alerts__meta": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-alerts__reason": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-table": [
+  "components/valet/Sections.jsx",
+  "components/valet/VehicleTable.jsx"
+ ],
+ "valet-table__actions": [
+  "components/valet/VehicleTable.jsx"
+ ],
+ "valet-table__gps": [
+  "components/valet/VehicleTable.jsx"
+ ],
+ "valet-table__muted": [
+  "components/valet/Sections.jsx",
+  "components/valet/VehicleTable.jsx"
+ ],
+ "valet-table__position": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-table__row": [
+  "components/valet/Sections.jsx",
+  "components/valet/VehicleTable.jsx"
+ ],
+ "valet-table__row--head": [
+  "components/valet/Sections.jsx",
+  "components/valet/VehicleTable.jsx"
+ ],
+ "valet-table__vehicle": [
+  "components/valet/VehicleTable.jsx"
+ ],
+ "valet-zones": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-zones__bar": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-zones__fill": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-zones__head": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-zones__item": [
+  "components/valet/Sections.jsx"
+ ],
+ "valet-zones__meta": [
+  "components/valet/Sections.jsx"
+ ],
+ "wizard": [
+  "pages/CheckInPage.jsx"
+ ],
+ "wizard__step": [
+  "pages/CheckInPage.jsx"
+ ],
+ "wizard__steps": [
+  "pages/CheckInPage.jsx"
+ ],
+ "||": [
+  "components/audit/CustodyTimeline.jsx"
+ ]
+}
