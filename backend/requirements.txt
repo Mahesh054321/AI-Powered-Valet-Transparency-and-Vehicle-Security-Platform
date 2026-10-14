@@ -1,0 +1,54 @@
+# ==============================================================================
+#  Runtime dependencies - AI-Powered Valet Transparency Platform (backend)
+#
+#  Versions below were resolved and verified working together on Python 3.13.
+#  On Python 3.10-3.12 these same pins also install cleanly.
+#
+#  Install:
+#      python -m venv .venv
+#      .venv\Scripts\activate            (Windows)
+#      pip install -r requirements.txt
+#
+#  NOTE ON OPENCV:
+#  We pin `opencv-python-headless` rather than `opencv-python`. It is the same
+#  OpenCV build without the GUI/windowing layer (no cv2.imshow), which is what a
+#  server needs: fewer system dependencies and no libGL problems on Linux/CI.
+#  If you want to view windows while experimenting, swap in `opencv-python`.
+# ==============================================================================
+
+# --- Web framework / API ---
+Flask==3.1.3
+flask-cors==6.0.5
+Werkzeug==3.1.8
+
+# --- Database (PostgreSQL) ---
+SQLAlchemy==2.0.52
+Flask-SQLAlchemy==3.1.1
+psycopg2-binary==2.9.12
+alembic==1.19.2
+
+# --- Configuration & secrets ---
+python-dotenv==1.2.3
+
+# --- Authentication ---
+PyJWT==2.13.0
+
+# --- Computer vision / AI ---
+opencv-python-headless==4.11.0.86
+numpy==2.3.5
+Pillow==12.3.0
+scikit-image==0.25.2
+scikit-learn==1.6.1
+# Imported directly by `ai/ml/model.py` to persist a random-forest artifact.
+# scikit-learn pulls it in transitively, but a direct import deserves a direct
+# pin: an unpinned transitive dependency can change the pickle format underneath
+# a saved model.
+joblib==1.5.3
+pandas==2.2.3
+
+# --- QR codes (digital valet ticket) ---
+qrcode==8.2
+
+# --- Server (optional, non-Windows deployments) ---
+gunicorn==23.0.0; sys_platform != "win32"
+waitress==3.0.2; sys_platform == "win32"

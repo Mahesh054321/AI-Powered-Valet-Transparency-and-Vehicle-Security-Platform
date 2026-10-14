@@ -1,0 +1,215 @@
+{
+  "PATCH /inspections/detections/<id>/verification": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "CONFLICT",
+        "details": {
+          "constraint": "ck_vehicle_inspections_review_after_capture"
+        },
+        "message": "The request conflicts with existing data."
+      },
+      "meta": {
+        "request_id": "66b77f2da1ae4203b706e51251da5d77",
+        "server_time": 1789226586.4472487
+      },
+      "success": false
+    }
+  },
+  "ERR verification by operator (403)": {
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "AUTHORIZATION_ERROR",
+        "details": {
+          "required": [
+            "VALET_MANAGER",
+            "ADMIN"
+          ],
+          "role": "VALET_OPERATOR"
+        },
+        "message": "Only a manager or administrator can verify a damage finding; 'VALET_OPERATOR' cannot. Verification is deliberately restricted so the person who photographed the vehicle is not the only one judging the algorithm's output."
+      },
+      "meta": {
+        "request_id": "25e4a6f2a31a4937b08f080b601733c3",
+        "server_time": 1789226586.453783
+      },
+      "success": false
+    }
+  },
+  "POST /feed": {
+    "status": 201,
+    "body": {
+      "data": {
+        "alert_id": "8c903c41-a1ba-4c83-bdfa-c6a7c1ea7617",
+        "audiences": [
+          "CUSTOMER",
+          "VALET_MANAGER"
+        ],
+        "created_at": "2026-09-12T15:23:06.461154+00:00",
+        "custody_id": null,
+        "is_open": true,
+        "is_read": false,
+        "message": "Documentation probe alert (shapes pass).",
+        "read_at": null,
+        "resolution_notes": null,
+        "resolved_at": null,
+        "resolved_by": null,
+        "severity": "LOW",
+        "source": {
+          "entity_type": null,
+          "id": null,
+          "type": null
+        },
+        "status": "OPEN",
+        "type": "RETRIEVAL_READY",
+        "vehicle": null,
+        "vehicle_id": null
+      },
+      "meta": {
+        "request_id": "14abf3c753954f60ab81f27db223964f",
+        "server_time": 1789226586.4706626
+      },
+      "success": true
+    }
+  },
+  "GET /feed/<id>": {
+    "status": 200,
+    "body": {
+      "data": {
+        "alert_id": "8c903c41-a1ba-4c83-bdfa-c6a7c1ea7617",
+        "audiences": [
+          "CUSTOMER",
+          "VALET_MANAGER"
+        ],
+        "created_at": "2026-09-12T15:23:06.461154+00:00",
+        "custody_id": null,
+        "is_open": true,
+        "is_read": false,
+        "message": "Documentation probe alert (shapes pass).",
+        "read_at": null,
+        "resolution_notes": null,
+        "resolved_at": null,
+        "resolved_by": null,
+        "severity": "LOW",
+        "source": {
+          "entity_type": null,
+          "id": null,
+          "type": null
+        },
+        "status": "OPEN",
+        "type": "RETRIEVAL_READY",
+        "vehicle": null,
+        "vehicle_id": null
+      },
+      "meta": {
+        "request_id": "2bcc33c23d294e08a4c238971887cdd8",
+        "server_time": 1789226586.4819002
+      },
+      "success": true
+    }
+  },
+  "POST /feed/<id>/read": {
+    "status": 200,
+    "body": {
+      "data": {
+        "alert_id": "8c903c41-a1ba-4c83-bdfa-c6a7c1ea7617",
+        "already_read": false,
+        "is_read": true
+      },
+      "meta": {
+        "request_id": "5a0fe94b39ac4d46962c44d369a6057c",
+        "server_time": 1789226586.4951458
+      },
+      "success": true
+    }
+  },
+  "POST /feed/read-all": {
+    "status": 200,
+    "body": {
+      "data": {
+        "marked_read": 5
+      },
+      "meta": {
+        "request_id": "1d81464a49d94cf4baa965a117fd6245",
+        "server_time": 1789226586.513575
+      },
+      "success": true
+    }
+  },
+  "ERR feed resolve by customer (403)": {
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "AUTHORIZATION_ERROR",
+        "details": {
+          "required": [
+            "VALET_MANAGER",
+            "ADMIN"
+          ],
+          "role": "CUSTOMER"
+        },
+        "message": "Only a manager or administrator may close an alert."
+      },
+      "meta": {
+        "request_id": "f9fbc32f14b54e629ac8e6784dc54653",
+        "server_time": 1789226586.5183568
+      },
+      "success": false
+    }
+  },
+  "POST /feed/<id>/resolve": {
+    "status": 200,
+    "body": {
+      "data": {
+        "alert_id": "8c903c41-a1ba-4c83-bdfa-c6a7c1ea7617",
+        "audiences": [
+          "CUSTOMER",
+          "VALET_MANAGER"
+        ],
+        "created_at": "2026-09-12T15:23:06.461154+00:00",
+        "custody_id": null,
+        "is_open": false,
+        "is_read": true,
+        "message": "Documentation probe alert (shapes pass).",
+        "read_at": "2026-09-12T15:23:06.485763+00:00",
+        "resolution_notes": "Closed during documentation pass.",
+        "resolved_at": "2026-09-12T15:23:06.524960+00:00",
+        "resolved_by": "manager.karan@example.com",
+        "severity": "LOW",
+        "source": {
+          "entity_type": null,
+          "id": null,
+          "type": null
+        },
+        "status": "RESOLVED",
+        "type": "RETRIEVAL_READY",
+        "vehicle": null,
+        "vehicle_id": null
+      },
+      "meta": {
+        "request_id": "37998ca93c4e4ba3b0bde01294428907",
+        "server_time": 1789226586.5305073
+      },
+      "success": true
+    }
+  },
+  "POST /feed/<id>/resolve (dismiss)": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "CONFLICT",
+        "details": {
+          "alert_id": "8c903c41-a1ba-4c83-bdfa-c6a7c1ea7617",
+          "status": "RESOLVED"
+        },
+        "message": "This alert is already resolved."
+      },
+      "meta": {
+        "request_id": "5eaa50b23c8445d8bd768ce688db978a",
+        "server_time": 1789226586.536687
+      },
+      "success": false
+    }
+  }
+}
