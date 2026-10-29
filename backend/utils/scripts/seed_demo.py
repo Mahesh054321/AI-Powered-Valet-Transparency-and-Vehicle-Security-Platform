@@ -98,9 +98,12 @@ def verify(app) -> tuple[dict[str, int], list[str]]:
         if unlabelled_gps:
             problems.append(f"{unlabelled_gps} GPS fix(es) not labelled SIMULATED")
 
-        hardware = _scalar("SELECT count(*) FROM gps_events WHERE source = 'HARDWARE'")
+        hardware = _scalar(
+            "SELECT count(*) FROM gps_events "
+            "WHERE source IN ('HARDWARE', 'VEHICLE_GPS', 'CAR_GPS', 'REAL_GPS')"
+        )
         if hardware:
-            problems.append(f"{hardware} GPS fix(es) claim HARDWARE provenance")
+            problems.append(f"{hardware} GPS fix(es) claim real hardware provenance")
 
         normal = _scalar("SELECT count(*) FROM gps_events WHERE movement_status = 'NORMAL'")
         flagged = _scalar(

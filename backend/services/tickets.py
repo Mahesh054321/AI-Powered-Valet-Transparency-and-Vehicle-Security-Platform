@@ -98,22 +98,16 @@ ALLOWED_CUSTODY_TRANSITIONS: dict[str, tuple[str, ...]] = {
     CustodyStatus.PARKED: (
         CustodyStatus.IN_TRANSIT,
         CustodyStatus.RETRIEVAL_REQUESTED,
-        CustodyStatus.READY_FOR_PICKUP,
     ),
     CustodyStatus.IN_TRANSIT: (
         CustodyStatus.PARKED,
-        CustodyStatus.RETRIEVAL_IN_PROGRESS,
-        CustodyStatus.READY_FOR_PICKUP,
+        CustodyStatus.RETRIEVAL_REQUESTED,
     ),
     CustodyStatus.RETRIEVAL_REQUESTED: (
         CustodyStatus.RETRIEVAL_IN_PROGRESS,
-        CustodyStatus.READY_FOR_PICKUP,
     ),
     CustodyStatus.RETRIEVAL_IN_PROGRESS: (CustodyStatus.READY_FOR_PICKUP,),
-    CustodyStatus.READY_FOR_PICKUP: (
-        CustodyStatus.RETRIEVAL_IN_PROGRESS,
-        CustodyStatus.CHECKED_OUT,
-    ),
+    CustodyStatus.READY_FOR_PICKUP: (),
     CustodyStatus.DISPUTED: (CustodyStatus.CHECKED_OUT,),
     CustodyStatus.CHECKED_OUT: (),
 }
@@ -643,9 +637,33 @@ def check_in(
 # Custody status
 # ---------------------------------------------------------------------------
 def get_custody_session(actor: AuthContext, session_id: uuid.UUID | str) -> CustodySession:
-    session = db.session.get(
-        CustodySession, validate_uuid(session_id, field="session_id")
-    )
+    session = None
+    try:
+        session = db.session.get(
+            CustodySession, validate_uuid(session_id, field="session_id")
+        )
+    except ValidationError:
+        pass
+
+    if session is None:
+        # Check if session_id is a ticket id or ticket code
+        ticket = None
+        try:
+            ticket = db.session.get(ValetTicket, uuid.UUID(str(session_id)))
+        except (ValueError, TypeError):
+            pass
+        if ticket is None:
+            ticket = db.session.execute(
+                select(ValetTicket).where(ValetTicket.ticket_code == str(session_id))
+            ).scalars().first()
+        if ticket is not None:
+            session = db.session.execute(
+                select(CustodySession)
+                .where(CustodySession.ticket_id == ticket.id)
+                .order_by(CustodySession.dropped_off_at.desc())
+                .limit(1)
+            ).scalars().first()
+
     if session is None:
         raise NotFoundError(
             "No custody session was found with that id.", details={"session_id": str(session_id)}
@@ -667,6 +685,7 @@ def update_custody_status(
     requested_status: Any,
     *,
     actor_user: User | None = None,
+    commit: bool = True,
 ) -> CustodySession:
     """Move a custody session to a new state, refusing illegal jumps.
 
@@ -740,7 +759,8 @@ def update_custody_status(
     if target == CustodyStatus.READY_FOR_PICKUP.value:
         _publish_retrieval_ready(session, actor=actor)
 
-    db.session.commit()
+    if commit:
+        db.session.commit()
     return session
 
 
@@ -789,7 +809,21 @@ def complete_ticket(
             "Check the vehicle in first.",
             details={"ticket_id": str(ticket.id)},
         )
+    if (
+        session.status == CustodyStatus.DISPUTED.value
+        and actor.role not in (Role.VALET_MANAGER.value, Role.ADMIN.value)
+    ):
+        raise AuthorizationError(
+            "Only a manager or administrator may complete custody "
+            "while a condition dispute is open.",
+            details={
+                "role": actor.role,
+                "required": [Role.VALET_MANAGER.value, Role.ADMIN.value],
+                "custody_session_id": str(session.id),
+            },
+        )
 
+    was_disputed = session.status == CustodyStatus.DISPUTED.value
     vehicle = db.session.get(Vehicle, ticket.vehicle_id)
     now = _now()
 
@@ -861,14 +895,31 @@ def complete_ticket(
             "status": ticket.status,
             "mileage_driven": mileage,
             "condition_accepted": condition_accepted,
+            "condition_notes": condition_notes,
         },
         metadata={
             "ticket_code": ticket.ticket_code,
             "odometer_at_pickup": odometer,
             "mileage_driven": mileage,
             "condition_accepted": condition_accepted,
+            "condition_notes": condition_notes,
         },
     )
+    if was_disputed:
+        _audit(
+            action=AuditAction.STATUS_CHANGE,
+            outcome=AuditOutcome.SUCCESS,
+            entity_type="custody_sessions",
+            entity_id=session.id,
+            description=f"Manager resolved condition dispute for custody {session.id}",
+            actor=actor_user,
+            actor_context=actor,
+            custody_session_id=session.id,
+            new_values={
+                "status": session.status,
+                "resolution_notes": condition_notes,
+            },
+        )
     # The mirror of CUSTODY_STARTED. Recording the close explicitly is what lets
     # a timeline show the custody window as a bounded interval rather than
     # leaving the reviewer to infer the end from the absence of later events.

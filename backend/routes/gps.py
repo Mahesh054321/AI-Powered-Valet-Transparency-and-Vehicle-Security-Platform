@@ -1,36 +1,34 @@
 """GPS telemetry endpoints.
 
     POST /gps/events                staff - record one fix, or a batch
+    POST /gps/mobile                customer or staff - record real mobile browser GPS
+    POST /gps/vehicle               staff or tracker - record physical tracker telemetry
     GET  /gps/<custody_id>          owner or staff - the live tracking view
     GET  /gps/<custody_id>/fixes    owner or staff - paginated raw fixes
+    GET  /gps/stream/<custody_id>   owner or staff - live real-time SSE stream
     GET  /gps/simulate/scenarios    staff - what the simulator can generate
     POST /gps/simulate              staff - generate and ingest a simulated track
-
-These handlers only translate HTTP into service calls. The geofence maths lives
-in :mod:`ai.anomaly.geofence`, the workflow in :mod:`services.geofence`, and the
-track generator in :mod:`ai.synthetic.gps_tracks`.
-
-**Provenance.** ``POST /gps/events`` records what it is given and defaults to
-``MANUAL`` -- a position keyed in by a person. The simulator endpoint forces
-``SIMULATED`` and cannot be talked out of it. There is no endpoint that lets a
-caller claim ``HARDWARE`` on someone else's behalf without saying so
-explicitly, because the whole point of the column is that a reader can tell
-where a fix came from.
 
 Mounted at both ``/api/v1/gps`` and ``/api/gps`` -- see ``routes/__init__.py``.
 """
 
 from __future__ import annotations
 
-from flask import Blueprint, request
+import logging
+from queue import Empty
+
+from flask import Blueprint, Response, request, stream_with_context
 
 from models.enums import TelemetrySource
-from services import geofence
+from services import geofence, gps_provider
+from utils.exceptions import ValidationError
 from utils.pagination import parse_pagination
 from utils.requests import json_payload
 from utils.responses import created, ok
-from utils.security import current_user, require_authentication
-from utils.validation import validate_choice, validate_uuid
+from utils.security import Role, current_user, require_authentication, require_role
+from utils.validation import validate_uuid
+
+logger = logging.getLogger(__name__)
 
 
 def create_gps_blueprint() -> Blueprint:
@@ -40,6 +38,91 @@ def create_gps_blueprint() -> Blueprint:
     twice, and this is mounted at two prefixes.
     """
     blueprint = Blueprint("gps", __name__)
+
+    @blueprint.get("/providers")
+    @require_authentication
+    def list_providers():
+        """List supported physical GPS tracker adapters."""
+        return ok({"providers": gps_provider.list_supported_providers()})
+
+    @blueprint.get("/devices")
+    @require_authentication
+    def list_devices():
+        """List registered GPS devices."""
+        vehicle_id = request.args.get("vehicle_id")
+        return ok({"devices": gps_provider.list_gps_devices(current_user(), vehicle_id=vehicle_id)})
+
+    @blueprint.post("/devices")
+    @require_authentication
+    def register_device():
+        """Register or link a GPS device to a vehicle."""
+        payload = json_payload()
+        device_id = payload.get("device_id")
+        if not device_id:
+            raise ValidationError("device_id is required.", details={"field": "device_id"})
+        result = gps_provider.register_gps_device(
+            current_user(),
+            device_id=str(device_id),
+            vehicle_id=payload.get("vehicle_id"),
+            provider_name=payload.get("provider_name", "traccar"),
+            integration_type=payload.get("integration_type", "DIRECT_TELEMETRY"),
+            device_secret=payload.get("device_secret"),
+            metadata=payload.get("metadata"),
+        )
+        return created(result)
+
+    @blueprint.delete("/devices/<device_id>")
+    @require_authentication
+    def unlink_device(device_id: str):
+        """Unlink or deactivate a GPS tracker."""
+        return ok(gps_provider.unlink_gps_device(current_user(), device_id))
+
+    @blueprint.get("/devices/<device_id>/test")
+    @require_authentication
+    def test_device(device_id: str):
+        """Test whether the device connection and provider are active."""
+        return ok(gps_provider.test_gps_device_connection(current_user(), device_id))
+
+    @blueprint.post("/devices/<device_id>/telemetry")
+    def ingest_device_telemetry(device_id: str):
+        """Ingest an authenticated hardware GPS fix from a registered tracker (REAL_GPS)."""
+        payload = json_payload()
+        device_secret = (
+            request.headers.get("X-Device-Key")
+            or request.headers.get("X-API-Key")
+            or payload.get("device_secret")
+        )
+        if not device_secret and request.headers.get("Authorization", "").startswith("Bearer "):
+            device_secret = request.headers.get("Authorization", "")[7:].strip()
+        result = gps_provider.ingest_real_gps_fix(
+            device_id,
+            payload,
+            device_secret=device_secret,
+            provider_name=payload.get("provider_name"),
+        )
+        return created(result)
+
+    @blueprint.post("/ingest/real")
+    def ingest_real_telemetry():
+        """Ingest real GPS fix by payload device ID."""
+        payload = json_payload()
+        device_id = payload.get("device_id")
+        if not device_id:
+            raise ValidationError("device_id is required.", details={"field": "device_id"})
+        device_secret = (
+            request.headers.get("X-Device-Key")
+            or request.headers.get("X-API-Key")
+            or payload.get("device_secret")
+        )
+        if not device_secret and request.headers.get("Authorization", "").startswith("Bearer "):
+            device_secret = request.headers.get("Authorization", "")[7:].strip()
+        result = gps_provider.ingest_real_gps_fix(
+            str(device_id),
+            payload,
+            device_secret=device_secret,
+            provider_name=payload.get("provider_name"),
+        )
+        return created(result)
 
     @blueprint.post("/events")
     @require_authentication
@@ -51,11 +134,14 @@ def create_gps_blueprint() -> Blueprint:
         would be individually.
         """
         payload = json_payload()
-        source = validate_choice(
-            payload.get("source") or "MANUAL",
-            [item.value for item in TelemetrySource],
-            field="source",
-        )
+        requested_source = payload.get("source")
+        if requested_source not in (None, TelemetrySource.MANUAL.value):
+            raise ValidationError(
+                "The source for this endpoint is MANUAL. Use /gps/mobile for authorized "
+                "browser fixes or registered device telemetry for REAL_GPS.",
+                details={"field": "source"},
+            )
+        source = TelemetrySource.MANUAL.value
         device_id = payload.get("device_id")
         actor = current_user()
 
@@ -66,6 +152,92 @@ def create_gps_blueprint() -> Blueprint:
             )
             return created(result)
         return created(geofence.ingest_fix(payload, actor, source=source, device_id=device_id))
+
+    @blueprint.post("/mobile")
+    @require_authentication
+    def ingest_mobile():
+        """Record position fixes from an authorized mobile browser (MOBILE_GPS)."""
+        payload = json_payload()
+        actor = current_user()
+        device_id = payload.get("device_id") or f"mobile-{actor.user_id[:8]}"
+        batch = payload.get("fixes")
+        if batch is not None:
+            result = geofence.ingest_batch(
+                batch, actor, source=TelemetrySource.MOBILE_GPS.value, device_id=device_id
+            )
+            return created(result)
+        return created(
+            geofence.ingest_fix(
+                payload,
+                actor,
+                source=TelemetrySource.MOBILE_GPS.value,
+                device_id=device_id,
+            )
+        )
+
+    @blueprint.post("/vehicle")
+    @require_role(Role.VALET_OPERATOR, Role.VALET_MANAGER, Role.ADMIN)
+    def ingest_vehicle():
+        """Record staff-entered telemetry and sensor observations (MANUAL)."""
+        payload = json_payload()
+        actor = current_user()
+        device_id = payload.get("device_id")
+        batch = payload.get("fixes")
+        if batch is not None:
+            result = geofence.ingest_batch(
+                batch, actor, source=TelemetrySource.MANUAL.value, device_id=device_id
+            )
+            return created(result)
+        return created(
+            geofence.ingest_fix(
+                payload,
+                actor,
+                source=TelemetrySource.MANUAL.value,
+                device_id=device_id,
+            )
+        )
+
+    @blueprint.get("/stream/<custody_id>")
+    @require_authentication
+    def stream_tracking(custody_id: str):
+        """Server-Sent Events (SSE) real-time streaming of telemetry and alerts."""
+        validate_uuid(custody_id, field="custody_id")
+        actor = current_user()
+        session = geofence._load_session(custody_id)
+        geofence._require_tracking_access(actor, session)
+
+        from services.streaming import broadcaster, sse_event
+
+        def event_generator():
+            try:
+                initial_view = geofence.tracking_view(custody_id, actor)
+                yield sse_event("snapshot", initial_view)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Failed to render initial SSE snapshot: %s", exc)
+                yield sse_event("error", {"message": str(exc)})
+
+            queue = broadcaster.subscribe(custody_id)
+            try:
+                while True:
+                    try:
+                        event_name, data = queue.get(timeout=15.0)
+                        yield sse_event(event_name, data)
+                    except Empty:
+                        yield ": keepalive\n\n"
+            except GeneratorExit:
+                pass
+            finally:
+                broadcaster.unsubscribe(custody_id, queue)
+
+        return Response(
+            stream_with_context(event_generator()),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+                "Connection": "keep-alive",
+            },
+        )
 
     @blueprint.get("/simulate/scenarios")
     @require_authentication
@@ -86,9 +258,6 @@ def create_gps_blueprint() -> Blueprint:
             payload.get("custody_id") or payload.get("custody_session_id"),
             field="custody_id",
         )
-        # Validated in the service, like the condition module's demo scenarios:
-        # ``validate_choice`` upper-cases its input, which would reject these
-        # deliberately lowercase identifiers.
         scenario = str(payload.get("scenario") or "parked")
         result = geofence.simulate_track(
             custody_id,

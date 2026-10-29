@@ -160,6 +160,15 @@ def create_custody_blueprint() -> Blueprint:
         here - use ``POST /tickets/<id>/complete``.
         """
         body = require_fields(json_payload(), "status")
+        session = ticket_service.get_custody_session(current_user(), session_id)
+        target = str(body["status"] or "").strip().upper()
+        if session.status == target:
+            return ok(
+                {
+                    "custody_session": session.to_dict(),
+                    "message": f"Custody session is already {session.status}.",
+                }
+            )
         session = ticket_service.update_custody_status(
             current_user(), session_id, body["status"]
         )

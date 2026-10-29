@@ -38,8 +38,10 @@ from models.enums import (
     AlertStatus,
     CustodyStatus,
     TicketStatus,
+    VehicleStatus,
     VerificationStatus,
 )
+from models.gps_event import GpsEvent
 from models.retrieval_prediction import RetrievalPrediction
 from models.security_alert import SecurityAlert
 from models.valet_ticket import ValetTicket
@@ -292,6 +294,18 @@ def _metrics(filters: dict[str, Any]) -> dict[str, Any]:
         )
     ).first()
 
+    total_vehicles = db.session.execute(select(func.count(Vehicle.id))).scalar_one()
+    in_custody = db.session.execute(
+        select(func.count(Vehicle.id)).where(Vehicle.status == VehicleStatus.IN_CUSTODY.value)
+    ).scalar_one()
+    geofence_breaches = db.session.execute(
+        select(func.count(SecurityAlert.id)).where(
+            SecurityAlert.alert_type == "GEOFENCE_BREACH",
+            SecurityAlert.occurred_at >= _dt(filters["date_from"]),
+            SecurityAlert.occurred_at <= _dt(filters["date_to"], end=True),
+        )
+    ).scalar_one()
+
     def metric(label, value, unit, *, windowed, n=None, note=None):
         body = {
             "label": label,
@@ -309,6 +323,12 @@ def _metrics(filters: dict[str, Any]) -> dict[str, Any]:
         "vehicles_today": metric(
             "Vehicles checked in today", vehicles_today, "vehicles", windowed=False
         ),
+        "total_registered_vehicles": metric(
+            "Total registered vehicles", total_vehicles, "vehicles", windowed=False
+        ),
+        "current_vehicles_in_custody": metric(
+            "Current vehicles in custody", in_custody, "vehicles", windowed=False
+        ),
         "active_sessions": metric(
             "Active custody sessions", active, "sessions", windowed=False
         ),
@@ -322,6 +342,10 @@ def _metrics(filters: dict[str, Any]) -> dict[str, Any]:
         "open_alerts": metric(
             "Open security alerts", open_alerts, "alerts", windowed=False,
             note="Open, acknowledged or investigating — not yet resolved.",
+        ),
+        "geofence_breaches": metric(
+            "Geofence breaches", geofence_breaches, "breaches", windowed=True,
+            note="Recorded boundary breaches in selected range.",
         ),
         "potential_damage": metric(
             "Potential damage cases", potential_damage, "findings", windowed=True,
@@ -871,6 +895,42 @@ def _damage_rows(filters: dict[str, Any], *, limit: int = 25) -> list[dict[str, 
     return out
 
 
+def _disputed_sessions(*, limit: int = 25) -> list[dict[str, Any]]:
+    """Open disputes are a point-in-time work queue, independent of date filters."""
+    sessions = db.session.execute(
+        select(CustodySession)
+        .where(CustodySession.status == CustodyStatus.DISPUTED.value)
+        .order_by(CustodySession.dropped_off_at.asc())
+        .limit(limit)
+    ).scalars()
+
+    return [
+        {
+            "custody_session_id": str(session.id),
+            "ticket_id": str(session.ticket_id),
+            "ticket_code": session.ticket.ticket_code if session.ticket else None,
+            "vehicle": (
+                {
+                    "id": str(session.vehicle.id),
+                    "plate_number": session.vehicle.plate_number,
+                }
+                if session.vehicle
+                else None
+            ),
+            "customer": (
+                {"name": session.ticket.customer.full_name}
+                if session.ticket and session.ticket.customer
+                else None
+            ),
+            "disputed_at": session.updated_at.isoformat() if session.updated_at else None,
+            "dropped_off_at": (
+                session.dropped_off_at.isoformat() if session.dropped_off_at else None
+            ),
+        }
+        for session in sessions
+    ]
+
+
 # ---------------------------------------------------------------------------
 # Filter options and provenance
 # ---------------------------------------------------------------------------
@@ -953,6 +1013,16 @@ def build_dashboard(actor: AuthContext, args: dict[str, Any]) -> dict[str, Any]:
 
     filters = _parse_filters(args)
 
+    gps_sources_query = db.session.execute(
+        select(GpsEvent.source, func.count(GpsEvent.id))
+        .where(
+            GpsEvent.recorded_at >= _dt(filters["date_from"]),
+            GpsEvent.recorded_at <= _dt(filters["date_to"], end=True),
+        )
+        .group_by(GpsEvent.source)
+    ).all()
+    gps_source_distribution = {row[0]: row[1] for row in gps_sources_query}
+
     return {
         "generated_for": {"user_id": actor.user_id, "role": actor.role},
         "filters": {
@@ -965,6 +1035,7 @@ def build_dashboard(actor: AuthContext, args: dict[str, Any]) -> dict[str, Any]:
         "filter_options": _filter_options(),
         "provenance": _provenance(),
         "metrics": _metrics(filters),
+        "gps_source_distribution": gps_source_distribution,
         "charts": {
             "vehicles_per_day": _vehicles_per_day(filters),
             "retrieval_time": _retrieval_time(filters),
@@ -977,6 +1048,7 @@ def build_dashboard(actor: AuthContext, args: dict[str, Any]) -> dict[str, Any]:
             "active_vehicles": _active_vehicles(filters),
             "security_alerts": _alert_rows(filters),
             "damage_cases": _damage_rows(filters),
+            "pending_disputes": _disputed_sessions(),
         },
     }
 

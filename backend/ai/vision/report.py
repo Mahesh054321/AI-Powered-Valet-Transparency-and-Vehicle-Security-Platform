@@ -208,6 +208,21 @@ def render_comparison(
     return encode_png(np.vstack([body, footer]))
 
 
+def render_overlay(
+    after: np.ndarray,
+    difference: DifferenceMap,
+    findings: list[Finding],
+    *,
+    alpha: float = 0.52,
+) -> bytes:
+    """Render a difference heatmap overlay blended onto the aligned pickup frame."""
+    h, w = after.shape[:2]
+    heat = _heatmap(difference, (w, h))
+    blended = cv2.addWeighted(after, 1.0 - alpha, heat, alpha, 0)
+    annotated = _draw_boxes(blended, findings, with_labels=True)
+    return encode_png(annotated)
+
+
 def render_evidence(
     before: np.ndarray,
     after: np.ndarray,
@@ -281,4 +296,5 @@ __all__ = [
     "render_comparison",
     "render_dropoff_sheet",
     "render_evidence",
+    "render_overlay",
 ]

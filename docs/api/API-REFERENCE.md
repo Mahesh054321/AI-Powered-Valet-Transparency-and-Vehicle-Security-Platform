@@ -2891,6 +2891,212 @@ curl -X PATCH http://localhost:5000/api/v1/inspections/detections/{detection_id}
 
 ---
 
+### `PATCH /api/v1/inspections/detections/{detection_id}/notes`
+
+**Add notes or update severity on a damage detection**
+
+Enables valets and managers to annotate findings with inspector observations or revised severity.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_OPERATOR`, `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `detection_id` | `uuid` | The damage finding UUID. |
+
+**Request body** (`application/json`)
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `notes` | `string` | **yes** | (maxLength 1000) |
+| `severity` | `enum` | no | One of: `LOW`, `MEDIUM`, `HIGH` |
+
+*Example request*
+
+```bash
+curl -X PATCH http://localhost:5000/api/v1/inspections/detections/{detection_id}/notes \
+  -H 'Authorization: Bearer <access_token>' \
+  -H 'Content-Type: application/json' \
+  -d '{"notes": "Inspected closely in good light; minor clear-coat blemish.", "severity": "LOW"}'
+```
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | The caller is not staff. |
+| `404` | No such detection. |
+| `422` | Invalid UUID or missing notes. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/inspections/{custody_id}/dispute`
+
+**Submit a dispute regarding condition report findings**
+
+Allows customers or managers to submit a formal dispute with reasons, notes, and specific disputed finding IDs.
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `custody_id` | `uuid` | The custody session UUID. |
+
+**Request body** (`application/json`)
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `reason` | `string` | **yes** | Up to 400 characters. |
+| `notes` | `string` | no | Up to 400 characters. |
+| `disputed_detection_ids` | `array` | no | — |
+
+*Example request*
+
+```bash
+curl -X POST http://localhost:5000/api/v1/inspections/{custody_id}/dispute \
+  -H 'Authorization: Bearer <access_token>' \
+  -H 'Content-Type: application/json' \
+  -d '{"reason": "Pre-existing mark", "notes": "This blemish was present before drop-off.", "disputed_detection_ids": []}'
+```
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Not authorized for this session. |
+| `404` | No such custody session. |
+| `409` | The custody session is already complete. |
+| `422` | Missing reason or invalid custody ID. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/inspections/{custody_id}/resolve-dispute`
+
+**Resolve a condition dispute and complete custody**
+
+Closes an open disputed custody session, completes its ticket, and frees the assigned parking space. The action is attributed to the manager and recorded in the custody audit trail.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: ****** |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `custody_id` | `uuid` | The disputed custody session UUID. |
+
+**Request body** (`application/json`)
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `notes` | `string` | **yes** | Resolution summary, up to 500 characters. |
+
+| Status | Meaning |
+|---|---|
+| `200` | Dispute resolved and custody completed. |
+| `403` | Only a manager or administrator may resolve a dispute. |
+| `404` | No such custody session. |
+| `409` | The custody session is not currently disputed. |
+| `422` | Missing resolution notes or invalid custody ID. |
+
+---
+
+### `POST /api/v1/inspections/{custody_id}/recompare`
+
+**Re-run the condition comparison pipeline**
+
+Re-runs the before/after vision differencing and classification pipeline between drop-off and pickup photo sets.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `custody_id` | `uuid` | The custody session UUID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | The caller is not a manager. |
+| `404` | No such custody session or missing photo sets. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
 ### `GET /api/v1/inspections/demo/scenarios`
 
 **The synthetic scenarios the demo can run**
@@ -3144,6 +3350,8 @@ Telemetry ingestion, simulation and the live tracking view.
 
 Accepts either a single fix object or `{"fixes": [...]}`. Both shapes reach the same service path, so a batch is classified exactly as its members would be individually.
 
+This user-submitted endpoint accepts only `MANUAL` provenance. Use `/mobile` for authorized browser fixes or authenticated registered-device telemetry for `REAL_GPS`.
+
 Every fix is passed through the real geofence classifier on the way in; the response reports the verdict, the rules that fired and any alerts raised.
 
 The `gps_events` table is append-only: a recorded fix cannot be edited or deleted afterwards.
@@ -3159,7 +3367,7 @@ The `gps_events` table is append-only: a recorded fix cannot be edited or delete
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `fixes` | `array` | no | — |
-| `source` | `enum` | no | One of: `SIMULATED`, `HARDWARE`, `MANUAL` |
+| `source` | `enum` | no | This endpoint accepts MANUAL only. One of: `MANUAL` |
 | `device_id` | `string` | no | — |
 
 *Example request*
@@ -3168,7 +3376,7 @@ The `gps_events` table is append-only: a recorded fix cannot be edited or delete
 curl -X POST http://localhost:5000/api/v1/gps/events \
   -H 'Authorization: Bearer <access_token>' \
   -H 'Content-Type: application/json' \
-  -d '{"source": "SIMULATED", "fixes": [{"custody_session_id": "<custody session uuid>", "latitude": 28.6139, "longitude": 77.209, "speed_kmph": 0.0}]}'
+  -d '{"source": "MANUAL", "fixes": [{"custody_session_id": "<custody session uuid>", "latitude": 28.6139, "longitude": 77.209, "speed_kmph": 0.0}]}'
 ```
 
 **Responses**
@@ -3908,6 +4116,471 @@ Paginated, newest first. Each row carries its own `source` and `is_simulated`, s
         "accuracy_metres": 4.5,
         "custody_s
 ```
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `GET /api/v1/gps/stream/{custody_id}`
+
+**Live SSE stream for real-time telemetry and alerts**
+
+Server-Sent Events connection streaming initial snapshot and live GPS fixes.
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `custody_id` | `uuid` | The custody session UUID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Not authorized for this vehicle/custody. |
+| `404` | No such custody session. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/gps/mobile`
+
+**Record GPS fixes from an authorized mobile browser**
+
+Ingests real-time position fixes strictly marked with MOBILE_GPS telemetry source.
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Request body** (`application/json`)
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `id` | `uuid` | no | — |
+| `custody_session_id` | `uuid` | no | — |
+| `latitude` | `number` | no | — |
+| `longitude` | `number` | no | — |
+| `speed_kmph` | `number` | no | — |
+| `heading_degrees` | `number` | no | — |
+| `accuracy_metres` | `number` | no | — |
+| `recorded_at` | `date-time` | no | — |
+| `source` | `enum` | no | Per-fix provenance. New physical-device fixes use authenticated REAL_GPS; older hardware labels are retained for historical rows. One of: `SIMULATED`, `MOBILE_GPS`, `REAL_GPS`, `MANUAL`, `HARDWARE`, `VEHICLE_GPS`, `CAR_GPS` |
+| `is_simulated` | `boolean` | no | — |
+| `device_id` | `string` | no | — |
+| `movement_status` | `enum` | no | One of: `NORMAL`, `WARNING`, `SUSPICIOUS`, `BREACH` |
+| `is_within_zone` | `boolean` | no | — |
+| `distance_from_zone_metres` | `number` | no | — |
+| `zone_id` | `uuid` | no | — |
+| `ml` | `object` | no | The prototype classifier's opinion, recorded alongside the rule-based verdict. |
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Not authorized for this custody session. |
+| `422` | Invalid coordinates. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/gps/vehicle`
+
+**Record staff-entered GPS and sensor observations**
+
+Ingests staff-entered telemetry marked MANUAL. This endpoint does not authenticate or connect a physical tracker.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_OPERATOR`, `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Request body** (`application/json`)
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `id` | `uuid` | no | — |
+| `custody_session_id` | `uuid` | no | — |
+| `latitude` | `number` | no | — |
+| `longitude` | `number` | no | — |
+| `speed_kmph` | `number` | no | — |
+| `heading_degrees` | `number` | no | — |
+| `accuracy_metres` | `number` | no | — |
+| `recorded_at` | `date-time` | no | — |
+| `source` | `enum` | no | Per-fix provenance. New physical-device fixes use authenticated REAL_GPS; older hardware labels are retained for historical rows. One of: `SIMULATED`, `MOBILE_GPS`, `REAL_GPS`, `MANUAL`, `HARDWARE`, `VEHICLE_GPS`, `CAR_GPS` |
+| `is_simulated` | `boolean` | no | — |
+| `device_id` | `string` | no | — |
+| `movement_status` | `enum` | no | One of: `NORMAL`, `WARNING`, `SUSPICIOUS`, `BREACH` |
+| `is_within_zone` | `boolean` | no | — |
+| `distance_from_zone_metres` | `number` | no | — |
+| `zone_id` | `uuid` | no | — |
+| `ml` | `object` | no | The prototype classifier's opinion, recorded alongside the rule-based verdict. |
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | The caller is not staff. |
+| `422` | Invalid telemetry data. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `GET /api/v1/gps/providers`
+
+**List supported physical GPS tracker adapters**
+
+Returns the catalog of supported real GPS hardware adapters (Traccar, Teltonika, etc.).
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `GET /api/v1/gps/devices`
+
+**List registered GPS devices**
+
+Returns registered GPS tracker devices with optional vehicle_id filter.
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/gps/devices`
+
+**Register or link a GPS device to a vehicle**
+
+Associates a physical tracker identifier and provider with a customer vehicle.
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Request body** (`application/json`)
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `422` | Missing device_id or invalid payload. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `DELETE /api/v1/gps/devices/{device_id}`
+
+**Unlink or deactivate a GPS tracker**
+
+Deactivates a GPS tracker device and resets vehicle tracking method.
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `device_id` | `string` | The tracker device ID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `204` | Success. |
+| `401` | Unauthenticated. |
+| `404` | No such device. |
+
+*`204` returns no body.*
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `GET /api/v1/gps/devices/{device_id}/test`
+
+**Test device connection and return honest verification state**
+
+Tests provider reachability and returns connection status (CONNECTED, STALE, OFFLINE).
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `device_id` | `string` | The tracker device ID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `404` | No such device. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/gps/devices/{device_id}/telemetry`
+
+**Ingest live hardware GPS fix from a registered tracker**
+
+Accepts telemetry only for a registered device with its configured device secret and records it as REAL_GPS. A device identifier alone does not establish a hardware connection.
+
+| | |
+|---|---|
+| **Authentication** | None — public route. |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `device_id` | `string` | The tracker device ID. |
+
+**Request body** (`application/json`)
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Missing or invalid device credentials. |
+| `404` | No registered device matches this identifier. |
+| `422` | Invalid telemetry coordinates. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/gps/ingest/real`
+
+**Ingest real GPS fix by payload device ID**
+
+Generic inbound endpoint for authentic GPS hardware telemetry.
+
+| | |
+|---|---|
+| **Authentication** | None. This route is public. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Request body** (`application/json`)
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Invalid device credentials. |
+| `422` | Invalid telemetry coordinates. |
 
 *Example `401` response*
 
@@ -5330,6 +6003,282 @@ curl -X POST http://localhost:5000/api/v1/ml/classify \
 
 ---
 
+### `POST /api/v1/geofences/preview`
+
+**Calculate and preview geofence geometry without saving**
+
+Calculates ring coordinates, effective radius, and estimated area for circular and rectangular safe zones.
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Request body** (`application/json`)
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `422` | Invalid dimensions or coordinates. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `GET /api/v1/geofences/{zone_id}`
+
+**Retrieve details for a single parking zone or safe zone**
+
+Returns geometry, status, and assignment details for a safe zone.
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `zone_id` | `uuid` | The zone UUID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `404` | No such zone. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `PUT /api/v1/geofences/{zone_id}`
+
+**Replace or update a safe zone boundary**
+
+Full update of safe zone geometry and attributes.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `zone_id` | `uuid` | The zone UUID. |
+
+**Request body** (`application/json`)
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Unauthorized. |
+| `404` | No such zone. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `DELETE /api/v1/geofences/{zone_id}`
+
+**Deactivate or remove a safe zone**
+
+Sets safe zone status to DEACTIVATED.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `zone_id` | `uuid` | The zone UUID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `204` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Unauthorized. |
+| `404` | No such zone. |
+
+*`204` returns no body.*
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/geofences/{zone_id}/activate`
+
+**Activate an inactive safe zone**
+
+Sets safe zone status to ACTIVE.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `zone_id` | `uuid` | The zone UUID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Unauthorized. |
+| `404` | No such zone. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/geofences/{zone_id}/deactivate`
+
+**Deactivate an active safe zone**
+
+Sets safe zone status to DEACTIVATED.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `zone_id` | `uuid` | The zone UUID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Unauthorized. |
+| `404` | No such zone. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
 ## Security Alerts
 
 Detector alerts and the centralized alert feed.
@@ -6237,6 +7186,181 @@ curl -X POST http://localhost:5000/api/v1/feed/{alert_id}/resolve \
         "ADMIN"
       ]
     }
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/alerts/{alert_id}/investigate`
+
+**Mark a security alert as being investigated**
+
+Records that staff have begun active investigation of an alert.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `alert_id` | `uuid` | The alert UUID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Unauthorized. |
+| `404` | No such alert. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/alerts/{alert_id}/reopen`
+
+**Reopen a resolved security alert**
+
+Reopens a previously resolved or dismissed alert.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `alert_id` | `uuid` | The alert UUID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Unauthorized. |
+| `404` | No such alert. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `GET /api/v1/alerts/email-config`
+
+**Check SMTP and notification channel status**
+
+Returns email channel configuration status without leaking credentials.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Manager or Admin access required. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/alerts/test-email`
+
+**Send a test email notification to verify SMTP delivery**
+
+Tests SMTP connection and delivers a test security email.
+
+| | |
+|---|---|
+| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Request body** (`application/json`)
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Unauthenticated. |
+| `403` | Manager or Admin access required. |
+| `422` | Invalid recipient email. |
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
   },
   "meta": {
     "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
@@ -7337,6 +8461,8 @@ The same shape as `GET /api/v1/inspections/{custody_id}`, scoped to the staff su
 Metrics, charts and tables for a date range, composed server-side.
 
 `filter_options` is part of the response, so the filter dropdowns are built from what the backend can actually serve rather than from a hard-coded list in the client. `provenance` records what the numbers were computed from.
+
+The `tables.pending_disputes` queue is point-in-time and includes open custody disputes regardless of the selected date range. Managers can open each condition report to resolve the dispute and complete custody; operators cannot complete a disputed session.
 
 | | |
 |---|---|

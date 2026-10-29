@@ -43,6 +43,7 @@ DASHBOARD = "/api/v1/staff/dashboard"
 CUSTODY = "/api/v1/custody-sessions"
 TICKETS = "/api/v1/tickets"
 ALERTS = "/api/v1/alerts"
+RETRIEVAL = "/api/v1/retrieval/request"
 
 
 def _ticketed(client, *, start_custody: bool = True, status: str | None = None):
@@ -575,6 +576,18 @@ class TestActionsAreAudited:
         """'Mark ready' is the same state machine, so the same audit row."""
         context = _ticketed(pg_client, status=str(CustodyStatus.PARKED))
 
+        requested = pg_client.post(
+            RETRIEVAL,
+            json={"custody_session_id": context["custody_id"]},
+            headers=bearer(context["customer"]),
+        )
+        assert requested.status_code == 201, requested.get_json()
+        moved = pg_client.patch(
+            f"{CUSTODY}/{context['custody_id']}",
+            json={"status": str(CustodyStatus.RETRIEVAL_IN_PROGRESS)},
+            headers=bearer(context["operator"]),
+        )
+        assert moved.status_code == 200, moved.get_json()
         response = pg_client.patch(
             f"{CUSTODY}/{context['custody_id']}",
             json={"status": str(CustodyStatus.READY_FOR_PICKUP)},

@@ -1,4 +1,4 @@
-"""The centralized alert feed: create, list, mark read, resolve.
+"""The centralized alert feed: create, list, mark read, resolve, delete.
 
 **Role scoping is a filter on the query, not a filter on the response.** Each
 actor sees a different slice, and the slice is decided in SQL. Filtering after
@@ -14,6 +14,10 @@ unread count.
 **Resolution is manager-only.** An operator can read and act on an alert, but
 closing it is a decision that should be attributable to someone accountable —
 the same split the damage-verification flow already uses.
+
+**Deletion is narrower still.** Only a manager may permanently remove an
+alert, and only after it has been resolved. The deletion is recorded in the
+append-only audit trail before the row is removed.
 
 **Duplication is prevented at creation.** One alert per (source row, category),
 enforced by a partial unique index. Without it, every GPS fix on a breaching car
@@ -34,6 +38,7 @@ from models.alert import Alert, AlertAudience, AlertCategory, AlertRead, AlertSt
 from models.audit_log import AuditAction, AuditOutcome
 from models.enums import AlertSeverity
 from models.vehicle import Vehicle
+from services.audit import record_event
 from services.notifications import dispatch
 from services.tickets import _audit  # noqa: PLC2701 - shared audit helper
 from utils.exceptions import AuthorizationError, ConflictError, NotFoundError, ValidationError
@@ -183,6 +188,11 @@ def create_alert(
 
     source_uuid = uuid.UUID(str(source_id)) if source_id else None
 
+    sanitized_message = message.strip()
+    if AlertAudience.CUSTOMER.value in audience_values:
+        if "Traceback (most recent call last)" in sanitized_message or " File \"" in sanitized_message:
+            sanitized_message = "A system alert occurred during vehicle monitoring. The operations team has been notified."
+
     # De-duplicate before inserting. The unique index would catch it, but
     # catching it here means the caller gets the existing alert back instead of
     # an IntegrityError to interpret.
@@ -203,7 +213,7 @@ def create_alert(
         type=category_value,
         severity=severity_value,
         status=AlertStatus.OPEN.value,
-        message=message.strip()[:500],
+        message=sanitized_message[:500],
         source_entity_type=source_entity_type,
         source_id=source_uuid,
         source_type=source_type,
@@ -542,7 +552,19 @@ def resolve_alert(
             details={"role": actor.role, "required": list(TRIAGE_ROLES)},
         )
 
-    alert = db.session.get(Alert, uuid.UUID(alert_id))
+    try:
+        alert_uuid = uuid.UUID(str(alert_id))
+    except (ValueError, TypeError) as exc:
+        raise ValidationError("Invalid alert id format.", details={"alert_id": alert_id}) from exc
+
+    alert = db.session.execute(
+        select(Alert).where(Alert.id == alert_uuid).with_for_update(of=Alert)
+    ).scalar_one_or_none()
+    if alert is None:
+        alert = db.session.execute(
+            select(Alert).where(Alert.source_id == alert_uuid)
+        ).scalars().first()
+
     if alert is None:
         raise NotFoundError("Alert not found.", details={"alert_id": alert_id})
 
@@ -558,11 +580,13 @@ def resolve_alert(
             details={"field": "notes", "max_length": 500},
         )
 
+    now = _now()
+    resolved_by_uuid = _actor_id(actor)
     alert.status = (
         AlertStatus.DISMISSED.value if dismiss else AlertStatus.RESOLVED.value
     )
-    alert.resolved_by_id = _actor_id(actor)
-    alert.resolved_at = _now()
+    alert.resolved_by_id = resolved_by_uuid
+    alert.resolved_at = now
     alert.resolution_notes = notes.strip()[:500] if notes else None
 
     # Mirror the decision onto the underlying security alert, so the geofence
@@ -578,13 +602,20 @@ def resolve_alert(
         ):
             from models.user import User
 
+            user_rec = db.session.get(User, resolved_by_uuid)
+            actor_uuid = user_rec.id if user_rec else resolved_by_uuid
+
+            if source.acknowledged_at is None:
+                source.acknowledged_at = now
+            if source.acknowledged_by_id is None:
+                source.acknowledged_by_id = actor_uuid
+
+            source.resolved_by_id = actor_uuid
+            source.resolved_at = max(now, source.acknowledged_at)
+            source.resolution_notes = alert.resolution_notes
             source.status = (
                 SecurityStatus.DISMISSED.value if dismiss else SecurityStatus.RESOLVED.value
             )
-            # The source row requires its own attributed resolver.
-            source.resolved_by_id = db.session.get(User, _actor_id(actor)).id
-            source.resolved_at = alert.resolved_at
-            source.resolution_notes = alert.resolution_notes
 
     _audit(
         action=str(
@@ -599,7 +630,130 @@ def resolve_alert(
             + (f": {notes[:200]}" if notes else "")
         ),
     )
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+    db.session.refresh(alert)
+    return alert_dict(alert, actor=actor)
+
+
+def delete_resolved_alert(actor: AuthContext, alert_id: str) -> dict[str, Any]:
+    """Permanently remove a resolved alert. Manager and admin only."""
+    if not is_manager(actor):
+        raise AuthorizationError(
+            "Only a manager or administrator may delete an alert.",
+            details={"role": actor.role, "required": list(TRIAGE_ROLES)},
+        )
+
+    try:
+        alert_uuid = uuid.UUID(str(alert_id))
+    except (ValueError, TypeError) as exc:
+        raise ValidationError("Invalid alert id format.", details={"alert_id": alert_id}) from exc
+
+    alert = db.session.execute(
+        select(Alert).where(Alert.id == alert_uuid).with_for_update(of=Alert)
+    ).scalar_one_or_none()
+    if alert is None:
+        raise NotFoundError("Alert not found.", details={"alert_id": alert_id})
+    _owned_or_visible(actor, alert)
+    if alert.status != AlertStatus.RESOLVED.value:
+        raise ConflictError(
+            "Only resolved alerts may be deleted.",
+            details={"alert_id": alert_id, "status": alert.status},
+        )
+
+    record_event(
+        action=AuditAction.DELETE,
+        actor=actor,
+        outcome=AuditOutcome.SUCCESS,
+        entity_type="alerts",
+        entity_id=alert.id,
+        description=f"Deleted resolved {alert.type} alert",
+        old_values={
+            "type": alert.type,
+            "severity": alert.severity,
+            "message": alert.message,
+            "status": alert.status,
+        },
+        custody_session_id=alert.custody_session_id,
+    )
+    db.session.delete(alert)
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+
+    return {"alert_id": str(alert_uuid), "deleted": True}
+
+
+def reopen_alert(
+    actor: AuthContext,
+    alert_id: str,
+    *,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    """Reopen a previously closed or dismissed alert."""
+    if not is_manager(actor):
+        raise AuthorizationError(
+            "Only a manager or administrator may reopen an alert.",
+            details={"role": actor.role, "required": list(TRIAGE_ROLES)},
+        )
+
+    try:
+        alert_uuid = uuid.UUID(str(alert_id))
+    except (ValueError, TypeError) as exc:
+        raise ValidationError("Invalid alert id format.", details={"alert_id": alert_id}) from exc
+
+    alert = db.session.get(Alert, alert_uuid)
+    if alert is None:
+        alert = db.session.execute(
+            select(Alert).where(Alert.source_id == alert_uuid)
+        ).scalars().first()
+
+    if alert is None:
+        raise NotFoundError("Alert not found.", details={"alert_id": alert_id})
+
+    if alert.is_open:
+        raise ConflictError(
+            f"This alert is already open (status: {alert.status.lower()}).",
+            details={"alert_id": alert_id, "status": alert.status},
+        )
+
+    alert.status = AlertStatus.OPEN.value
+    alert.resolved_by_id = None
+    alert.resolved_at = None
+    if reason:
+        alert.resolution_notes = (alert.resolution_notes or "") + f" [Reopened]: {reason}"
+
+    # Also mirror to underlying security alert
+    if alert.source_entity_type == "security_alerts" and alert.source_id:
+        from models.enums import AlertStatus as SecurityStatus
+        from models.security_alert import SecurityAlert
+
+        source = db.session.get(SecurityAlert, alert.source_id)
+        if source is not None:
+            source.status = SecurityStatus.REOPENED.value
+            source.resolved_at = None
+            source.resolved_by_id = None
+            if reason:
+                source.resolution_notes = (source.resolution_notes or "") + f" [Reopened]: {reason}"
+
+    _audit(
+        action=str(AuditAction.SECURITY_ALERT_REOPENED),
+        actor_context=actor,
+        outcome=AuditOutcome.SUCCESS.value,
+        entity_type="alerts",
+        entity_id=alert.id,
+        description=f"Reopened {alert.type} alert" + (f": {reason[:200]}" if reason else ""),
+    )
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
     db.session.refresh(alert)
     return alert_dict(alert, actor=actor)
 
@@ -617,6 +771,7 @@ __all__ = [
     "raise_from_security_alert",
     "raise_potential_damage",
     "raise_retrieval_ready",
+    "reopen_alert",
     "resolve_alert",
     "unread_count",
 ]

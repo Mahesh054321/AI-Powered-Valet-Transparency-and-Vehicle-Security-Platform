@@ -48,21 +48,25 @@ from models.enums import (
     AlertSeverity,
     AlertStatus,
     AlertType,
+    BoundaryState,
     CustodyStatus,
     DamageSeverity,
     InspectionOutcome,
     InspectionStage,
     PredictionStatus,
+    TelemetryFreshness,
     TelemetrySource,
     TicketStatus,
     UserStatus,
     VehicleStatus,
     ZoneStatus,
+    ZoneType,
     check_constraint,
     choices,
     status_column,
     validate_status,
 )
+from models.gps_device import GpsDevice
 from models.gps_event import GpsEvent
 from models.notification import Notification, NotificationChannel, NotificationStatus
 from models.parking_zone import ParkingZone
@@ -79,6 +83,7 @@ from models.vehicle_inspection import VehicleInspection
 ALL_MODELS: tuple[type[Base], ...] = (
     User,
     Vehicle,
+    GpsDevice,
     ParkingZone,
     ValetTicket,
     CustodySession,
@@ -88,8 +93,6 @@ ALL_MODELS: tuple[type[Base], ...] = (
     SecurityAlert,
     RetrievalPrediction,
     Alert,
-    # AlertRead has no audit entity type: it is a read marker, not a business
-    # entity worth a trail of its own.
     AlertRead,
     Notification,
     AuditLog,
@@ -123,12 +126,14 @@ __all__ = [
     "AuditLog",
     "AuditOutcome",
     "Base",
+    "BoundaryState",
     "CustodySession",
     "CustodyStatus",
     "DamageDetection",
     "DamageSeverity",
     "DamageType",
     "DetectionMethod",
+    "GpsDevice",
     "GpsEvent",
     "InspectionOutcome",
     "InspectionStage",
@@ -138,6 +143,7 @@ __all__ = [
     "RevocationReason",
     "RevokedToken",
     "SecurityAlert",
+    "TelemetryFreshness",
     "TelemetrySource",
     "TicketStatus",
     "TimestampMixin",
@@ -150,6 +156,7 @@ __all__ = [
     "VehicleRegion",
     "VehicleStatus",
     "ZoneStatus",
+    "ZoneType",
     "check_constraint",
     "choices",
     "db",

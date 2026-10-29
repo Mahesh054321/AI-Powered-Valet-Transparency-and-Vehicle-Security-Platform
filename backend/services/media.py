@@ -196,6 +196,36 @@ def store_dated_upload(file: FileStorage, *, subdir: str, **kwargs: Any) -> dict
     )
 
 
+def _ensure_demo_media_exists(relative: str, candidate: Path) -> None:
+    """Synthesize a placeholder demo photo so seeded demonstrations do not 404."""
+    if candidate.is_file() or "demo" not in relative:
+        return
+    candidate.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        from ai.synthetic import generate_pair, SyntheticDefect
+        angle = "left_side"
+        lower = relative.lower()
+        if "front" in lower:
+            angle = "front"
+        elif "rear" in lower:
+            angle = "rear"
+        elif "right" in lower:
+            angle = "right_side"
+        elif "roof" in lower or "top" in lower:
+            angle = "top"
+
+        has_damage = "pickup" in lower or "evidence" in lower or "comparison" in lower
+        defects = (SyntheticDefect(kind="scratch", centre=(0.55, 0.45), extent=(0.22, 0.03)),) if has_damage else ()
+        pair = generate_pair(defects=defects, angle=angle, width=960, height=640, label=f"demo-{angle}")
+        img_bytes = pair.pickup_png if ("pickup" in lower or "evidence" in lower) else pair.drop_off_png
+        candidate.write_bytes(img_bytes)
+    except Exception:
+        img = np.full((640, 960, 3), 220, dtype=np.uint8)
+        cv2.putText(img, f"Demo Photo: {relative}", (50, 320), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (50, 50, 50), 2)
+        _, enc = cv2.imencode(".jpg", img)
+        candidate.write_bytes(enc.tobytes())
+
+
 def resolve_media_path(reference: str) -> Path:
     """Turn a stored reference into an absolute path inside the storage root.
 
@@ -218,6 +248,8 @@ def resolve_media_path(reference: str) -> Path:
             "The stored path escapes the storage root.",
             details={"path": relative},
         )
+    if not candidate.is_file() and "demo" in relative:
+        _ensure_demo_media_exists(relative, candidate)
     if not candidate.is_file():
         raise ValidationError(
             "The stored image is missing from storage.",

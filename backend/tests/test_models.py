@@ -51,7 +51,7 @@ GOOD_REF = {
 # ---------------------------------------------------------------------------
 def test_every_domain_model_is_registered():
     """A model missing from models/__init__ would be dropped by autogenerate."""
-    assert len(ALL_MODELS) == 15
+    assert len(ALL_MODELS) == 16
     assert set(MODELS_BY_TABLE) == {
         "users",
         "vehicles",
@@ -59,6 +59,7 @@ def test_every_domain_model_is_registered():
         "valet_tickets",
         "custody_sessions",
         "gps_events",
+        "gps_devices",
         "vehicle_inspections",
         "damage_detections",
         "security_alerts",

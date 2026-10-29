@@ -33,8 +33,9 @@ from models.enums import UserStatus
 from models.notification import NotificationChannel
 from models.user import User
 from services.notifications.base import DeliveryResult, NotificationPayload
+from services.notifications.email import EmailChannel
 from services.notifications.in_app import InAppChannel
-from services.notifications.stubs import EmailChannel, PushChannel, SmsChannel
+from services.notifications.stubs import PushChannel, SmsChannel
 from utils.security import Role
 
 logger = logging.getLogger(__name__)
@@ -175,6 +176,28 @@ def dispatch(
     active = [channel for channel in channels if channel.enabled]
     results: list[DeliveryResult] = []
 
+    vehicle_info = None
+    if alert.vehicle:
+        vehicle_info = f"{alert.vehicle.make} {alert.vehicle.model} ({alert.vehicle.plate_number})"
+    elif alert.vehicle_id:
+        from models.vehicle import Vehicle
+
+        v = db.session.get(Vehicle, alert.vehicle_id)
+        if v:
+            vehicle_info = f"{v.make} {v.model} ({v.plate_number})"
+
+    zone_name = None
+    if alert.custody_session_id:
+        from models.custody_session import CustodySession
+
+        cs = db.session.get(CustodySession, alert.custody_session_id)
+        if cs and cs.zone:
+            zone_name = f"{cs.zone.name} ({cs.zone.code})"
+
+    location_str = None
+    if alert.metadata_ and "latitude" in alert.metadata_ and "longitude" in alert.metadata_:
+        location_str = f"{float(alert.metadata_['latitude']):.5f}, {float(alert.metadata_['longitude']):.5f}"
+
     for user in recipients:
         payload = NotificationPayload(
             user_id=str(user.id),
@@ -187,6 +210,14 @@ def dispatch(
                 "source_entity_type": alert.source_entity_type,
                 "source_id": str(alert.source_id) if alert.source_id else None,
                 "vehicle_id": str(alert.vehicle_id) if alert.vehicle_id else None,
+                "vehicle_info": vehicle_info or "Valet Vehicle",
+                "zone_name": zone_name or "Authorized Safe Zone",
+                "custody_session_id": str(alert.custody_session_id) if alert.custody_session_id else None,
+                "location_str": location_str or "See live tracking map",
+                "tracking_url": f"/tracking/{alert.custody_session_id}" if alert.custody_session_id else "/tracking",
+                "event_time": alert.created_at.strftime("%Y-%m-%d %H:%M:%S UTC") if alert.created_at else None,
+                "recipient_email": user.email,
+                "recipient_name": user.full_name,
             },
         )
         for channel in active:
@@ -213,6 +244,8 @@ def _title_for(alert: Alert) -> str:
         "OVERSPEED": "Vehicle moving too fast",
         "POTENTIAL_DAMAGE": "Potential damage found",
         "RETRIEVAL_READY": "Your vehicle is ready",
+        "TAMPER_ALERT": "Vehicle tampering / sensor alert",
+        "SECURITY_ALERT": "Security alert detected",
     }
     return labels.get(alert.type, "Vehicle alert")
 

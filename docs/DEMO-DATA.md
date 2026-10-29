@@ -118,7 +118,7 @@ generated and all 16 carried a `gps_event_id` pointing at a real row.
 | API responses | `telemetry_source` is surfaced on telemetry payloads and on `/api/health`. |
 
 `tests/test_demo_seed.py` asserts these from the database — including that zero
-rows claim `HARDWARE` provenance and that no alert cites a GPS fix that does
+rows claim real hardware provenance and that no alert cites a GPS fix that does
 not exist.
 
 ---

@@ -16,7 +16,7 @@ from datetime import datetime
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Numeric, String, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from models.enums import AlertSeverity, AlertStatus, AlertType, check_constraint, status_column
@@ -127,6 +127,8 @@ class SecurityAlert(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     evidence: Mapped[dict | None] = mapped_column(JSONB)
     #: Reference to an annotated map/evidence image. Never the image bytes.
     evidence_image_path: Mapped[str | None] = mapped_column(String(1024))
+    tamper_sensor_type: Mapped[str | None] = mapped_column(String(64))
+    consecutive_count: Mapped[int] = mapped_column(nullable=False, default=1, server_default="1")
 
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default="now()"
@@ -163,12 +165,34 @@ class SecurityAlert(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         "User", foreign_keys=[resolved_by_id]
     )
 
+    @validates("status")
+    def validate_status(self, key, value):
+        from datetime import timezone
+        from models.enums import AlertStatus
+        status_val = str(value) if value is not None else None
+        now = datetime.now(timezone.utc)
+        if status_val in (AlertStatus.RESOLVED.value, AlertStatus.DISMISSED.value):
+            res_at = getattr(self, "resolved_at", None) or now
+            self.resolved_at = res_at
+            ack_at = getattr(self, "acknowledged_at", None)
+            if ack_at and res_at < ack_at:
+                self.resolved_at = ack_at
+        elif status_val in (
+            AlertStatus.OPEN.value,
+            AlertStatus.REOPENED.value,
+            AlertStatus.INVESTIGATING.value,
+        ):
+            self.resolved_at = None
+            self.resolved_by_id = None
+        return status_val
+
     @property
     def is_open(self) -> bool:
         return self.status in {
             AlertStatus.OPEN.value,
             AlertStatus.ACKNOWLEDGED.value,
             AlertStatus.INVESTIGATING.value,
+            AlertStatus.REOPENED.value,
         }
 
     def to_dict(self) -> dict:
@@ -180,6 +204,7 @@ class SecurityAlert(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             "custody_session_id": str(self.custody_session_id),
             "vehicle_id": str(self.vehicle_id) if self.vehicle_id else None,
             "zone_id": str(self.zone_id) if self.zone_id else None,
+            "gps_event_id": str(self.gps_event_id) if self.gps_event_id else None,
             "alert_type": self.alert_type,
             "severity": self.severity,
             "status": self.status,
@@ -187,6 +212,8 @@ class SecurityAlert(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             "reason": self.reason,
             "confidence": float(self.confidence),
             "evidence": self.evidence,
+            "tamper_sensor_type": self.tamper_sensor_type,
+            "consecutive_count": self.consecutive_count,
             "occurred_at": _iso(self.occurred_at),
             "acknowledged_at": _iso(self.acknowledged_at),
             "resolved_at": _iso(self.resolved_at),

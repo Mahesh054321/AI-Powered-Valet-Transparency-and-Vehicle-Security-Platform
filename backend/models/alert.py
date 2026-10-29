@@ -35,12 +35,7 @@ from models.enums import AlertSeverity, check_constraint, status_column
 
 
 class AlertCategory(StrEnum):
-    """The five categories the centralized feed exposes.
-
-    Deliberately coarser than ``AlertType``. A manager triaging a feed needs
-    "something moved that should not have", not the detector's internal
-    distinction between tampering and unauthorised access.
-    """
+    """The categories the centralized feed exposes."""
 
     GEOFENCE_BREACH = "GEOFENCE_BREACH"  # vehicle left its assigned zone
     SUSPICIOUS_MOVEMENT = "SUSPICIOUS_MOVEMENT"  # moved oddly, or was touched
@@ -49,15 +44,27 @@ class AlertCategory(StrEnum):
     RETRIEVAL_READY = "RETRIEVAL_READY"  # car is staged for handover
 
 
-#: How the geofence detector's seven precise types fold into the five
+#: How the geofence detector's precise types fold into the feed
 #: categories. Kept here rather than inline so the projection is auditable in
 #: one place, and so a new detector type fails loudly instead of silently
 #: falling through to a default.
 CATEGORY_BY_SOURCE_TYPE: dict[str, AlertCategory] = {
     "GEOFENCE_BREACH": AlertCategory.GEOFENCE_BREACH,
+    "CONFIRMED_EXIT": AlertCategory.GEOFENCE_BREACH,
+    "RETURN_TO_ZONE": AlertCategory.GEOFENCE_BREACH,
     "ABNORMAL_MOVEMENT": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "UNEXPECTED_PARKED_MOVEMENT": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "FREQUENT_CROSSINGS": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "IMPLAUSIBLE_MOVEMENT": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "LOCATION_UNCERTAIN": AlertCategory.SUSPICIOUS_MOVEMENT,
     "UNAUTHORIZED_ACCESS": AlertCategory.SUSPICIOUS_MOVEMENT,
     "TAMPER_DETECTED": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "DEVICE_TAMPER_ALARM": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "IGNITION_ALERT": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "DOOR_OPEN_ALERT": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "VIBRATION_SHOCK_ALERT": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "POWER_DISCONNECT": AlertCategory.SUSPICIOUS_MOVEMENT,
+    "DEVICE_REMOVED": AlertCategory.SUSPICIOUS_MOVEMENT,
     "TELEMETRY_LOSS": AlertCategory.SUSPICIOUS_MOVEMENT,
     "UNUSUAL_SPEED": AlertCategory.OVERSPEED,
     "ROUTE_DEVIATION": AlertCategory.OVERSPEED,
@@ -89,8 +96,11 @@ class AlertStatus(StrEnum):
     """
 
     OPEN = "OPEN"  # raised, not yet closed
+    ACKNOWLEDGED = "ACKNOWLEDGED"  # acknowledged by operator/manager
+    INVESTIGATING = "INVESTIGATING"  # actively under investigation
     RESOLVED = "RESOLVED"  # dealt with
     DISMISSED = "DISMISSED"  # judged not to need action
+    REOPENED = "REOPENED"  # reopened for review
 
 
 class AlertAudience(StrEnum):
@@ -198,7 +208,12 @@ class Alert(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     @property
     def is_open(self) -> bool:
-        return self.status == AlertStatus.OPEN.value
+        return self.status in {
+            AlertStatus.OPEN.value,
+            AlertStatus.ACKNOWLEDGED.value,
+            AlertStatus.INVESTIGATING.value,
+            AlertStatus.REOPENED.value,
+        }
 
     def is_read_by(self, user_id: uuid.UUID | str) -> bool:
         target = str(user_id)

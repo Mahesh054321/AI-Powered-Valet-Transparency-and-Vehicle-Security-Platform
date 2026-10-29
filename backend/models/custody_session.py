@@ -161,7 +161,7 @@ class CustodySession(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         "Vehicle", back_populates="custody_sessions"
     )
     zone: Mapped[ParkingZone | None] = relationship(  # noqa: F821
-        "ParkingZone", back_populates="custody_sessions"
+        "ParkingZone", foreign_keys=[zone_id], back_populates="custody_sessions"
     )
     assigned_valet: Mapped[User | None] = relationship(  # noqa: F821
         "User", foreign_keys=[assigned_valet_id]

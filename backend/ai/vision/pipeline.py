@@ -40,7 +40,7 @@ from ai.vision.config import DEFAULT_CONFIG, PipelineConfig
 from ai.vision.damage import Finding, assess
 from ai.vision.preprocessing import PreparedImage, load_image
 from ai.vision.regions import normalise_viewpoint
-from ai.vision.report import render_comparison, render_evidence
+from ai.vision.report import render_comparison, render_evidence, render_overlay
 
 #: Evidence crops beyond this are not rendered. A pathological comparison could
 #: otherwise write dozens of PNGs for one inspection, and the top few by
@@ -74,6 +74,8 @@ class ComparisonResult:
     parameters: dict[str, Any]
     #: Which camera angle the region mapping assumed.
     viewpoint: str
+    #: Standalone heatmap overlay on aligned pickup frame.
+    overlay_png: bytes = b""
 
     @property
     def damage_detected(self) -> bool:
@@ -176,6 +178,9 @@ def compare_images(
     comparison_png = render_comparison(
         before.image, aligned, difference, findings, warnings=warnings
     )
+    overlay_png = render_overlay(
+        aligned, difference, findings
+    )
     evidence = [
         EvidenceImage(
             index=index,
@@ -187,6 +192,7 @@ def compare_images(
     return ComparisonResult(
         findings=findings,
         comparison_png=comparison_png,
+        overlay_png=overlay_png,
         evidence=evidence,
         alignment=alignment,
         warnings=warnings,

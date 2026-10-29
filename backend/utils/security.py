@@ -266,6 +266,9 @@ def extract_bearer_token() -> str | None:
     if header.lower().startswith("bearer "):
         token = header[7:].strip()
         return token or None
+    query_token = request.args.get("token")
+    if query_token:
+        return query_token.strip() or None
     return None
 
 

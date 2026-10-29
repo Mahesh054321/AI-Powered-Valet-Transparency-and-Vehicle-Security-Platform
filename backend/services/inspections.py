@@ -45,12 +45,20 @@ from app.extensions import db
 from models.audit_log import AuditAction, AuditOutcome
 from models.custody_session import CustodySession
 from models.damage_detection import DamageDetection, DetectionMethod
-from models.enums import InspectionOutcome, InspectionStage, VerificationStatus
+from models.enums import (
+    CustodyStatus,
+    DamageSeverity,
+    InspectionOutcome,
+    InspectionStage,
+    VerificationStatus,
+    choices,
+)
 from models.vehicle_inspection import VehicleInspection
 from services import media
 from services.audit import record_event
 from utils.exceptions import (
     AuthorizationError,
+    ConflictError,
     NotFoundError,
     ValidationError,
 )
@@ -223,8 +231,9 @@ def _index_by_angle(references: list[dict[str, Any]]) -> dict[str, dict[str, Any
     """
     indexed: dict[str, dict[str, Any]] = {}
     for reference in references:
-        angle = reference.get("label") or "GENERAL"
-        indexed[angle] = reference
+        raw_angle = reference.get("label") or reference.get("angle") or "GENERAL"
+        norm_angle = str(normalise_viewpoint(raw_angle))
+        indexed[norm_angle] = reference
     return indexed
 
 
@@ -248,6 +257,14 @@ def _run_angle_comparison(
         extension="png",
         label=f"comparison:{angle}",
     )
+    overlay_ref = None
+    if getattr(result, "overlay_png", None):
+        overlay_ref = media.store_bytes(
+            result.overlay_png,
+            subdir=f"overlays/{stamp}",
+            extension="png",
+            label=f"overlay:{angle}",
+        )
 
     findings: list[dict[str, Any]] = []
     for index, finding in enumerate(result.findings):
@@ -265,6 +282,8 @@ def _run_angle_comparison(
                 "finding": finding,
                 "comparison_path": comparison_ref["path"],
                 "comparison_url": media.media_url(comparison_ref["path"]),
+                "overlay_path": overlay_ref["path"] if overlay_ref else None,
+                "overlay_url": media.media_url(overlay_ref["path"]) if overlay_ref else None,
                 "evidence_path": evidence_ref["path"] if evidence_ref else None,
                 "evidence_url": (
                     media.media_url(evidence_ref["path"]) if evidence_ref else None
@@ -280,9 +299,14 @@ def _run_angle_comparison(
         "warnings": result.warnings,
         "statistics": result.statistics,
         "parameters": result.parameters,
+        "comparison_path": comparison_ref["path"],
         "comparison_url": media.media_url(comparison_ref["path"]),
-        "drop_off_url": media.media_url(before_ref["path"]),
-        "pickup_url": media.media_url(after_ref["path"]),
+        "overlay_path": overlay_ref["path"] if overlay_ref else None,
+        "overlay_url": media.media_url(overlay_ref["path"]) if overlay_ref else None,
+        "drop_off_path": before_ref.get("path"),
+        "drop_off_url": media.media_url(before_ref["path"]) if before_ref.get("path") else None,
+        "pickup_path": after_ref.get("path"),
+        "pickup_url": media.media_url(after_ref["path"]) if after_ref.get("path") else None,
     }
 
 
@@ -311,8 +335,8 @@ def _persist_findings(
             requires_customer_attention=finding.confidence >= 0.5,
             bounding_box=finding.bounding_box,
             detection_reasoning=finding.reasoning[:1000],
-            method=str(DetectionMethod.CLASSICAL_CV),
-            model_version=None,
+            method=getattr(finding, "method", str(DetectionMethod.CLASSICAL_CV)),
+            model_version=getattr(finding, "model_version", None),
             algorithm_params={
                 "pipeline": comparison["parameters"],
                 "region_statistics": finding.statistics,
@@ -320,7 +344,7 @@ def _persist_findings(
                 "angle": comparison["angle"],
                 "alignment": comparison["alignment"],
             },
-            source_image_path=None,
+            source_image_path=comparison.get("pickup_path"),
             evidence_image_path=entry["evidence_path"],
             comparison_image_path=entry["comparison_path"],
             pixel_area=finding.pixel_area,
@@ -637,6 +661,7 @@ def _compare_against_drop_off(
 
     comparisons: list[dict[str, Any]] = []
     unmatched: list[str] = []
+    comparison_by_angle: dict[str, dict[str, Any]] = {}
 
     for angle, after_ref in sorted(after_by_angle.items()):
         before_ref = before_by_angle.get(angle)
@@ -650,12 +675,30 @@ def _compare_against_drop_off(
         comparison = _run_angle_comparison(before_ref, after_ref, angle)
         _persist_findings(pickup, comparison, actor=actor)
         comparisons.append(comparison)
+        comparison_by_angle[angle] = comparison
 
     for angle in sorted(set(before_by_angle) - set(after_by_angle)):
         unmatched.append(
             f"'{angle}' was photographed at drop-off but not at pickup, so it "
             "could not be compared."
         )
+
+    # Enrich pickup photo references with comparison references for complete viewing
+    enriched_photos = []
+    for ref in pickup.photo_refs:
+        item = dict(ref)
+        raw_angle = item.get("label") or item.get("angle") or "GENERAL"
+        norm_angle = str(normalise_viewpoint(raw_angle))
+        if norm_angle in comparison_by_angle:
+            comp = comparison_by_angle[norm_angle]
+            item["comparison_path"] = comp.get("comparison_path")
+            item["overlay_path"] = comp.get("overlay_path")
+            item["alignment"] = comp.get("alignment")
+            item["statistics"] = comp.get("statistics")
+            item["parameters"] = comp.get("parameters")
+            item["drop_off_path"] = comp.get("drop_off_path")
+        enriched_photos.append(item)
+    pickup.photo_refs = enriched_photos
 
     return comparisons, unmatched
 
@@ -695,6 +738,16 @@ def inspection_dict(
                 "byte_size": ref.get("byte_size"),
                 "sha256": ref.get("sha256"),
                 "captured_at": ref.get("captured_at"),
+                "comparison_url": (
+                    media.media_url(ref["comparison_path"])
+                    if ref.get("comparison_path")
+                    else None
+                ),
+                "overlay_url": (
+                    media.media_url(ref["overlay_path"])
+                    if ref.get("overlay_path")
+                    else None
+                ),
             }
             for ref in inspection.photo_refs
         ],
@@ -728,7 +781,14 @@ def _detection_dict(detection: DamageDetection) -> dict[str, Any]:
                 if detection.comparison_image_path
                 else None
             ),
+            "source_image_url": (
+                media.media_url(detection.source_image_path)
+                if detection.source_image_path
+                else None
+            ),
             "angle": (detection.algorithm_params or {}).get("angle"),
+            "method": detection.method,
+            "model_version": detection.model_version,
         }
     )
     return payload
@@ -748,23 +808,24 @@ def get_inspection_report(
     ).scalars().all()
 
     by_stage = {item.stage: item for item in inspections}
+    drop_off = by_stage.get(str(InspectionStage.DROP_OFF))
     pickup = by_stage.get(str(InspectionStage.PICKUP))
 
     # Rebuild the comparison list from stored paths so the report is complete on
     # a fresh page load, not only in the response that created it.
-    comparisons = _rebuild_comparisons(pickup) if pickup else []
+    comparisons = _rebuild_comparisons(pickup, drop_off) if pickup else []
 
     all_detections = [d for item in inspections for d in item.damage_detections]
 
     return {
         "custody_session_id": str(session.id),
+        "custody_status": session.status,
         "vehicle": _vehicle_summary(session),
         "ticket_code": session.ticket.ticket_code if session.ticket else None,
-        "drop_off": inspection_dict(by_stage[str(InspectionStage.DROP_OFF)])
-        if str(InspectionStage.DROP_OFF) in by_stage
-        else None,
+        "drop_off": inspection_dict(drop_off) if drop_off else None,
         "pickup": inspection_dict(pickup, comparisons=comparisons) if pickup else None,
-        "comparison_ready": pickup is not None and str(InspectionStage.DROP_OFF) in by_stage,
+        "comparisons": comparisons,
+        "comparison_ready": pickup is not None and drop_off is not None,
         "total_detections": len(all_detections),
         "unverified_count": sum(
             1 for d in all_detections if d.verification_status == "UNVERIFIED"
@@ -784,16 +845,53 @@ def get_inspection_report(
     }
 
 
-def _rebuild_comparisons(pickup: VehicleInspection) -> list[dict[str, Any]]:
-    """Group stored findings by angle so the report page can render each pair."""
+def _rebuild_comparisons(
+    pickup: VehicleInspection, drop_off: VehicleInspection | None = None
+) -> list[dict[str, Any]]:
+    """Group stored findings and photos by angle so the report page can render each pair."""
+    before_by_angle = _index_by_angle(drop_off.photo_refs) if (drop_off and drop_off.photo_refs) else {}
+    after_by_angle = _index_by_angle(pickup.photo_refs) if (pickup and pickup.photo_refs) else {}
+
     grouped: dict[str, dict[str, Any]] = {}
+
+    for angle, after_ref in after_by_angle.items():
+        before_ref = before_by_angle.get(angle)
+        comp_url = (
+            media.media_url(after_ref["comparison_path"])
+            if after_ref.get("comparison_path")
+            else None
+        )
+        overlay_url = (
+            media.media_url(after_ref["overlay_path"])
+            if after_ref.get("overlay_path")
+            else None
+        )
+        drop_off_url = media.media_url(before_ref["path"]) if before_ref else None
+        pickup_url = media.media_url(after_ref["path"])
+
+        grouped[angle] = {
+            "angle": angle,
+            "findings": [],
+            "damage_detected": False,
+            "alignment": after_ref.get("alignment"),
+            "warnings": [],
+            "statistics": after_ref.get("statistics"),
+            "parameters": after_ref.get("parameters"),
+            "comparison_url": comp_url,
+            "overlay_url": overlay_url,
+            "drop_off_url": drop_off_url,
+            "pickup_url": pickup_url,
+        }
 
     for detection in pickup.damage_detections:
         params = detection.algorithm_params or {}
-        angle = params.get("angle", "GENERAL")
-        bucket = grouped.setdefault(
-            angle,
-            {
+        raw_angle = params.get("angle", "GENERAL")
+        angle = str(normalise_viewpoint(raw_angle))
+
+        if angle not in grouped:
+            before_ref = before_by_angle.get(angle)
+            after_ref = after_by_angle.get(angle)
+            grouped[angle] = {
                 "angle": angle,
                 "findings": [],
                 "damage_detected": True,
@@ -802,8 +900,13 @@ def _rebuild_comparisons(pickup: VehicleInspection) -> list[dict[str, Any]]:
                 "statistics": None,
                 "parameters": params.get("pipeline"),
                 "comparison_url": None,
-            },
-        )
+                "overlay_url": None,
+                "drop_off_url": media.media_url(before_ref["path"]) if before_ref else None,
+                "pickup_url": media.media_url(after_ref["path"]) if after_ref else None,
+            }
+
+        bucket = grouped[angle]
+        bucket["damage_detected"] = True
         bucket["findings"].append(_detection_dict(detection))
         if detection.comparison_image_path and not bucket["comparison_url"]:
             bucket["comparison_url"] = media.media_url(detection.comparison_image_path)
@@ -924,6 +1027,14 @@ def run_demo_comparison(actor: AuthContext, *, scenario: str) -> dict[str, Any]:
         extension="png",
         label=f"demo:{scenario}",
     )
+    overlay_ref = None
+    if getattr(result, "overlay_png", None):
+        overlay_ref = media.store_bytes(
+            result.overlay_png,
+            subdir=f"demo/overlays/{stamp}",
+            extension="png",
+            label=f"demo-overlay:{scenario}",
+        )
     drop_off_ref = media.store_bytes(
         pair.drop_off_png, subdir=f"demo/photos/{stamp}", extension="png",
         label=f"demo-dropoff:{scenario}",
@@ -954,7 +1065,7 @@ def run_demo_comparison(actor: AuthContext, *, scenario: str) -> dict[str, Any]:
                 "confidence": finding.confidence,
                 "type_confidence": finding.type_confidence,
                 "detection_reasoning": finding.reasoning,
-                "method": str(DetectionMethod.CLASSICAL_CV),
+                "method": getattr(finding, "method", str(DetectionMethod.CLASSICAL_CV)),
                 "pixel_area": finding.pixel_area,
                 "statistics": finding.statistics,
                 "region_mapping": finding.region_mapping,
@@ -964,6 +1075,7 @@ def run_demo_comparison(actor: AuthContext, *, scenario: str) -> dict[str, Any]:
                 "presentation_label": "Potential Damage",
                 "evidence_url": evidence_url,
                 "comparison_url": media.media_url(comparison_ref["path"]),
+                "overlay_url": media.media_url(overlay_ref["path"]) if overlay_ref else None,
             }
         )
 
@@ -1003,6 +1115,7 @@ def run_demo_comparison(actor: AuthContext, *, scenario: str) -> dict[str, Any]:
         "drop_off_url": media.media_url(drop_off_ref["path"]),
         "pickup_url": media.media_url(pickup_ref["path"]),
         "comparison_url": media.media_url(comparison_ref["path"]),
+        "overlay_url": media.media_url(overlay_ref["path"]) if overlay_ref else None,
         "disclaimer": (
             "Both photographs are synthetic, generated by OpenCV for this demo. "
             "The findings are real pipeline output computed from those pixels, "
@@ -1010,6 +1123,203 @@ def run_demo_comparison(actor: AuthContext, *, scenario: str) -> dict[str, Any]:
             "heuristic, not a confirmed assessment."
         ),
     }
+
+
+def dispute_inspection(
+    actor: AuthContext,
+    custody_id: uuid.UUID | str,
+    *,
+    reason: str,
+    notes: str | None = None,
+    disputed_detection_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    """Submit a customer dispute regarding vehicle condition report findings."""
+    session = _load_session(custody_id)
+    _require_view_access(actor, session)
+    if not session.is_open:
+        raise ConflictError(
+            "This custody session is already complete and cannot be disputed.",
+            details={"custody_id": str(session.id), "status": session.status},
+        )
+    if session.status == CustodyStatus.DISPUTED.value:
+        raise ConflictError(
+            "This custody session already has an open dispute awaiting management review.",
+            details={"custody_id": str(session.id), "status": session.status},
+        )
+
+    if not reason or not reason.strip():
+        raise ValidationError(
+            "'reason' is required to file a condition dispute.",
+            details={"field": "reason"},
+        )
+    if len(reason) > 400:
+        raise ValidationError(
+            "'reason' must be at most 400 characters.",
+            details={"field": "reason", "max_length": 400},
+        )
+    if notes is not None and len(notes) > 400:
+        raise ValidationError(
+            "'notes' must be at most 400 characters.",
+            details={"field": "notes", "max_length": 400},
+        )
+
+    previous_status = session.status
+    session.status = str(CustodyStatus.DISPUTED)
+
+    disputed_findings = []
+    if disputed_detection_ids:
+        for det_id in disputed_detection_ids:
+            try:
+                valid_id = uuid.UUID(str(det_id))
+            except ValueError:
+                continue
+            det = db.session.get(DamageDetection, valid_id)
+            if det and str(det.inspection.custody_session_id) == str(session.id):
+                prefix = f"[DISPUTED by customer]: {reason}."
+                det.verification_notes = f"{prefix} {notes or ''}".strip()
+                disputed_findings.append(str(det.id))
+
+    db.session.flush()
+
+    _audit(
+        action=AuditAction.STATUS_CHANGE,
+        outcome="SUCCESS",
+        entity_type="custody_sessions",
+        entity_id=session.id,
+        description=(
+            f"Condition dispute filed for session {session.id}: {reason}"
+        ),
+        actor_context=actor,
+        custody_session_id=session.id,
+        new_values={
+            "status": str(CustodyStatus.DISPUTED),
+            "reason": reason,
+            "notes": notes,
+            "disputed_detection_ids": disputed_findings,
+            "previous_status": previous_status,
+        },
+    )
+    db.session.commit()
+    return get_inspection_report(actor, custody_id)
+
+
+def resolve_dispute(
+    actor: AuthContext,
+    custody_id: uuid.UUID | str,
+    *,
+    notes: str,
+) -> dict[str, Any]:
+    """Resolve a disputed custody session and close its ticket. Manager only."""
+    _require_verifier(actor)
+    session = _load_session(custody_id)
+    if session.status != CustodyStatus.DISPUTED.value:
+        raise ConflictError(
+            "This custody session has no open dispute to resolve.",
+            details={"custody_id": str(session.id), "status": session.status},
+        )
+
+    if not isinstance(notes, str):
+        raise ValidationError("'notes' must be a string.", details={"field": "notes"})
+    resolution_notes = notes.strip()
+    if not resolution_notes:
+        raise ValidationError(
+            "Resolution notes are required to close a disputed custody session.",
+            details={"field": "notes"},
+        )
+    if len(resolution_notes) > 500:
+        raise ValidationError(
+            "'notes' must be at most 500 characters.",
+            details={"field": "notes", "max_length": 500},
+        )
+
+    # Reuse the ticket completion transaction so the session, ticket, vehicle,
+    # zone occupancy and custody audit all reach their closed states together.
+    from services.tickets import complete_ticket
+
+    ticket = complete_ticket(
+        actor,
+        session.ticket_id,
+        {"condition_notes": f"Dispute resolution: {resolution_notes}"},
+    )
+    return {
+        "custody_session": session.to_dict(),
+        "ticket_id": str(ticket.id),
+        "ticket_status": ticket.status,
+        "message": "Dispute resolved and custody session completed.",
+    }
+
+
+def recompare_inspection(
+    actor: AuthContext,
+    custody_id: uuid.UUID | str,
+) -> dict[str, Any]:
+    """Re-run the OpenCV/ML comparison pipeline on drop-off and pickup photos."""
+    _require_verifier(actor)
+    session = _load_session(custody_id)
+
+    pickup = db.session.execute(
+        select(VehicleInspection).where(
+            VehicleInspection.custody_session_id == session.id,
+            VehicleInspection.stage == str(InspectionStage.PICKUP),
+        )
+    ).scalar_one_or_none()
+
+    if not pickup:
+        raise NotFoundError(
+            "No pickup inspection exists to recompare.",
+            details={"custody_session_id": str(custody_id)},
+        )
+
+    comparisons, unmatched = _compare_against_drop_off(
+        session, pickup, actor=actor
+    )
+    _recompute_outcome(pickup)
+    db.session.commit()
+
+    return get_inspection_report(actor, custody_id)
+
+
+def annotate_detection(
+    actor: AuthContext,
+    *,
+    detection_id: uuid.UUID | str,
+    notes: str,
+    severity: str | None = None,
+) -> dict[str, Any]:
+    """Annotate or update inspector notes on a candidate finding."""
+    _require_verifier(actor)
+    detection = db.session.get(DamageDetection, detection_id)
+    if detection is None:
+        raise NotFoundError("No damage finding was found with that id.")
+
+    if notes is not None and len(notes) > 500:
+        raise ValidationError(
+            "'notes' must be at most 500 characters.",
+            details={"field": "notes", "max_length": 500},
+        )
+
+    if severity:
+        if severity not in choices(DamageSeverity):
+            raise ValidationError(
+                f"'severity' must be one of {', '.join(choices(DamageSeverity))}.",
+                details={"field": "severity"},
+            )
+        detection.severity = severity
+
+    detection.verification_notes = notes
+    db.session.flush()
+
+    _audit(
+        action=AuditAction.UPDATE,
+        outcome="SUCCESS",
+        entity_type="damage_detections",
+        entity_id=detection.id,
+        description=f"Annotated finding {detection.id}: notes={notes}, severity={detection.severity}",
+        actor_context=actor,
+        new_values={"notes": notes, "severity": detection.severity},
+    )
+    db.session.commit()
+    return _detection_dict(detection)
 
 
 def demo_scenarios() -> list[dict[str, str]]:
@@ -1025,10 +1335,14 @@ __all__ = [
     "INSPECTION_ROLES",
     "MAX_PHOTOS_PER_STAGE",
     "VERIFICATION_ROLES",
+    "annotate_detection",
     "capture_inspection",
     "demo_scenarios",
+    "dispute_inspection",
     "get_inspection_report",
     "inspection_dict",
+    "recompare_inspection",
+    "resolve_dispute",
     "run_demo_comparison",
     "verify_detection",
 ]

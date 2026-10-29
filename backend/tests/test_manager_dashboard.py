@@ -185,7 +185,21 @@ class TestShape:
             "active_vehicles",
             "security_alerts",
             "damage_cases",
+            "pending_disputes",
         }
+
+    def test_open_disputes_are_visible_in_manager_work_queue(self, pg_client):
+        dispute = _custody(pg_client, status=CustodyStatus.DISPUTED)
+        payload = pg_client.get(
+            DASHBOARD, headers=bearer(_manager()), query_string=WIDE
+        ).get_json()["data"]
+
+        rows = payload["tables"]["pending_disputes"]
+        assert len(rows) == 1
+        assert rows[0]["custody_session_id"] == dispute["custody_id"]
+        assert rows[0]["ticket_id"] == dispute["ticket_id"]
+        assert rows[0]["vehicle"]["plate_number"] == dispute["vehicle"].plate_number
+        assert rows[0]["customer"]["name"] == dispute["customer"].full_name
 
     def test_every_chart_declares_its_sample_size_and_minimum(self, pg_client):
         """The anti-meaningless-chart rule, stated as a contract.

@@ -3459,6 +3459,358 @@ paths:
       x-auth: Bearer token required
       x-roles: '`VALET_MANAGER` or `ADMIN`.'
       x-role-enforced-by: Enforced by `_require_verifier` (`VERIFICATION_ROLES`).
+  /api/v1/inspections/detections/{detection_id}/notes:
+    patch:
+      operationId: annotateDetection
+      summary: Add notes or update severity on a damage detection
+      description: Enables valets and managers to annotate findings with inspector observations or revised
+        severity.
+      tags:
+      - Inspections
+      parameters:
+      - name: detection_id
+        in: path
+        required: true
+        schema: *id007
+        description: The damage finding UUID.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - notes
+              properties:
+                notes:
+                  type: string
+                  maxLength: 1000
+                severity:
+                  type: string
+                  enum:
+                  - LOW
+                  - MEDIUM
+                  - HIGH
+            example:
+              notes: Inspected closely in good light; minor clear-coat blemish.
+              severity: LOW
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. The caller is not staff.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: The caller is not staff.
+        '404':
+          description: Not Found. No such detection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such detection.
+        '422':
+          description: Unprocessable Entity. Invalid UUID or missing notes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id001
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Invalid UUID or missing notes.
+      x-auth: Bearer token required
+      x-roles: '`VALET_OPERATOR`, `VALET_MANAGER` or `ADMIN`.'
+  /api/v1/inspections/{custody_id}/dispute:
+    post:
+      operationId: disputeInspection
+      summary: Submit a dispute regarding condition report findings
+      description: Allows customers or managers to submit a formal dispute with reasons, notes, and specific
+        disputed finding IDs.
+      tags:
+      - Inspections
+      parameters:
+      - name: custody_id
+        in: path
+        required: true
+        schema: *id007
+        description: The custody session UUID.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - reason
+              properties:
+                reason:
+                  type: string
+                notes:
+                  type: string
+                disputed_detection_ids:
+                  type: array
+                  items: *id007
+            example:
+              reason: Pre-existing mark
+              notes: This blemish was present before drop-off.
+              disputed_detection_ids: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Not authorized for this session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Not authorized for this session.
+        '404':
+          description: Not Found. No such custody session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such custody session.
+        '409':
+          description: Conflict. The custody session is already complete.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: Unprocessable Entity. Missing reason or invalid custody ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id001
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Missing reason or invalid custody ID.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+  /api/v1/inspections/{custody_id}/resolve-dispute:
+    post:
+      operationId: resolveInspectionDispute
+      summary: Resolve a dispute and complete custody
+      description: Closes the disputed custody session, completes the ticket, frees the assigned parking
+        space, and records the manager's action in the custody audit trail.
+      tags:
+      - Inspections
+      parameters:
+      - name: custody_id
+        in: path
+        required: true
+        schema: *id007
+        description: The disputed custody session UUID.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - notes
+              properties:
+                notes:
+                  type: string
+                  maxLength: 500
+            example:
+              notes: Reviewed with the customer and agreed the vehicle may be returned.
+      responses:
+        '200':
+          description: Dispute resolved and custody completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Only a manager or administrator may resolve a dispute.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Custody session not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: The custody session is not currently disputed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: Missing resolution notes or invalid custody ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+      x-auth: "****** required"
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
+  /api/v1/inspections/{custody_id}/recompare:
+    post:
+      operationId: recompareInspection
+      summary: Re-run the condition comparison pipeline
+      description: Re-runs the before/after vision differencing and classification pipeline between drop-off
+        and pickup photo sets.
+      tags:
+      - Inspections
+      parameters:
+      - name: custody_id
+        in: path
+        required: true
+        schema: *id007
+        description: The custody session UUID.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. The caller is not a manager.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: The caller is not a manager.
+        '404':
+          description: Not Found. No such custody session or missing photo sets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such custody session or missing photo sets.
+      x-auth: Bearer token required
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
   /api/v1/inspections/demo/scenarios:
     get:
       operationId: listDemoScenarios
@@ -3921,6 +4273,10 @@ paths:
         service path, so a batch is classified exactly as its members would be individually.
 
 
+        This user-submitted endpoint accepts only `MANUAL` provenance. Use `/mobile` for authorized browser
+        fixes or authenticated registered-device telemetry for `REAL_GPS`.
+
+
         Every fix is passed through the real geofence classifier on the way in; the response reports the
         verdict, the rules that fired and any alerts raised.
 
@@ -3959,20 +4315,19 @@ paths:
                         type: number
                       heading_degrees: *id011
                       accuracy_metres: *id011
-                      recorded_at:
+                      recorded_at: &id013
                         type: string
                         format: date-time
                 source:
                   type: string
                   enum:
-                  - SIMULATED
-                  - HARDWARE
                   - MANUAL
                   default: MANUAL
+                  description: This endpoint accepts MANUAL only.
                 device_id:
                   type: string
             example:
-              source: SIMULATED
+              source: MANUAL
               fixes:
               - custody_session_id: <custody session uuid>
                 latitude: 28.6139
@@ -5599,6 +5954,193 @@ paths:
       x-auth: Bearer token required
       x-roles: '`VALET_MANAGER` or `ADMIN`.'
       x-role-enforced-by: Enforced by `_require_role(GEOFENCE_ROLES)` in `services/geofence.py`.
+    get:
+      operationId: getGeofence
+      summary: Retrieve details for a single parking zone or safe zone
+      description: Returns geometry, status, and assignment details for a safe zone.
+      tags:
+      - Geofencing
+      parameters:
+      - name: zone_id
+        in: path
+        required: true
+        schema: *id007
+        description: The zone UUID.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '404':
+          description: Not Found. No such zone.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such zone.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+    put:
+      operationId: replaceGeofence
+      summary: Replace or update a safe zone boundary
+      description: Full update of safe zone geometry and attributes.
+      tags:
+      - Geofencing
+      parameters:
+      - name: zone_id
+        in: path
+        required: true
+        schema: *id007
+        description: The zone UUID.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthorized.
+        '404':
+          description: Not Found. No such zone.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such zone.
+      x-auth: Bearer token required
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
+    delete:
+      operationId: deleteGeofence
+      summary: Deactivate or remove a safe zone
+      description: Sets safe zone status to DEACTIVATED.
+      tags:
+      - Geofencing
+      parameters:
+      - name: zone_id
+        in: path
+        required: true
+        schema: *id007
+        description: The zone UUID.
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: Succeeded. No body is returned.
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthorized.
+        '404':
+          description: Not Found. No such zone.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such zone.
+      x-auth: Bearer token required
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
   /api/v1/parking-zones:
     get:
       operationId: listParkingZones
@@ -6425,7 +6967,7 @@ paths:
       - name: unread_only
         in: query
         required: false
-        schema:
+        schema: &id014
           type: boolean
       - name: page
         in: query
@@ -10411,6 +10953,1082 @@ paths:
           x-note: No such stored object, or the reference is invalid.
       x-auth: None (public)
       x-roles: None. This route is public.
+  /api/v1/gps/stream/{custody_id}:
+    get:
+      operationId: streamGpsTelemetry
+      summary: Live SSE stream for real-time telemetry and alerts
+      description: Server-Sent Events connection streaming initial snapshot and live GPS fixes.
+      tags:
+      - GPS
+      parameters:
+      - name: custody_id
+        in: path
+        required: true
+        schema: *id007
+        description: The custody session UUID.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Not authorized for this vehicle/custody.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Not authorized for this vehicle/custody.
+        '404':
+          description: Not Found. No such custody session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such custody session.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+  /api/v1/gps/mobile:
+    post:
+      operationId: ingestMobileGps
+      summary: Record GPS fixes from an authorized mobile browser
+      description: Ingests real-time position fixes strictly marked with MOBILE_GPS telemetry source.
+      tags:
+      - GPS
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: &id015
+              type: object
+              properties:
+                id: *id007
+                custody_session_id: *id007
+                latitude: *id011
+                longitude: *id011
+                speed_kmph:
+                  type: number
+                  nullable: true
+                heading_degrees:
+                  type: number
+                  nullable: true
+                accuracy_metres:
+                  type: number
+                  nullable: true
+                recorded_at: *id013
+                source:
+                  type: string
+                  enum:
+                  - SIMULATED
+                  - MOBILE_GPS
+                  - REAL_GPS
+                  - MANUAL
+                  - HARDWARE
+                  - VEHICLE_GPS
+                  - CAR_GPS
+                  description: Per-fix provenance. New physical-device fixes use authenticated REAL_GPS;
+                    older hardware labels are retained for historical rows.
+                is_simulated: *id014
+                device_id:
+                  type: string
+                  nullable: true
+                movement_status:
+                  type: string
+                  enum:
+                  - NORMAL
+                  - WARNING
+                  - SUSPICIOUS
+                  - BREACH
+                is_within_zone:
+                  type: boolean
+                  nullable: true
+                distance_from_zone_metres:
+                  type: number
+                  nullable: true
+                zone_id:
+                  allOf:
+                  - *id007
+                  nullable: true
+                ml:
+                  type: object
+                  nullable: true
+                  description: The prototype classifier's opinion, recorded alongside the rule-based verdict.
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Not authorized for this custody session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Not authorized for this custody session.
+        '422':
+          description: Unprocessable Entity. Invalid coordinates.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id001
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Invalid coordinates.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+  /api/v1/gps/vehicle:
+    post:
+      operationId: ingestVehicleGps
+      summary: Record staff-entered GPS and sensor observations
+      description: Ingests staff-entered telemetry marked MANUAL. This endpoint does not authenticate
+        or connect a physical tracker.
+      tags:
+      - GPS
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: *id015
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. The caller is not staff.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: The caller is not staff.
+        '422':
+          description: Unprocessable Entity. Invalid telemetry data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id001
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Invalid telemetry data.
+      x-auth: Bearer token required
+      x-roles: '`VALET_OPERATOR`, `VALET_MANAGER` or `ADMIN`.'
+  /api/v1/gps/providers:
+    get:
+      operationId: listGpsProviders
+      summary: List supported physical GPS tracker adapters
+      description: Returns the catalog of supported real GPS hardware adapters (Traccar, Teltonika, etc.).
+      tags:
+      - GPS
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+  /api/v1/gps/devices:
+    get:
+      operationId: listGpsDevices
+      summary: List registered GPS devices
+      description: Returns registered GPS tracker devices with optional vehicle_id filter.
+      tags:
+      - GPS
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+    post:
+      operationId: registerGpsDevice
+      summary: Register or link a GPS device to a vehicle
+      description: Associates a physical tracker identifier and provider with a customer vehicle.
+      tags:
+      - GPS
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '422':
+          description: Unprocessable Entity. Missing device_id or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id001
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Missing device_id or invalid payload.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+  /api/v1/gps/devices/{device_id}:
+    delete:
+      operationId: unlinkGpsDevice
+      summary: Unlink or deactivate a GPS tracker
+      description: Deactivates a GPS tracker device and resets vehicle tracking method.
+      tags:
+      - GPS
+      parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The tracker device ID.
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: Succeeded. No body is returned.
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '404':
+          description: Not Found. No such device.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such device.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+  /api/v1/gps/devices/{device_id}/test:
+    get:
+      operationId: testGpsDeviceConnection
+      summary: Test device connection and return honest verification state
+      description: Tests provider reachability and returns connection status (CONNECTED, STALE, OFFLINE).
+      tags:
+      - GPS
+      parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The tracker device ID.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '404':
+          description: Not Found. No such device.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such device.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+  /api/v1/gps/devices/{device_id}/telemetry:
+    post:
+      operationId: ingestDeviceTelemetry
+      summary: Ingest live hardware GPS fix from a registered tracker
+      description: Accepts telemetry only for a registered device with its configured device secret and
+        records it as REAL_GPS. A device identifier alone does not establish a hardware connection.
+      tags:
+      - GPS
+      parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The tracker device ID.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Missing or invalid device credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Missing or invalid device credentials.
+        '404':
+          description: Not Found. No registered device matches this identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No registered device matches this identifier.
+        '422':
+          description: Unprocessable Entity. Invalid telemetry coordinates.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id001
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Invalid telemetry coordinates.
+      x-auth: None (public)
+      x-roles: None. This route is public.
+  /api/v1/gps/ingest/real:
+    post:
+      operationId: ingestRealTelemetry
+      summary: Ingest real GPS fix by payload device ID
+      description: Generic inbound endpoint for authentic GPS hardware telemetry.
+      tags:
+      - GPS
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Invalid device credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Invalid device credentials.
+        '422':
+          description: Unprocessable Entity. Invalid telemetry coordinates.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id001
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Invalid telemetry coordinates.
+      x-auth: Bearer token required
+      x-roles: None. This route is public.
+  /api/v1/geofences/preview:
+    post:
+      operationId: previewGeofence
+      summary: Calculate and preview geofence geometry without saving
+      description: Calculates ring coordinates, effective radius, and estimated area for circular and
+        rectangular safe zones.
+      tags:
+      - Geofencing
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '422':
+          description: Unprocessable Entity. Invalid dimensions or coordinates.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id001
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Invalid dimensions or coordinates.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+  /api/v1/geofences/{zone_id}/activate:
+    post:
+      operationId: activateGeofence
+      summary: Activate an inactive safe zone
+      description: Sets safe zone status to ACTIVE.
+      tags:
+      - Geofencing
+      parameters:
+      - name: zone_id
+        in: path
+        required: true
+        schema: *id007
+        description: The zone UUID.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthorized.
+        '404':
+          description: Not Found. No such zone.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such zone.
+      x-auth: Bearer token required
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
+  /api/v1/geofences/{zone_id}/deactivate:
+    post:
+      operationId: deactivateGeofence
+      summary: Deactivate an active safe zone
+      description: Sets safe zone status to DEACTIVATED.
+      tags:
+      - Geofencing
+      parameters:
+      - name: zone_id
+        in: path
+        required: true
+        schema: *id007
+        description: The zone UUID.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthorized.
+        '404':
+          description: Not Found. No such zone.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such zone.
+      x-auth: Bearer token required
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
+  /api/v1/alerts/{alert_id}/investigate:
+    post:
+      operationId: investigateSecurityAlert
+      summary: Mark a security alert as being investigated
+      description: Records that staff have begun active investigation of an alert.
+      tags:
+      - Security Alerts
+      parameters:
+      - name: alert_id
+        in: path
+        required: true
+        schema: *id007
+        description: The alert UUID.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthorized.
+        '404':
+          description: Not Found. No such alert.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such alert.
+      x-auth: Bearer token required
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
+  /api/v1/alerts/{alert_id}/reopen:
+    post:
+      operationId: reopenSecurityAlert
+      summary: Reopen a resolved security alert
+      description: Reopens a previously resolved or dismissed alert.
+      tags:
+      - Security Alerts
+      parameters:
+      - name: alert_id
+        in: path
+        required: true
+        schema: *id007
+        description: The alert UUID.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthorized.
+        '404':
+          description: Not Found. No such alert.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: No such alert.
+      x-auth: Bearer token required
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
+  /api/v1/alerts/email-config:
+    get:
+      operationId: getEmailConfig
+      summary: Check SMTP and notification channel status
+      description: Returns email channel configuration status without leaking credentials.
+      tags:
+      - Security Alerts
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Manager or Admin access required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Manager or Admin access required.
+      x-auth: Bearer token required
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
+  /api/v1/alerts/test-email:
+    post:
+      operationId: testEmailDelivery
+      summary: Send a test email notification to verify SMTP delivery
+      description: Tests SMTP connection and delivers a test security email.
+      tags:
+      - Security Alerts
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Unauthenticated.
+        '403':
+          description: Forbidden. Manager or Admin access required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id003
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Manager or Admin access required.
+        '422':
+          description: Unprocessable Entity. Invalid recipient email.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id001
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Invalid recipient email.
+      x-auth: Bearer token required
+      x-roles: '`VALET_MANAGER` or `ADMIN`.'
 components:
   securitySchemes:
     bearerAuth:

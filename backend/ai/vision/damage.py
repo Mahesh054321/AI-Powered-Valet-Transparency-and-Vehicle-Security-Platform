@@ -28,6 +28,7 @@ damage until a manager verifies it.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -35,7 +36,7 @@ import numpy as np
 from ai.vision.compare import RegionCandidate
 from ai.vision.config import PipelineConfig
 from ai.vision.regions import Viewpoint, map_region
-from models.damage_detection import DamageType
+from models.damage_detection import DamageType, DetectionMethod
 from models.enums import DamageSeverity
 
 #: Hard ceiling on labelling confidence. A shape-and-colour heuristic should
@@ -64,6 +65,8 @@ class Finding:
     statistics: dict[str, Any]
     #: How the region name was derived - viewpoint, grid cell, basis.
     region_mapping: dict[str, Any]
+    method: str = "CLASSICAL_CV"
+    model_version: str | None = None
 
     def describe(self) -> dict[str, Any]:
         return {
@@ -77,6 +80,8 @@ class Finding:
             "pixel_area": self.pixel_area,
             "statistics": self.statistics,
             "region_mapping": self.region_mapping,
+            "method": self.method,
+            "model_version": self.model_version,
         }
 
 
@@ -368,6 +373,8 @@ def assess(
                 pixel_area=candidate.area,
                 statistics=candidate.describe(),
                 region_mapping=mapping,
+                method=str(DetectionMethod.CLASSICAL_CV),
+                model_version=None,
             )
         )
 

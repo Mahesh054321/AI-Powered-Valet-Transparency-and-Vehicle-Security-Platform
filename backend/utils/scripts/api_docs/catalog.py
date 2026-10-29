@@ -1164,6 +1164,96 @@ add(
 
 add(
     group="Inspections",
+    method="patch",
+    path="/api/v1/inspections/detections/{detection_id}/notes",
+    operationId="annotateDetection",
+    summary="Add notes or update severity on a damage detection",
+    description=(
+        "Enables valets and managers to annotate findings with inspector "
+        "observations or revised severity."
+    ),
+    auth="bearer",
+    roles="staff",
+    params=[{"name": "detection_id", "in": "path", "required": True, "schema": UUID,
+             "description": "The damage finding UUID."}],
+    request_body={
+        "required": True,
+        "schema": {
+            "type": "object",
+            "required": ["notes"],
+            "properties": {
+                "notes": {"type": "string", "maxLength": 1000},
+                "severity": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH"]},
+            },
+        },
+    },
+    example_request={"notes": "Inspected closely in good light; minor clear-coat blemish.", "severity": "LOW"},
+    errors=[
+        ("401", "Unauthenticated."),
+        ("403", "The caller is not staff."),
+        ("404", "No such detection."),
+        ("422", "Invalid UUID or missing notes."),
+    ],
+)
+
+add(
+    group="Inspections",
+    method="post",
+    path="/api/v1/inspections/{custody_id}/dispute",
+    operationId="disputeInspection",
+    summary="Submit a dispute regarding condition report findings",
+    description=(
+        "Allows customers or managers to submit a formal dispute with reasons, "
+        "notes, and specific disputed finding IDs."
+    ),
+    auth="bearer",
+    roles="auth",
+    params=[{"name": "custody_id", "in": "path", "required": True, "schema": UUID,
+             "description": "The custody session UUID."}],
+    request_body={
+        "required": True,
+        "schema": {
+            "type": "object",
+            "required": ["reason"],
+            "properties": {
+                "reason": {"type": "string"},
+                "notes": {"type": "string"},
+                "disputed_detection_ids": {"type": "array", "items": UUID},
+            },
+        },
+    },
+    example_request={"reason": "Pre-existing mark", "notes": "This blemish was present before drop-off.", "disputed_detection_ids": []},
+    errors=[
+        ("401", "Unauthenticated."),
+        ("403", "Not authorized for this session."),
+        ("404", "No such custody session."),
+        ("422", "Missing reason or invalid custody ID."),
+    ],
+)
+
+add(
+    group="Inspections",
+    method="post",
+    path="/api/v1/inspections/{custody_id}/recompare",
+    operationId="recompareInspection",
+    summary="Re-run the condition comparison pipeline",
+    description=(
+        "Re-runs the before/after vision differencing and classification pipeline "
+        "between drop-off and pickup photo sets."
+    ),
+    auth="bearer",
+    roles="manager",
+    params=[{"name": "custody_id", "in": "path", "required": True, "schema": UUID,
+             "description": "The custody session UUID."}],
+    errors=[
+        ("401", "Unauthenticated."),
+        ("403", "The caller is not a manager."),
+        ("404", "No such custody session or missing photo sets."),
+    ],
+)
+
+add(
+    group="Inspections",
     method="get",
     path="/api/v1/inspections/demo/scenarios",
     operationId="listDemoScenarios",
@@ -1232,8 +1322,19 @@ FIX_SCHEMA = {
         "recorded_at": DATETIME,
         "source": {
             "type": "string",
-            "enum": ["SIMULATED", "HARDWARE", "MANUAL"],
-            "description": "Per-fix provenance. A session may contain both.",
+            "enum": [
+                "SIMULATED",
+                "MOBILE_GPS",
+                "REAL_GPS",
+                "MANUAL",
+                "HARDWARE",
+                "VEHICLE_GPS",
+                "CAR_GPS",
+            ],
+            "description": (
+                "Per-fix provenance. New physical-device fixes use authenticated REAL_GPS; "
+                "older hardware labels are retained for historical rows."
+            ),
         },
         "is_simulated": BOOL,
         "device_id": {"type": "string", "nullable": True},
@@ -1262,6 +1363,9 @@ add(
         "Accepts either a single fix object or `{\"fixes\": [...]}`. Both shapes "
         "reach the same service path, so a batch is classified exactly as its "
         "members would be individually.\n\n"
+        "This user-submitted endpoint accepts only `MANUAL` provenance. Use "
+        "`/mobile` for authorized browser fixes or authenticated registered-device "
+        "telemetry for `REAL_GPS`.\n\n"
         "Every fix is passed through the real geofence classifier on the way in; "
         "the response reports the verdict, the rules that fired and any alerts "
         "raised.\n\n"
@@ -1294,15 +1398,16 @@ add(
                 },
                 "source": {
                     "type": "string",
-                    "enum": ["SIMULATED", "HARDWARE", "MANUAL"],
+                    "enum": ["MANUAL"],
                     "default": "MANUAL",
+                    "description": "This endpoint accepts MANUAL only.",
                 },
                 "device_id": {"type": "string"},
             },
         },
     },
     example_request={
-        "source": "SIMULATED",
+        "source": "MANUAL",
         "fixes": [
             {
                 "custody_session_id": "<custody session uuid>",
@@ -2656,4 +2761,275 @@ add(
         }
     ],
     errors=[("404", "No such stored object, or the reference is invalid.")],
+)
+
+# ---------------------------------------------------------------------------
+# GPS Extensions
+# ---------------------------------------------------------------------------
+
+add(
+    group="GPS",
+    method="get",
+    path="/api/v1/gps/stream/{custody_id}",
+    operationId="streamGpsTelemetry",
+    summary="Live SSE stream for real-time telemetry and alerts",
+    description="Server-Sent Events connection streaming initial snapshot and live GPS fixes.",
+    auth="bearer",
+    roles="auth",
+    params=[{"name": "custody_id", "in": "path", "required": True, "schema": UUID, "description": "The custody session UUID."}],
+    errors=[("401", "Unauthenticated."), ("403", "Not authorized for this vehicle/custody."), ("404", "No such custody session.")],
+)
+
+add(
+    group="GPS",
+    method="post",
+    path="/api/v1/gps/mobile",
+    operationId="ingestMobileGps",
+    summary="Record GPS fixes from an authorized mobile browser",
+    description="Ingests real-time position fixes strictly marked with MOBILE_GPS telemetry source.",
+    auth="bearer",
+    roles="auth",
+    request_body={"required": True, "schema": FIX_SCHEMA},
+    errors=[("401", "Unauthenticated."), ("403", "Not authorized for this custody session."), ("422", "Invalid coordinates.")],
+)
+
+add(
+    group="GPS",
+    method="post",
+    path="/api/v1/gps/vehicle",
+    operationId="ingestVehicleGps",
+    summary="Record staff-entered GPS and sensor observations",
+    description="Ingests staff-entered telemetry marked MANUAL. This endpoint does not authenticate or connect a physical tracker.",
+    auth="bearer",
+    roles="staff",
+    request_body={"required": True, "schema": FIX_SCHEMA},
+    errors=[("401", "Unauthenticated."), ("403", "The caller is not staff."), ("422", "Invalid telemetry data.")],
+)
+
+add(
+    group="GPS",
+    method="get",
+    path="/api/v1/gps/providers",
+    operationId="listGpsProviders",
+    summary="List supported physical GPS tracker adapters",
+    description="Returns the catalog of supported real GPS hardware adapters (Traccar, Teltonika, etc.).",
+    auth="bearer",
+    roles="auth",
+    errors=[("401", "Unauthenticated.")],
+)
+
+add(
+    group="GPS",
+    method="get",
+    path="/api/v1/gps/devices",
+    operationId="listGpsDevices",
+    summary="List registered GPS devices",
+    description="Returns registered GPS tracker devices with optional vehicle_id filter.",
+    auth="bearer",
+    roles="auth",
+    errors=[("401", "Unauthenticated.")],
+)
+
+add(
+    group="GPS",
+    method="post",
+    path="/api/v1/gps/devices",
+    operationId="registerGpsDevice",
+    summary="Register or link a GPS device to a vehicle",
+    description="Associates a physical tracker identifier and provider with a customer vehicle.",
+    auth="bearer",
+    roles="auth",
+    request_body={"required": True, "schema": {"type": "object"}},
+    errors=[("401", "Unauthenticated."), ("422", "Missing device_id or invalid payload.")],
+)
+
+add(
+    group="GPS",
+    method="delete",
+    path="/api/v1/gps/devices/{device_id}",
+    operationId="unlinkGpsDevice",
+    summary="Unlink or deactivate a GPS tracker",
+    description="Deactivates a GPS tracker device and resets vehicle tracking method.",
+    auth="bearer",
+    roles="auth",
+    params=[{"name": "device_id", "in": "path", "required": True, "schema": {"type": "string"}, "description": "The tracker device ID."}],
+    errors=[("401", "Unauthenticated."), ("404", "No such device.")],
+)
+
+add(
+    group="GPS",
+    method="get",
+    path="/api/v1/gps/devices/{device_id}/test",
+    operationId="testGpsDeviceConnection",
+    summary="Test device connection and return honest verification state",
+    description="Tests provider reachability and returns connection status (CONNECTED, STALE, OFFLINE).",
+    auth="bearer",
+    roles="auth",
+    params=[{"name": "device_id", "in": "path", "required": True, "schema": {"type": "string"}, "description": "The tracker device ID."}],
+    errors=[("401", "Unauthenticated."), ("404", "No such device.")],
+)
+
+add(
+    group="GPS",
+    method="post",
+    path="/api/v1/gps/devices/{device_id}/telemetry",
+    operationId="ingestDeviceTelemetry",
+    summary="Ingest live hardware GPS fix from a registered tracker",
+    description="Accepts telemetry only for a registered device with its configured device secret and records it as REAL_GPS. A device identifier alone does not establish a hardware connection.",
+    auth="none",
+    roles="public",
+    params=[{"name": "device_id", "in": "path", "required": True, "schema": {"type": "string"}, "description": "The tracker device ID."}],
+    request_body={"required": True, "schema": {"type": "object"}},
+    errors=[("401", "Missing or invalid device credentials."), ("404", "No registered device matches this identifier."), ("422", "Invalid telemetry coordinates.")],
+)
+
+add(
+    group="GPS",
+    method="post",
+    path="/api/v1/gps/ingest/real",
+    operationId="ingestRealTelemetry",
+    summary="Ingest real GPS fix by payload device ID",
+    description="Generic inbound endpoint for authentic GPS hardware telemetry.",
+    auth="bearer",
+    roles="public",
+    request_body={"required": True, "schema": {"type": "object"}},
+    errors=[("401", "Invalid device credentials."), ("422", "Invalid telemetry coordinates.")],
+)
+
+# ---------------------------------------------------------------------------
+# Geofencing Extensions
+# ---------------------------------------------------------------------------
+
+add(
+    group="Geofencing",
+    method="post",
+    path="/api/v1/geofences/preview",
+    operationId="previewGeofence",
+    summary="Calculate and preview geofence geometry without saving",
+    description="Calculates ring coordinates, effective radius, and estimated area for circular and rectangular safe zones.",
+    auth="bearer",
+    roles="auth",
+    request_body={"required": True, "schema": {"type": "object"}},
+    errors=[("401", "Unauthenticated."), ("422", "Invalid dimensions or coordinates.")],
+)
+
+add(
+    group="Geofencing",
+    method="get",
+    path="/api/v1/geofences/{zone_id}",
+    operationId="getGeofence",
+    summary="Retrieve details for a single parking zone or safe zone",
+    description="Returns geometry, status, and assignment details for a safe zone.",
+    auth="bearer",
+    roles="auth",
+    params=[{"name": "zone_id", "in": "path", "required": True, "schema": UUID, "description": "The zone UUID."}],
+    errors=[("401", "Unauthenticated."), ("404", "No such zone.")],
+)
+
+add(
+    group="Geofencing",
+    method="put",
+    path="/api/v1/geofences/{zone_id}",
+    operationId="replaceGeofence",
+    summary="Replace or update a safe zone boundary",
+    description="Full update of safe zone geometry and attributes.",
+    auth="bearer",
+    roles="manager",
+    params=[{"name": "zone_id", "in": "path", "required": True, "schema": UUID, "description": "The zone UUID."}],
+    request_body={"required": True, "schema": {"type": "object"}},
+    errors=[("401", "Unauthenticated."), ("403", "Unauthorized."), ("404", "No such zone.")],
+)
+
+add(
+    group="Geofencing",
+    method="delete",
+    path="/api/v1/geofences/{zone_id}",
+    operationId="deleteGeofence",
+    summary="Deactivate or remove a safe zone",
+    description="Sets safe zone status to DEACTIVATED.",
+    auth="bearer",
+    roles="manager",
+    params=[{"name": "zone_id", "in": "path", "required": True, "schema": UUID, "description": "The zone UUID."}],
+    errors=[("401", "Unauthenticated."), ("403", "Unauthorized."), ("404", "No such zone.")],
+)
+
+add(
+    group="Geofencing",
+    method="post",
+    path="/api/v1/geofences/{zone_id}/activate",
+    operationId="activateGeofence",
+    summary="Activate an inactive safe zone",
+    description="Sets safe zone status to ACTIVE.",
+    auth="bearer",
+    roles="manager",
+    params=[{"name": "zone_id", "in": "path", "required": True, "schema": UUID, "description": "The zone UUID."}],
+    errors=[("401", "Unauthenticated."), ("403", "Unauthorized."), ("404", "No such zone.")],
+)
+
+add(
+    group="Geofencing",
+    method="post",
+    path="/api/v1/geofences/{zone_id}/deactivate",
+    operationId="deactivateGeofence",
+    summary="Deactivate an active safe zone",
+    description="Sets safe zone status to DEACTIVATED.",
+    auth="bearer",
+    roles="manager",
+    params=[{"name": "zone_id", "in": "path", "required": True, "schema": UUID, "description": "The zone UUID."}],
+    errors=[("401", "Unauthenticated."), ("403", "Unauthorized."), ("404", "No such zone.")],
+)
+
+# ---------------------------------------------------------------------------
+# Alert Triage Extensions
+# ---------------------------------------------------------------------------
+
+add(
+    group="Security Alerts",
+    method="post",
+    path="/api/v1/alerts/{alert_id}/investigate",
+    operationId="investigateSecurityAlert",
+    summary="Mark a security alert as being investigated",
+    description="Records that staff have begun active investigation of an alert.",
+    auth="bearer",
+    roles="manager",
+    params=[{"name": "alert_id", "in": "path", "required": True, "schema": UUID, "description": "The alert UUID."}],
+    errors=[("401", "Unauthenticated."), ("403", "Unauthorized."), ("404", "No such alert.")],
+)
+
+add(
+    group="Security Alerts",
+    method="post",
+    path="/api/v1/alerts/{alert_id}/reopen",
+    operationId="reopenSecurityAlert",
+    summary="Reopen a resolved security alert",
+    description="Reopens a previously resolved or dismissed alert.",
+    auth="bearer",
+    roles="manager",
+    params=[{"name": "alert_id", "in": "path", "required": True, "schema": UUID, "description": "The alert UUID."}],
+    errors=[("401", "Unauthenticated."), ("403", "Unauthorized."), ("404", "No such alert.")],
+)
+
+add(
+    group="Security Alerts",
+    method="get",
+    path="/api/v1/alerts/email-config",
+    operationId="getEmailConfig",
+    summary="Check SMTP and notification channel status",
+    description="Returns email channel configuration status without leaking credentials.",
+    auth="bearer",
+    roles="manager",
+    errors=[("401", "Unauthenticated."), ("403", "Manager or Admin access required.")],
+)
+
+add(
+    group="Security Alerts",
+    method="post",
+    path="/api/v1/alerts/test-email",
+    operationId="testEmailDelivery",
+    summary="Send a test email notification to verify SMTP delivery",
+    description="Tests SMTP connection and delivers a test security email.",
+    auth="bearer",
+    roles="manager",
+    request_body={"required": True, "schema": {"type": "object"}},
+    errors=[("401", "Unauthenticated."), ("403", "Manager or Admin access required."), ("422", "Invalid recipient email.")],
 )
