@@ -1,0 +1,14 @@
+# ==============================================================================
+#  Development / test dependencies.
+#  Install AFTER requirements.txt:
+#      pip install -r requirements.txt -r requirements-dev.txt
+# ==============================================================================
+-r requirements.txt
+
+pytest==9.0.3
+pytest-cov==7.1.0
+ruff==0.16.6
+
+# The API documentation is generated, and a regression test regenerates it to
+# prove the committed copy is current. Both need a YAML parser.
+PyYAML==6.0.3

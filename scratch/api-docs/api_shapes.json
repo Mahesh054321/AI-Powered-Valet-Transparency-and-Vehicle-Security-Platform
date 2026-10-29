@@ -1,0 +1,4792 @@
+{
+  "GET /vehicles": {
+    "method": "GET",
+    "path": "/api/v1/vehicles?limit=3",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "items": [
+          {
+            "color": "Titan Grey",
+            "created_at": "2026-09-12T15:04:30.151668+00:00",
+            "id": "448c7417-3c19-5bb7-862c-3a8c981f95e2",
+            "is_in_custody": false,
+            "make": "Hyundai",
+            "model": "Creta",
+            "normalized_plate": "UP78CD5678",
+            "notes": "[DEMO] Seeded demonstration vehicle.",
+            "owner": {
+              "email": "customer.aisha@example.com",
+              "full_name": "Aisha Verma",
+              "id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+              "phone": "+91 98100 100 10"
+            },
+            "owner_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "plate_number": "UP 78 CD 5678",
+            "status": "REGISTERED",
+            "updated_at": "2026-09-12T15:04:30.151668+00:00",
+            "vin": null,
+            "year": 2022
+          },
+          {
+            "color": "Nexa Blue",
+            "created_at": "2026-09-12T15:04:30.151668+00:00",
+            "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+            "is_in_custody": false,
+            "make": "Maruti Suzuki",
+            "model": "Baleno",
+            "normalized_plate": "DL01CA9012",
+            "notes": "[DEMO] Seeded demonstration vehicle.",
+            "owner": {
+              "email": "customer.rohit@example.com",
+              "full_name": "Rohit Menon",
+              "id": "7692e411-48ff-50e3-91b3-9b721978a47d",
+              "phone": "+91 98200 200 20"
+            },
+            "owner_id": "7692e411-48ff-50e3-91b3-9b721978a47d",
+            "plate_number": "DL 01 CA 9012",
+            "status": "FLAGGED",
+            "updated_at": "2026-09-12T15:04:30.151668+00:00",
+            "vin": null,
+            "year": 2024
+          },
+          {
+            "color": "Pearl White",
+            "created_at": "2026-09-12T15:04:30.151668+00:00",
+            "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+            "is_in_custody": true,
+            "make": "Tata",
+            "model": "Nexon",
+            "normalized_plate": "UP78AB1234",
+            "notes": "[DEMO] Seeded demonstration vehicle.",
+            "owner": {
+              "email": "customer.aisha@example.com",
+              "full_name": "Aisha Verma",
+              "id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+              "phone": "+91 98100 100 10"
+            },
+            "owner_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "plate_number": "UP 78 AB 1234",
+            "status": "IN_CUSTODY",
+            "updated_at": "2026-09-12T15:04:30.151668+00:00",
+            "vin": null,
+            "year": 2023
+          }
+        ],
+        "pagination": {
+          "has_next": false,
+          "has_prev": false,
+          "page": 1,
+          "page_size": 20,
+          "total_items": 3,
+          "total_pages": 1
+        }
+      },
+      "meta": {
+        "request_id": "7c606132be5c40158e149333eb473d2c",
+        "server_time": 1789225630.7025304
+      },
+      "success": true
+    }
+  },
+  "GET /tickets": {
+    "method": "GET",
+    "path": "/api/v1/tickets?limit=3",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "items": [
+          {
+            "actual_drop_off_at": "2026-09-12T13:24:30+00:00",
+            "actual_pickup_at": null,
+            "custody_session": {
+              "assigned_valet_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+              "condition_accepted": null,
+              "dropped_off_at": "2026-09-12T13:24:30+00:00",
+              "id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "is_open": true,
+              "picked_up_at": null,
+              "retrieval_requested_at": "2026-09-12T17:34:30+00:00",
+              "status": "PARKED",
+              "ticket_id": "233e028c-6271-5a88-a32b-e63021d7c5fd",
+              "vehicle_id": "b88418a6-7799-5f31-856f-fd424e58a176",
+              "zone_assigned_at": "2026-09-12T13:30:30+00:00",
+              "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+            },
+            "customer": {
+              "email": "customer.aisha@example.com",
+              "full_name": "Aisha Verma",
+              "id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+              "phone": "+91 98100 100 10"
+            },
+            "customer_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "expected_return_at": "2026-09-12T19:04:30+00:00",
+            "id": "233e028c-6271-5a88-a32b-e63021d7c5fd",
+            "issued_at": "2026-09-12T13:04:30+00:00",
+            "parking_zone": {
+              "code": "ZONE-A",
+              "id": "5880e6e0-752c-5742-885b-72ef61090d8a",
+              "name": "Zone A - Covered Parking"
+            },
+            "qr_code_path": "tickets/demo/demo-open.png",
+            "qr_payload": "VALET:VT-O-OPEN",
+            "qr_url": "/media/tickets/demo/demo-open.png",
+            "special_instructions": "[DEMO] Please handle with care.",
+            "status": "IN_CUSTODY",
+            "stored_status": "ACTIVE",
+            "ticket_code": "VT-O-OPEN",
+            "vehicle": {
+              "color": "Pearl White",
+              "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+              "make": "Tata",
+              "model": "Nexon",
+              "plate_number": "UP 78 AB 1234",
+              "status": "IN_CUSTODY",
+              "year": 2023
+            },
+            "vehicle_id": "b88418a6-7799-5f31-856f-fd424e58a176"
+          },
+          {
+            "actual_drop_off_at": "2026-09-10T15:24:30+00:00",
+            "actual_pickup_at": "2026-09-10T20:04:30+00:00",
+            "custody_session": {
+              "assigned_valet_id": "64e7d621-9193-572b-943c-d103998c6daa",
+              "condition_accepted": true,
+              "dropped_off_at": "2026-09-10T15:24:30+00:00",
+              "id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+              "is_open": false,
+              "picked_up_at": "2026-09-10T20:04:30+00:00",
+              "retrieval_requested_at": "2026-09-10T19:34:30+00:00",
+              "status": "CHECKED_OUT",
+              "ticket_id": "d807b7c4-cf74-5dd1-9e84-e0ccc98e1397",
+              "vehicle_id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+              "zone_assigned_at": "2026-09-10T15:30:30+00:00",
+              "zone_id": "1cc7f7a9-926b-5019-93a9-5be1486c16bb"
+            },
+            "customer": {
+              "email": "customer.rohit@example.com",
+              "full_name": "Rohit Menon",
+              "id": "7692e411-48ff-50e3-91b3-9b721978a47d",
+              "phone": "+91 98200 200 20"
+            },
+            "customer_id": "7692e411-48ff-50e3-91b3-9b721978a47d",
+            "expected_return_at": "2026-09-10T21:04:30+00:00",
+            "id": "d807b7c4-cf74-5dd1-9e84-e0ccc98e1397",
+            "issued_at": "2026-09-10T15:04:30+00:00",
+            "parking_zone": {
+              "code": "ZONE-B",
+              "id": "1cc7f7a9-926b-5019-93a9-5be1486c16bb",
+              "name": "Zone B - Open Yard"
+            },
+            "qr_code_path": "tickets/demo/demo-closed.png",
+            "qr_payload": "VALET:VT-CLOSED",
+            "qr_url": "/media/tickets/demo/demo-closed.png",
+            "special_instructions": "[DEMO] Please handle with care.",
+            "status": "COMPLETED",
+            "stored_status": "COMPLETED",
+            "ticket_code": "VT-CLOSED",
+            "vehicle": {
+              "color": "Nexa Blue",
+              "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+              "make": "Maruti Suzuki",
+              "model": "Baleno",
+              "plate_number": "DL 01 CA 9012",
+              "status": "FLAGGED",
+              "year": 2024
+            },
+            "vehicle_id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47"
+          }
+        ],
+        "pagination": {
+          "has_next": false,
+          "has_prev": false,
+          "page": 1,
+          "page_size": 20,
+          "total_items": 2,
+          "total_pages": 1
+        }
+      },
+      "meta": {
+        "request_id": "259dd4849e514af88dbd52f2ef21a788",
+        "server_time": 1789225630.7155402
+      },
+      "success": true
+    }
+  },
+  "GET /parking-zones": {
+    "method": "GET",
+    "path": "/api/v1/parking-zones",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "items": [
+          {
+            "available_slots": 39,
+            "buffer_metres": 25.0,
+            "capacity": 40,
+            "centre": {
+              "latitude": 27.49325,
+              "longitude": 77.67425
+            },
+            "code": "ZONE-A",
+            "current_occupancy": 1,
+            "description": "[DEMO] Demonstration zone with a 4-sided geofence.",
+            "geofence_polygon": [
+              [
+                77.673,
+                27.4925
+              ],
+              [
+                77.6755,
+                27.4925
+              ],
+              [
+                77.6755,
+                27.494
+              ],
+              [
+                77.673,
+                27.494
+              ],
+              [
+                77.673,
+                27.4925
+              ]
+            ],
+            "id": "5880e6e0-752c-5742-885b-72ef61090d8a",
+            "name": "Zone A - Covered Parking",
+            "radius_metres": null,
+            "status": "ACTIVE"
+          },
+          {
+            "available_slots": 60,
+            "buffer_metres": 25.0,
+            "capacity": 60,
+            "centre": {
+              "latitude": 27.4935,
+              "longitude": 77.6775
+            },
+            "code": "ZONE-B",
+            "current_occupancy": 0,
+            "description": "[DEMO] Demonstration zone with a 4-sided geofence.",
+            "geofence_polygon": [
+              [
+                77.676,
+                27.4925
+              ],
+              [
+                77.679,
+                27.4925
+              ],
+              [
+                77.679,
+                27.4945
+              ],
+              [
+                77.676,
+                27.4945
+              ],
+              [
+                77.676,
+                27.4925
+              ]
+            ],
+            "id": "1cc7f7a9-926b-5019-93a9-5be1486c16bb",
+            "name": "Zone B - Open Yard",
+            "radius_metres": null,
+            "status": "ACTIVE"
+          },
+          {
+            "available_slots": 25,
+            "buffer_metres": 25.0,
+            "capacity": 25,
+            "centre": {
+              "latitude": 27.49325,
+              "longitude": 77.681
+            },
+            "code": "ZONE-C",
+            "current_occupancy": 0,
+            "description": "[DEMO] Demonstration zone with a 4-sided geofence.",
+            "geofence_polygon": [
+              [
+                77.68,
+                27.4925
+              ],
+              [
+                77.682,
+                27.4925
+              ],
+              [
+                77.682,
+                27.494
+              ],
+              [
+                77.68,
+                27.494
+              ],
+              [
+                77.68,
+                27.4925
+              ]
+            ],
+            "id": "a8f07f9e-2b35-565a-b929-1b17f3a1b7bc",
+            "name": "Zone C - Long Stay",
+            "radius_metres": null,
+            "status": "MAINTENANCE"
+          }
+        ],
+        "total": 3
+      },
+      "meta": {
+        "request_id": "6c73e620029a40bca13fc836d9c6a8d6",
+        "server_time": 1789225630.7214067
+      },
+      "success": true
+    }
+  },
+  "GET /geofences": {
+    "method": "GET",
+    "path": "/api/v1/geofences",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "total": 3,
+        "viewer_role": "ADMIN",
+        "zones": [
+          {
+            "available_slots": 39,
+            "buffer_metres": 25.0,
+            "capacity": 40,
+            "centre": {
+              "latitude": 27.49325,
+              "longitude": 77.67425
+            },
+            "code": "ZONE-A",
+            "current_occupancy": 1,
+            "description": "[DEMO] Demonstration zone with a 4-sided geofence.",
+            "effective_radius_metres": 148.9,
+            "geofence_polygon": [
+              [
+                77.673,
+                27.4925
+              ],
+              [
+                77.6755,
+                27.4925
+              ],
+              [
+                77.6755,
+                27.494
+              ],
+              [
+                77.673,
+                27.494
+              ],
+              [
+                77.673,
+                27.4925
+              ]
+            ],
+            "id": "5880e6e0-752c-5742-885b-72ef61090d8a",
+            "name": "Zone A - Covered Parking",
+            "radius_metres": null,
+            "status": "ACTIVE"
+          },
+          {
+            "available_slots": 60,
+            "buffer_metres": 25.0,
+            "capacity": 60,
+            "centre": {
+              "latitude": 27.4935,
+              "longitude": 77.6775
+            },
+            "code": "ZONE-B",
+            "current_occupancy": 0,
+            "description": "[DEMO] Demonstration zone with a 4-sided geofence.",
+            "effective_radius_metres": 185.1,
+            "geofence_polygon": [
+              [
+                77.676,
+                27.4925
+              ],
+              [
+                77.679,
+                27.4925
+              ],
+              [
+                77.679,
+                27.4945
+              ],
+              [
+                77.676,
+                27.4945
+              ],
+              [
+                77.676,
+                27.4925
+              ]
+            ],
+            "id": "1cc7f7a9-926b-5019-93a9-5be1486c16bb",
+            "name": "Zone B - Open Yard",
+            "radius_metres": null,
+            "status": "ACTIVE"
+          },
+          {
+            "available_slots": 25,
+            "buffer_metres": 25.0,
+            "capacity": 25,
+            "centre": {
+              "latitude": 27.49325,
+              "longitude": 77.681
+            },
+            "code": "ZONE-C",
+            "current_occupancy": 0,
+            "description": "[DEMO] Demonstration zone with a 4-sided geofence.",
+            "effective_radius_metres": 129.2,
+            "geofence_polygon": [
+              [
+                77.68,
+                27.4925
+              ],
+              [
+                77.682,
+                27.4925
+              ],
+              [
+                77.682,
+                27.494
+              ],
+              [
+                77.68,
+                27.494
+              ],
+              [
+                77.68,
+                27.4925
+              ]
+            ],
+            "id": "a8f07f9e-2b35-565a-b929-1b17f3a1b7bc",
+            "name": "Zone C - Long Stay",
+            "radius_metres": null,
+            "status": "MAINTENANCE"
+          }
+        ]
+      },
+      "meta": {
+        "request_id": "5cd9a892bd074d41800f4dfb9dd04138",
+        "server_time": 1789225630.7271128
+      },
+      "success": true
+    }
+  },
+  "GET /feed": {
+    "method": "GET",
+    "path": "/api/v1/feed?limit=3",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "alerts": [],
+        "delivery": "polled",
+        "total": 0,
+        "unread": 0
+      },
+      "meta": {
+        "page": 1,
+        "page_size": 25,
+        "request_id": "566d9548b96b4132936c34c355b119fa",
+        "server_time": 1789225630.7358584,
+        "total": 0
+      },
+      "success": true
+    }
+  },
+  "GET /alerts": {
+    "method": "GET",
+    "path": "/api/v1/alerts?limit=3",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "alerts": [
+          {
+            "acknowledged_at": "2026-09-12T13:48:30+00:00",
+            "acknowledged_by_email": "manager.karan@example.com",
+            "acknowledged_by_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+            "alert_type": "GEOFENCE_BREACH",
+            "confidence": 0.94,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "description": "[DEMO] Two consecutive fixes fell outside the assigned zone while the custody session had no retrieval in progress.",
+            "evidence": {
+              "buffer_metres": 25.0,
+              "custody_status_at_fix": "PARKED",
+              "distance_metres": 333.83,
+              "movement_status": "BREACH",
+              "speed_kmph": 34.0,
+              "telemetry_source": "SIMULATED",
+              "zone_code": "ZONE-A"
+            },
+            "gps_event_id": "082dd5a5-84e9-5138-bdf4-71c81cd33f35",
+            "id": "6064d352-c982-5c17-b68d-7e9103481b82",
+            "is_open": true,
+            "occurred_at": "2026-09-12T13:42:30+00:00",
+            "reason": "Fix at 27.49575, 77.67825 is 333.8 m beyond the Zone A - Covered Parking boundary, exceeding the 25 m buffer, while custody status was PARKED.",
+            "resolution_notes": null,
+            "resolved_at": null,
+            "resolved_by_email": null,
+            "resolved_by_id": null,
+            "severity": "HIGH",
+            "status": "ACKNOWLEDGED",
+            "title": "Vehicle left ZONE-A with no task in progress",
+            "vehicle_id": "b88418a6-7799-5f31-856f-fd424e58a176",
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          }
+        ],
+        "page": 1,
+        "page_size": 50,
+        "total": 1
+      },
+      "meta": {
+        "page": 1,
+        "page_size": 50,
+        "request_id": "d76551c6f63d4ab8b770de07ae7276cb",
+        "server_time": 1789225630.7439275
+      },
+      "success": true
+    }
+  },
+  "GET /audit": {
+    "method": "GET",
+    "path": "/api/v1/audit?limit=3",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "filters": {
+          "action": null,
+          "actor_id": null,
+          "custody_session_id": null,
+          "date_from": null,
+          "date_to": null,
+          "entity_id": null,
+          "entity_type": null,
+          "lifecycle_only": false,
+          "outcome": null
+        },
+        "items": [
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "manager.karan@example.com",
+            "actor_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+            "actor_role": "VALET_MANAGER",
+            "created_at": "2026-09-12T15:07:10.545347+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "783d5736-96da-47b9-b245-da63cd343d5c",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "VALET_MANAGER"
+            },
+            "occurred_at": "2026-09-12T15:07:10.545347+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "9b87aaed9fbf43bda0e38b5a5b320119",
+            "seq": 14,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "valet.suresh@example.com",
+            "actor_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "actor_role": "VALET_OPERATOR",
+            "created_at": "2026-09-12T15:07:10.400135+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "2e9f567c-39f6-4b1d-86c6-b76f6a5df486",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "VALET_OPERATOR"
+            },
+            "occurred_at": "2026-09-12T15:07:10.400135+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "0911a057f5e04dd694afbc4ee41ae2ff",
+            "seq": 13,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "customer.aisha@example.com",
+            "actor_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "actor_role": "CUSTOMER",
+            "created_at": "2026-09-12T15:07:10.234052+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "e3ff5fb2-9274-4582-a1b4-26c76f07f6b4",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "CUSTOMER"
+            },
+            "occurred_at": "2026-09-12T15:07:10.234052+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "77d5bff20f3a4154a3bf503ba3c6fa98",
+            "seq": 12,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "admin@valet.local",
+            "actor_id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+            "actor_role": "ADMIN",
+            "created_at": "2026-09-12T15:07:10.088861+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "c4a71390-317b-41be-b03d-4b085efb248c",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "ADMIN"
+            },
+            "occurred_at": "2026-09-12T15:07:10.088861+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "28e722345d74491ba9012131ce87cd07",
+            "seq": 11,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "EXPORT",
+            "actor_deleted_at": null,
+            "actor_email": "admin@valet.local",
+            "actor_id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+            "actor_role": "ADMIN",
+            "created_at": "2026-09-12T15:06:33.418893+00:00",
+            "custody_session_id": null,
+            "description": "Exported the manager operations report as JSON with filters {}.",
+            "entity_id": null,
+            "entity_type": "custody_sessions",
+            "failure_reason": null,
+            "id": "e6604451-33e9-4f4a-9f1e-df3e8aea3c3b",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": false,
+            "label": "EXPORT",
+            "metadata": null,
+            "new_values": null,
+            "occurred_at": "2026-09-12T15:06:33.418893+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "e82637c2bd6647dc9a7a259a988fed21",
+            "seq": 10,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "manager.karan@example.com",
+            "actor_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+            "actor_role": "VALET_MANAGER",
+            "created_at": "2026-09-12T15:06:30.999447+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "fd130ecb-f3c6-4e1c-9ec7-8d32d5b555f2",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "VALET_MANAGER"
+            },
+            "occurred_at": "2026-09-12T15:06:30.999447+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "6d1d11bda79f4b3699192801ebfc53ed",
+            "seq": 9,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "valet.suresh@example.com",
+            "actor_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "actor_role": "VALET_OPERATOR",
+            "created_at": "2026-09-12T15:06:30.859074+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "92728715-66f1-4dc0-888e-624a37806f47",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "VALET_OPERATOR"
+            },
+            "occurred_at": "2026-09-12T15:06:30.859074+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "cdaa3d0b400b4d1cba83c047fbbade58",
+            "seq": 8,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "customer.aisha@example.com",
+            "actor_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "actor_role": "CUSTOMER",
+            "created_at": "2026-09-12T15:06:30.708892+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "ec2efcae-1420-4583-a5b8-6287597aac68",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "CUSTOMER"
+            },
+            "occurred_at": "2026-09-12T15:06:30.708892+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "04e6674935e34abdac0c8ae52d72bf52",
+            "seq": 7,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "admin@valet.local",
+            "actor_id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+            "actor_role": "ADMIN",
+            "created_at": "2026-09-12T15:06:30.558778+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "ca7e6465-b3b8-493a-bbdd-3eba3cbac899",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "ADMIN"
+            },
+            "occurred_at": "2026-09-12T15:06:30.558778+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "30229515974c4535860aa28f5d785b7f",
+            "seq": 6,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "admin@valet.local",
+            "actor_id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+            "actor_role": "ADMIN",
+            "created_at": "2026-09-12T15:04:50.701835+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "665b75ba-7b88-4b8a-8797-108ef9d2428e",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "ADMIN"
+            },
+            "occurred_at": "2026-09-12T15:04:50.701835+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "2336852f3fc14b8bbeb85e12cf6c85d7",
+            "seq": 5,
+            "user_agent": "curl/8.14.1"
+          },
+          {
+            "action": "SECURITY_ALERT_CREATED",
+            "actor_deleted_at": null,
+            "actor_email": null,
+            "actor_id": null,
+            "actor_role": null,
+            "created_at": "2026-09-12T15:04:30.151668+00:00",
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "description": "[DEMO] Geofence breach raised from simulated telemetry.",
+            "entity_id": "6064d352-c982-5c17-b68d-7e9103481b82",
+            "entity_type": "security_alerts",
+            "failure_reason": null,
+            "id": "be002fb2-8efb-4cf7-9ff7-29e0ab3a027e",
+            "ip_address": null,
+            "is_lifecycle_event": true,
+            "label": "Security alert raised",
+            "metadata": null,
+            "new_values": {
+              "alert_type": "GEOFENCE_BREACH",
+              "severity": "HIGH"
+            },
+            "occurred_at": "2026-09-12T15:04:30.151668+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "seed-621a9773a376",
+            "seq": 4,
+            "user_agent": null
+          },
+          {
+            "action": "DAMAGE_DETECTED",
+            "actor_deleted_at": null,
+            "actor_email": "valet.priya@example.com",
+            "actor_id": "64e7d621-9193-572b-943c-d103998c6daa",
+            "actor_role": "VALET_OPERATOR",
+            "created_at": "2026-09-12T15:04:30.151668+00:00",
+            "custody_session_id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+            "description": "[DEMO] New rear-bumper dent found at pickup; absent at drop-off.",
+            "entity_id": null,
+            "entity_type": "damage_detections",
+            "failure_reason": null,
+            "id": "b08f1eb1-d272-490d-bc45-23a578cc417a",
+            "ip_address": null,
+            "is_lifecycle_event": true,
+            "label": "Potential damage detected",
+            "metadata": null,
+            "new_values": {
+              "damage_type": "DENT",
+              "severity": "MODERATE"
+            },
+            "occurred_at": "2026-09-12T15:04:30.151668+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "seed-afba55ee1337",
+            "seq": 3,
+            "user_agent": null
+          },
+          {
+            "action": "VEHICLE_CHECKED_IN",
+            "actor_deleted_at": null,
+            "actor_email": "valet.suresh@example.com",
+            "actor_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "actor_role": "VALET_OPERATOR",
+            "created_at": "2026-09-12T15:04:30.151668+00:00",
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "description": "[DEMO] Vehicle dropped off and custody opened by the seeder.",
+            "entity_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "entity_type": "custody_sessions",
+            "failure_reason": null,
+            "id": "41c393d2-57dc-49b2-90ec-d4192089fcc5",
+            "ip_address": null,
+            "is_lifecycle_event": true,
+            "label": "Vehicle checked in",
+            "metadata": null,
+            "new_values": {
+              "status": "PARKED",
+              "zone": "ZONE-A"
+            },
+            "occurred_at": "2026-09-12T15:04:30.151668+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "seed-fffac3ca337c",
+            "seq": 2,
+            "user_agent": null
+          },
+          {
+            "action": "CREATE",
+            "actor_deleted_at": null,
+            "actor_email": "admin@valet.local",
+            "actor_id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+            "actor_role": "ADMIN",
+            "created_at": "2026-09-12T15:04:30.151668+00:00",
+            "custody_session_id": null,
+            "description": "Bootstrap administrator created by database seeding.",
+            "entity_id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "132db4f8-a5c8-4e1a-abc4-684bf407bc6b",
+            "ip_address": null,
+            "is_lifecycle_event": false,
+            "label": "CREATE",
+            "metadata": null,
+            "new_values": null,
+            "occurred_at": "2026-09-12T15:04:30.151668+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "seed-f696a76928cd",
+            "seq": 1,
+            "user_agent": null
+          }
+        ],
+        "mutability_note": "The audit trail is append-only. There is no update or delete endpoint, and the database rejects both at the trigger level.",
+        "mutable": false,
+        "pagination": {
+          "page": 1,
+          "page_size": 50,
+          "pages": 1,
+          "total": 14
+        },
+        "vocabulary": {
+          "actions": [
+            "ALERT_ACKNOWLEDGED",
+            "ALERT_RESOLVED",
+            "CREATE",
+            "CUSTODY_COMPLETED",
+            "CUSTODY_STARTED",
+            "DAMAGE_DETECTED",
+            "DAMAGE_VERIFIED",
+            "DELETE",
+            "EXPORT",
+            "GEOFENCE_CONFIGURED",
+            "GPS_BREACH",
+            "GPS_TRACK_SIMULATED",
+            "IMAGE_UPLOADED",
+            "INSPECTION_CAPTURED",
+            "INSPECTION_DEMO_RUN",
+            "LOGIN_FAILED",
+            "LOGOUT",
+            "PICKUP_IMAGE_CAPTURED",
+            "PICKUP_REQUESTED",
+            "RETRIEVAL_PREDICTED",
+            "SECURITY_ALERT_CREATED",
+            "STATUS_CHANGE",
+            "TICKET_CREATED",
+            "UPDATE",
+            "USER_LOGIN",
+            "VEHICLE_CHECKED_IN",
+            "VEHICLE_CREATED",
+            "VEHICLE_PICKED_UP",
+            "ZONE_ASSIGN"
+          ],
+          "lifecycle": {
+            "CUSTODY_COMPLETED": "Custody completed",
+            "CUSTODY_STARTED": "Custody started",
+            "DAMAGE_DETECTED": "Potential damage detected",
+            "GPS_BREACH": "GPS breach",
+            "IMAGE_UPLOADED": "Images uploaded",
+            "PICKUP_IMAGE_CAPTURED": "Pickup images captured",
+            "PICKUP_REQUESTED": "Pickup requested",
+            "RETRIEVAL_PREDICTED": "Retrieval estimate produced",
+            "SECURITY_ALERT_CREATED": "Security alert raised",
+            "TICKET_CREATED": "Ticket issued",
+            "USER_LOGIN": "User logged in",
+            "VEHICLE_CHECKED_IN": "Vehicle checked in",
+            "VEHICLE_CREATED": "Vehicle registered",
+            "VEHICLE_PICKED_UP": "Vehicle picked up"
+          }
+        }
+      },
+      "meta": {
+        "request_id": "8f38e26f01634195bcc719c5d7a4ba47",
+        "server_time": 1789225630.7512207
+      },
+      "success": true
+    }
+  },
+  "GET /audit/filters": {
+    "method": "GET",
+    "path": "/api/v1/audit/filters",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "actions": [
+          "CREATE",
+          "DAMAGE_DETECTED",
+          "EXPORT",
+          "SECURITY_ALERT_CREATED",
+          "USER_LOGIN",
+          "VEHICLE_CHECKED_IN"
+        ],
+        "entity_types": [
+          "custody_sessions",
+          "damage_detections",
+          "security_alerts",
+          "users"
+        ],
+        "lifecycle_actions": [
+          "USER_LOGIN",
+          "VEHICLE_CREATED",
+          "TICKET_CREATED",
+          "VEHICLE_CHECKED_IN",
+          "IMAGE_UPLOADED",
+          "CUSTODY_STARTED",
+          "GPS_BREACH",
+          "SECURITY_ALERT_CREATED",
+          "PICKUP_REQUESTED",
+          "RETRIEVAL_PREDICTED",
+          "PICKUP_IMAGE_CAPTURED",
+          "DAMAGE_DETECTED",
+          "VEHICLE_PICKED_UP",
+          "CUSTODY_COMPLETED"
+        ],
+        "outcomes": [
+          "SUCCESS"
+        ]
+      },
+      "meta": {
+        "request_id": "62965961fb6445a5be8b2955c04ff8f0",
+        "server_time": 1789225630.7596455
+      },
+      "success": true
+    }
+  },
+  "GET /customers": {
+    "method": "GET",
+    "path": "/api/v1/customers?limit=3",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "items": [
+          {
+            "email": "customer.aisha@example.com",
+            "full_name": "Aisha Verma",
+            "id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "phone": "+91 98100 100 10",
+            "status": "ACTIVE"
+          },
+          {
+            "email": "customer.rohit@example.com",
+            "full_name": "Rohit Menon",
+            "id": "7692e411-48ff-50e3-91b3-9b721978a47d",
+            "phone": "+91 98200 200 20",
+            "status": "ACTIVE"
+          }
+        ],
+        "total": 2
+      },
+      "meta": {
+        "request_id": "6ce4adb9f8954247a95cc89cb867e255",
+        "server_time": 1789225630.7651982
+      },
+      "success": true
+    }
+  },
+  "GET /retrieval/queue": {
+    "method": "GET",
+    "path": "/api/v1/retrieval/queue",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "count": 0,
+        "delivery": "polled",
+        "delivery_note": "This queue is read on a short poll rather than pushed. There is no websocket channel, so a new request appears here within one poll interval, not instantly.",
+        "items": [],
+        "waiting": 0
+      },
+      "meta": {
+        "request_id": "fecafabd509a4a9289a21583878977ad",
+        "server_time": 1789225630.7703772
+      },
+      "success": true
+    }
+  },
+  "GET /gps/simulate/scenarios": {
+    "method": "GET",
+    "path": "/api/v1/gps/simulate/scenarios",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "scenarios": [
+          {
+            "id": "parked",
+            "label": "Parked in bay"
+          },
+          {
+            "id": "jitter",
+            "label": "GPS noise near the boundary"
+          },
+          {
+            "id": "arrival",
+            "label": "Valet drives the vehicle in"
+          },
+          {
+            "id": "retrieval",
+            "label": "Legitimate retrieval"
+          },
+          {
+            "id": "unauthorised",
+            "label": "Unauthorised movement"
+          },
+          {
+            "id": "telemetry_loss",
+            "label": "Tracker goes quiet"
+          }
+        ]
+      },
+      "meta": {
+        "request_id": "521feec6319149d5be264de46df5d943",
+        "server_time": 1789225630.7742841
+      },
+      "success": true
+    }
+  },
+  "GET /inspections/demo/scenarios": {
+    "method": "GET",
+    "path": "/api/v1/inspections/demo/scenarios",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "note": "Demo photographs are generated by OpenCV. Findings produced from them are real pipeline output, not canned results.",
+        "scenarios": [
+          {
+            "description": "The same panel photographed twice with no change. The pipeline must report nothing; if it reports something here, it is producing false positives.",
+            "label": "No damage - identical conditions",
+            "name": "clean"
+          },
+          {
+            "description": "The pickup photo is 18% brighter, as if a cloud moved. Nothing changed on the vehicle. This is the scenario the lighting normalisation and diffuse-region filters exist to survive.",
+            "label": "Lighting change only - no damage",
+            "name": "lighting_only"
+          },
+          {
+            "description": "A thin scuff drawn along the lower door. Exercises the elongated, edge-dominant branch of the labeller.",
+            "label": "Scratch along the front door",
+            "name": "scratch"
+          },
+          {
+            "description": "A shading depression with no colour change. Exercises the dark-and-achromatic branch.",
+            "label": "Dent on the front wing",
+            "name": "dent"
+          },
+          {
+            "description": "A warm, mottled colour shift. Exercises the chroma channel, which is the only one that can see this at all.",
+            "label": "Rust patch on the lower wing",
+            "name": "rust"
+          },
+          {
+            "description": "A scratch, a dent and a paint chip, with the pickup frame shifted and rotated so alignment has to do real work. The fullest demonstration of the pipeline.",
+            "label": "Three defects, camera moved",
+            "name": "multiple"
+          }
+        ]
+      },
+      "meta": {
+        "request_id": "c18ee048282e45f9a3e7fdc5fcce09c8",
+        "server_time": 1789225630.7779763
+      },
+      "success": true
+    }
+  },
+  "GET /ml/model": {
+    "method": "GET",
+    "path": "/api/v1/ml/model",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "algorithm": "logistic",
+        "available": true,
+        "disclaimer": "Prototype classifier trained and evaluated on synthetic telemetry whose labels were written by hand. It has never seen a real vehicle and must not be represented as a production model or relied on as the sole basis for a security decision. Rule-based geofence checks remain authoritative.",
+        "enabled": true,
+        "escalation_threshold": 0.7,
+        "feature_columns": [
+          {
+            "label": "speed",
+            "name": "speed_kmph",
+            "unit": "km/h"
+          },
+          {
+            "label": "distance from the zone boundary",
+            "name": "distance_from_zone_metres",
+            "unit": "m"
+          },
+          {
+            "label": "time spent moving",
+            "name": "movement_duration_seconds",
+            "unit": "s"
+          },
+          {
+            "label": "change of direction",
+            "name": "direction_change_degrees",
+            "unit": "\u00b0"
+          },
+          {
+            "label": "distance travelled since the previous fix",
+            "name": "distance_travelled_metres",
+            "unit": "m"
+          },
+          {
+            "label": "geofence breach",
+            "name": "zone_breach",
+            "unit": ""
+          },
+          {
+            "label": "time of day",
+            "name": "time_sin",
+            "unit": ""
+          },
+          {
+            "label": "time of day",
+            "name": "time_cos",
+            "unit": ""
+          }
+        ],
+        "feature_importance": [
+          [
+            "movement_duration_seconds",
+            4.1625
+          ],
+          [
+            "zone_breach",
+            3.1021
+          ],
+          [
+            "distance_travelled_metres",
+            2.3956
+          ],
+          [
+            "speed_kmph",
+            1.8939
+          ],
+          [
+            "direction_change_degrees",
+            1.6489
+          ],
+          [
+            "distance_from_zone_metres",
+            0.9816
+          ],
+          [
+            "time_cos",
+            0.8561
+          ],
+          [
+            "time_sin",
+            0.6064
+          ]
+        ],
+        "metrics": {
+          "accuracy": 0.9635,
+          "baseline_accuracy_always_normal": 0.5778,
+          "confusion_matrix": {
+            "labels": [
+              "NORMAL",
+              "SUSPICIOUS"
+            ],
+            "matrix": [
+              [
+                1666,
+                27
+              ],
+              [
+                80,
+                1157
+              ]
+            ],
+            "reading": "rows are the true label, columns the predicted label"
+          },
+          "f1": 0.9558,
+          "precision": 0.9772,
+          "recall": 0.9353,
+          "rows": 2930
+        },
+        "model_version": "security-prototype/1.0.0",
+        "prototype_disclaimer": "Prototype classifier trained and evaluated on synthetic telemetry whose labels were written by hand. It has never seen a real vehicle and must not be represented as a production model or relied on as the sole basis for a security decision. Rule-based geofence checks remain authoritative.",
+        "trained_at": "2026-09-09T16:34:08.475519+00:00",
+        "trained_on_synthetic_data": true,
+        "training_summary": {
+          "algorithm": "logistic",
+          "class_weight": "balanced",
+          "classes": [
+            "NORMAL",
+            "SUSPICIOUS"
+          ],
+          "episodes": 1200,
+          "features": [
+            "speed_kmph",
+            "distance_from_zone_metres",
+            "movement_duration_seconds",
+            "direction_change_degrees",
+            "distance_travelled_metres",
+            "zone_breach",
+            "time_sin",
+            "time_cos"
+          ],
+          "rows": 11269,
+          "test_normal": 1693,
+          "test_rows": 2930,
+          "test_suspicious": 1237,
+          "train_normal": 5343,
+          "train_rows": 8339,
+          "train_suspicious": 2996
+        }
+      },
+      "meta": {
+        "request_id": "864541c9e49b4e91b37a68afd6862c5a",
+        "server_time": 1789225630.7816014
+      },
+      "success": true
+    }
+  },
+  "GET /retrieval/model": {
+    "method": "GET",
+    "path": "/api/v1/retrieval/model",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "algorithm": "ridge",
+        "alpha": 1.0,
+        "available": true,
+        "coefficients": {
+          "active_valets": -0.098,
+          "dow_cos": 0.1367,
+          "dow_sin": -0.442,
+          "historical_zone_mean_minutes": 0.2038,
+          "hour_cos": -0.1088,
+          "hour_sin": -0.8105,
+          "queue_position": 1.5723,
+          "queue_size": -0.0576,
+          "vehicle_flagged": 1.41,
+          "zone_capacity": 1.4189,
+          "zone_occupancy_percent": 0.6943
+        },
+        "disclaimer": "This estimate comes from a baseline model trained on synthetic historical data generated for this MVP. It has never seen a real valet operation and must not be treated as an operational forecast. Treat it as an indicative planning number.",
+        "enabled": true,
+        "feature_columns": [
+          {
+            "label": "retrieval queue length",
+            "name": "queue_size",
+            "unit": ""
+          },
+          {
+            "label": "position in queue",
+            "name": "queue_position",
+            "unit": ""
+          },
+          {
+            "label": "valets on duty",
+            "name": "active_valets",
+            "unit": ""
+          },
+          {
+            "label": "zone capacity",
+            "name": "zone_capacity",
+            "unit": ""
+          },
+          {
+            "label": "zone occupancy",
+            "name": "zone_occupancy_percent",
+            "unit": "%"
+          },
+          {
+            "label": "time of day",
+            "name": "hour_sin",
+            "unit": ""
+          },
+          {
+            "label": "time of day",
+            "name": "hour_cos",
+            "unit": ""
+          },
+          {
+            "label": "day of week",
+            "name": "dow_sin",
+            "unit": ""
+          },
+          {
+            "label": "day of week",
+            "name": "dow_cos",
+            "unit": ""
+          },
+          {
+            "label": "historical average for this zone",
+            "name": "historical_zone_mean_minutes",
+            "unit": "min"
+          },
+          {
+            "label": "vehicle flagged for review",
+            "name": "vehicle_flagged",
+            "unit": ""
+          }
+        ],
+        "intercept": 8.8771,
+        "method": "linear-ridge-v1",
+        "metrics": {
+          "baseline_mae_minutes": 2.691,
+          "improvement_over_baseline": 0.359,
+          "mae_minutes": 1.725,
+          "mean_actual_minutes": 8.82,
+          "mean_baseline_mae_minutes": 2.753,
+          "mean_predicted_minutes": 8.8,
+          "median_absolute_error_minutes": 1.286,
+          "primary_metric": "mae_minutes",
+          "r2": 0.5704,
+          "rmse_minutes": 2.371,
+          "rows": 1000,
+          "within_10_minutes": 0.997,
+          "within_5_minutes": 0.956,
+          "worst_error_minutes": 12.85
+        },
+        "model_version": "retrieval-baseline/1.0.0",
+        "primary_metric": "mae_minutes",
+        "prototype_disclaimer": "This estimate comes from a baseline model trained on synthetic historical data generated for this MVP. It has never seen a real valet operation and must not be treated as an operational forecast. Treat it as an indicative planning number.",
+        "train_median_minutes": 8.24,
+        "trained_at": "2026-09-09T16:34:09+00:00",
+        "trained_on_synthetic_data": true,
+        "training_summary": {
+          "generated_at": "2026-09-09T16:34:08",
+          "max_minutes": 38.050078174838156,
+          "min_minutes": 2.204509694538634,
+          "rows": 4000,
+          "source": "synthetic - see the module docstring",
+          "test_mean_minutes": 8.824087575403851,
+          "test_rows": 1000,
+          "train_mean_minutes": 8.877118769164921,
+          "train_rows": 3000
+        }
+      },
+      "meta": {
+        "request_id": "f3832d2819c347ddb01c99a5c23bb40d",
+        "server_time": 1789225630.785333
+      },
+      "success": true
+    }
+  },
+  "GET /feed/summary": {
+    "method": "GET",
+    "path": "/api/v1/feed/summary",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "can_resolve": true,
+        "channels": [
+          {
+            "channel": "IN_APP",
+            "enabled": true
+          },
+          {
+            "channel": "EMAIL",
+            "enabled": false
+          },
+          {
+            "channel": "SMS",
+            "enabled": false
+          },
+          {
+            "channel": "PUSH",
+            "enabled": false
+          }
+        ],
+        "total": 0,
+        "unread": 0
+      },
+      "meta": {
+        "request_id": "9b88c4dc4c194b8e98861f525871727c",
+        "server_time": 1789225630.7926326
+      },
+      "success": true
+    }
+  },
+  "GET /staff/dashboard": {
+    "method": "GET",
+    "path": "/api/v1/staff/dashboard",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "active_vehicles": {
+          "alarming": 1,
+          "count": 1,
+          "items": [
+            {
+              "alarming": true,
+              "assigned_valet_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "custody_status": "PARKED",
+              "customer": {
+                "email": "customer.aisha@example.com",
+                "id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+                "name": "Aisha Verma",
+                "phone": "+91 98100 100 10"
+              },
+              "display_label": "Alert",
+              "display_status": "ALERT",
+              "dropped_off_at": "2026-09-12T13:24:30+00:00",
+              "gps": {
+                "is_within_zone": false,
+                "latitude": 27.49635,
+                "longitude": 77.67945,
+                "movement_status": "BREACH",
+                "recorded_at": "2026-09-12T13:46:30+00:00",
+                "source": "SIMULATED"
+              },
+              "gps_has_data": true,
+              "handover_point": "Main Lobby - Bay 1",
+              "open_alert_count": 1,
+              "ready_for_pickup_at": "2026-09-12T17:59:30+00:00",
+              "retrieval_requested_at": "2026-09-12T17:34:30+00:00",
+              "ticket_code": "VT-O-OPEN",
+              "ticket_id": "233e028c-6271-5a88-a32b-e63021d7c5fd",
+              "vehicle": {
+                "color": "Pearl White",
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "make": "Tata",
+                "model": "Nexon",
+                "plate_number": "UP 78 AB 1234",
+                "status": "IN_CUSTODY"
+              },
+              "zone": {
+                "code": "ZONE-A",
+                "id": "5880e6e0-752c-5742-885b-72ef61090d8a",
+                "name": "Zone A - Covered Parking"
+              }
+            }
+          ],
+          "moving": 0,
+          "state": "ok"
+        },
+        "capabilities": {
+          "can_capture_inspection": true,
+          "can_check_in": true,
+          "can_complete_pickup": true,
+          "can_move_vehicle": true,
+          "can_triage_alerts": true,
+          "can_verify_damage": true
+        },
+        "counts": {
+          "active": 1,
+          "incoming": null,
+          "open_alerts": null,
+          "pending_pickups": 0
+        },
+        "delivery": "polled",
+        "display_status_labels": {
+          "ALERT": "Alert",
+          "COMPLETED": "Completed",
+          "IN_CUSTODY": "In custody",
+          "MOVING": "Moving",
+          "READY": "Ready",
+          "UNKNOWN": "Unknown"
+        },
+        "generated_for": {
+          "role": "ADMIN",
+          "user_id": "14254104-597c-59d0-9fd5-7320e446a3e9"
+        },
+        "incoming": {
+          "count": 0,
+          "items": [],
+          "reason": "No vehicles are waiting to be checked in.",
+          "state": "empty"
+        },
+        "inspections": {
+          "awaiting_pickup_photos": 0,
+          "awaiting_review": 0,
+          "count": 1,
+          "items": [
+            {
+              "comparison_ready": true,
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "drop_off_captured": true,
+              "drop_off_outcome": "REVIEWED",
+              "drop_off_photo_count": 5,
+              "needs_pickup_photos": false,
+              "needs_review": false,
+              "pickup_captured": true,
+              "pickup_outcome": "CLEAN",
+              "pickup_photo_count": 5,
+              "unverified_detections": 0,
+              "vehicle": {
+                "color": "Pearl White",
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "make": "Tata",
+                "model": "Nexon",
+                "plate_number": "UP 78 AB 1234",
+                "status": "IN_CUSTODY"
+              }
+            }
+          ],
+          "state": "ok"
+        },
+        "pending_pickups": {
+          "count": 0,
+          "items": [],
+          "reason": "No vehicles are staged for handover.",
+          "state": "empty"
+        },
+        "retrieval_queue": {
+          "count": 0,
+          "delivery": "polled",
+          "delivery_note": "This queue is read on a short poll rather than pushed. There is no websocket channel, so a new request appears here within one poll interval, not instantly.",
+          "items": [],
+          "reason": "No retrieval requests are waiting.",
+          "state": "empty",
+          "waiting": 0
+        },
+        "security_alerts": {
+          "count": 1,
+          "highest_severity": "HIGH",
+          "items": [
+            {
+              "acknowledged_at": "2026-09-12T13:48:30+00:00",
+              "acknowledged_by_email": "manager.karan@example.com",
+              "acknowledged_by_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+              "alert_type": "GEOFENCE_BREACH",
+              "confidence": 0.94,
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "description": "[DEMO] Two consecutive fixes fell outside the assigned zone while the custody session had no retrieval in progress.",
+              "evidence": {
+                "buffer_metres": 25.0,
+                "custody_status_at_fix": "PARKED",
+                "distance_metres": 333.83,
+                "movement_status": "BREACH",
+                "speed_kmph": 34.0,
+                "telemetry_source": "SIMULATED",
+                "zone_code": "ZONE-A"
+              },
+              "gps_event_id": "082dd5a5-84e9-5138-bdf4-71c81cd33f35",
+              "id": "6064d352-c982-5c17-b68d-7e9103481b82",
+              "is_open": true,
+              "occurred_at": "2026-09-12T13:42:30+00:00",
+              "reason": "Fix at 27.49575, 77.67825 is 333.8 m beyond the Zone A - Covered Parking boundary, exceeding the 25 m buffer, while custody status was PARKED.",
+              "resolution_notes": null,
+              "resolved_at": null,
+              "resolved_by_email": null,
+              "resolved_by_id": null,
+              "severity": "HIGH",
+              "status": "ACKNOWLEDGED",
+              "title": "Vehicle left ZONE-A with no task in progress",
+              "vehicle_id": "b88418a6-7799-5f31-856f-fd424e58a176",
+              "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+            }
+          ],
+          "state": "ok"
+        },
+        "zones": {
+          "count": 3,
+          "items": [
+            {
+              "available_slots": 39,
+              "capacity": 40,
+              "code": "ZONE-A",
+              "current_occupancy": 1,
+              "id": "5880e6e0-752c-5742-885b-72ef61090d8a",
+              "name": "Zone A - Covered Parking",
+              "occupancy_percent": 2,
+              "parkable": true,
+              "status": "ACTIVE"
+            },
+            {
+              "available_slots": 60,
+              "capacity": 60,
+              "code": "ZONE-B",
+              "current_occupancy": 0,
+              "id": "1cc7f7a9-926b-5019-93a9-5be1486c16bb",
+              "name": "Zone B - Open Yard",
+              "occupancy_percent": 0,
+              "parkable": true,
+              "status": "ACTIVE"
+            },
+            {
+              "available_slots": 25,
+              "capacity": 25,
+              "code": "ZONE-C",
+              "current_occupancy": 0,
+              "id": "a8f07f9e-2b35-565a-b929-1b17f3a1b7bc",
+              "name": "Zone C - Long Stay",
+              "occupancy_percent": 0,
+              "parkable": false,
+              "status": "MAINTENANCE"
+            }
+          ],
+          "state": "ok",
+          "total_capacity": 125,
+          "total_occupancy": 1
+        }
+      },
+      "meta": {
+        "request_id": "2dfe625b3b834018a2ab8a25f12163ed",
+        "server_time": 1789225630.8057945
+      },
+      "success": true
+    }
+  },
+  "GET /customers/me/dashboard": {
+    "method": "GET",
+    "path": "/api/v1/customers/me/dashboard",
+    "role": "customer",
+    "status": 200,
+    "body": {
+      "data": {
+        "actions": {
+          "already_requested": true,
+          "can_request": true,
+          "custody_status": "PARKED",
+          "state": "ok"
+        },
+        "condition": {
+          "comparison_ready": true,
+          "confirmed_count": 0,
+          "detector_disclaimer": "Findings are produced by classical OpenCV image differencing, not a trained damage classifier. Unverified findings are potential damage and require human confirmation.",
+          "pickup_completed": true,
+          "requires_review": true,
+          "state": "ok",
+          "status": "REVIEW",
+          "summary": "3 unverified finding(s) awaiting confirmation.",
+          "total_detections": 3,
+          "unverified_count": 3
+        },
+        "custody": {
+          "checked_in_at": "2026-09-12T13:24:30+00:00",
+          "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+          "expected_retrieval_minutes": 15,
+          "handover_point": "Main Lobby - Bay 1",
+          "projected_status": "IN_CUSTODY",
+          "ready_for_pickup_at": "2026-09-12T17:59:30+00:00",
+          "retrieval_requested_at": "2026-09-12T17:34:30+00:00",
+          "state": "ok",
+          "status": "PARKED",
+          "stored_status": "ACTIVE",
+          "ticket_code": "VT-O-OPEN",
+          "ticket_id": "233e028c-6271-5a88-a32b-e63021d7c5fd"
+        },
+        "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+        "has_active_custody": true,
+        "location": {
+          "fix": {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": 469.12,
+            "heading_degrees": 85.0,
+            "id": "514d1f5e-bc05-566b-8d7f-17480aea5719",
+            "is_simulated": true,
+            "is_within_zone": false,
+            "latitude": 27.49635,
+            "longitude": 77.67945,
+            "ml": null,
+            "movement_status": "BREACH",
+            "recorded_at": "2026-09-12T13:46:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 41.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          "fix_count": 8,
+          "has_simulated_telemetry": true,
+          "latitude": 27.49635,
+          "longitude": 77.67945,
+          "movement_status": "BREACH",
+          "open_alert_count": 1,
+          "recorded_at": "2026-09-12T13:46:30+00:00",
+          "state": "ok",
+          "telemetry_note": "This track contains SIMULATED telemetry generated for development and must not be presented as hardware data.",
+          "telemetry_sources": [
+            "SIMULATED"
+          ],
+          "zone": {
+            "available_slots": 39,
+            "buffer_metres": 25.0,
+            "capacity": 40,
+            "centre": {
+              "latitude": 27.49325,
+              "longitude": 77.67425
+            },
+            "code": "ZONE-A",
+            "current_occupancy": 1,
+            "description": "[DEMO] Demonstration zone with a 4-sided geofence.",
+            "effective_radius_metres": 148.9,
+            "geofence_polygon": [
+              [
+                77.673,
+                27.4925
+              ],
+              [
+                77.6755,
+                27.4925
+              ],
+              [
+                77.6755,
+                27.494
+              ],
+              [
+                77.673,
+                27.494
+              ],
+              [
+                77.673,
+                27.4925
+              ]
+            ],
+            "id": "5880e6e0-752c-5742-885b-72ef61090d8a",
+            "name": "Zone A - Covered Parking",
+            "radius_metres": null,
+            "status": "ACTIVE"
+          }
+        },
+        "retrieval": {
+          "confidence": 0.71,
+          "disclaimer": "This estimate comes from a baseline model trained on synthetic historical data generated for this MVP. It has never seen a real valet operation and must not be treated as an operational forecast. Treat it as an indicative planning number.",
+          "dispatch_after": "2026-09-12T17:40:30+00:00",
+          "dispatch_delay_minutes": 0,
+          "estimated_minutes": 14,
+          "max_wait_minutes": 22,
+          "min_wait_minutes": 10,
+          "predicted_ready_at": "2026-09-12T17:48:30+00:00",
+          "prediction": {
+            "actual_ready_at": "2026-09-12T17:59:30+00:00",
+            "confidence": 0.71,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "disclaimer": "This estimate comes from a baseline model trained on synthetic historical data generated for this MVP. It has never seen a real valet operation and must not be treated as an operational forecast. Treat it as an indicative planning number.",
+            "dispatch_after": "2026-09-12T17:40:30+00:00",
+            "dispatch_delay_minutes": 0,
+            "dispatch_label": "Now",
+            "explanation": "Estimated from the mean retrieval time for Zone A (11.4 min over synthetic history), adjusted for a queue of 3 and the current hour. The 10-22 minute range reflects the observed spread. This estimate is derived from demonstration data, not from real operational history.",
+            "fetch_minutes": null,
+            "id": "56591a9f-e1ff-56cd-ae01-d507d3fd3a71",
+            "inputs_snapshot": {
+              "avg_retrieval_minutes_zone": 11.4,
+              "history_is_synthetic": true,
+              "hour_of_day": 14,
+              "queue_length": 3,
+              "zone": "ZONE-A"
+            },
+            "max_wait_minutes": 22,
+            "method": "heuristic-queue-v1",
+            "min_wait_minutes": 10,
+            "model_version": "retrieval-baseline/1.0.0",
+            "predicted_ready_at": "2026-09-12T17:48:30+00:00",
+            "predicted_wait_minutes": 14,
+            "queue_position": 2,
+            "requested_at": "2026-09-12T17:34:30+00:00",
+            "status": "DISPATCHED",
+            "trained_on_synthetic_data": true
+          },
+          "queue_position": 2,
+          "recommended_dispatch": "Now",
+          "state": "ok",
+          "status": "DISPATCHED",
+          "trained_on_synthetic_data": true
+        },
+        "security": {
+          "alerts": [
+            {
+              "acknowledged_at": "2026-09-12T13:48:30+00:00",
+              "acknowledged_by_email": "manager.karan@example.com",
+              "acknowledged_by_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+              "alert_type": "GEOFENCE_BREACH",
+              "confidence": 0.94,
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "description": "[DEMO] Two consecutive fixes fell outside the assigned zone while the custody session had no retrieval in progress.",
+              "evidence": {
+                "buffer_metres": 25.0,
+                "custody_status_at_fix": "PARKED",
+                "distance_metres": 333.83,
+                "movement_status": "BREACH",
+                "speed_kmph": 34.0,
+                "telemetry_source": "SIMULATED",
+                "zone_code": "ZONE-A"
+              },
+              "gps_event_id": "082dd5a5-84e9-5138-bdf4-71c81cd33f35",
+              "id": "6064d352-c982-5c17-b68d-7e9103481b82",
+              "is_open": true,
+              "occurred_at": "2026-09-12T13:42:30+00:00",
+              "reason": "Fix at 27.49575, 77.67825 is 333.8 m beyond the Zone A - Covered Parking boundary, exceeding the 25 m buffer, while custody status was PARKED.",
+              "resolution_notes": null,
+              "resolved_at": null,
+              "resolved_by_email": null,
+              "resolved_by_id": null,
+              "severity": "HIGH",
+              "status": "ACKNOWLEDGED",
+              "title": "Vehicle left ZONE-A with no task in progress",
+              "vehicle_id": "b88418a6-7799-5f31-856f-fd424e58a176",
+              "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+            }
+          ],
+          "highest_severity": "HIGH",
+          "movement_status": "BREACH",
+          "open_alert_count": 1,
+          "state": "ok",
+          "status": "BREACH",
+          "summary": "A geofence breach or high-severity alert needs attention."
+        },
+        "vehicle": {
+          "color": "Pearl White",
+          "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+          "make": "Tata",
+          "model": "Nexon",
+          "plate_number": "UP 78 AB 1234",
+          "state": "ok",
+          "status": "IN_CUSTODY"
+        },
+        "zone": {
+          "capacity": 40,
+          "code": "ZONE-A",
+          "current_occupancy": 1,
+          "id": "5880e6e0-752c-5742-885b-72ef61090d8a",
+          "name": "Zone A - Covered Parking",
+          "state": "ok"
+        }
+      },
+      "meta": {
+        "request_id": "e4255ae7460447688e6578bd53009a3f",
+        "server_time": 1789225630.8269823
+      },
+      "success": true
+    }
+  },
+  "GET /manager/dashboard": {
+    "method": "GET",
+    "path": "/api/v1/manager/dashboard",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "charts": {
+          "custody_duration": {
+            "kind": "bar",
+            "min_points": 10,
+            "n": 1,
+            "note": "Distribution of hours between drop-off and pickup, in two-hour buckets. Shown as a distribution rather than an average because the long tail is what occupies bays.",
+            "series": [
+              {
+                "bucket": "4-6h",
+                "value": 1
+              }
+            ],
+            "sufficient": false,
+            "title": "Custody duration",
+            "unit": "sessions"
+          },
+          "damage_detections": {
+            "by_region": [],
+            "kind": "bar",
+            "min_points": 10,
+            "n": 6,
+            "note": "Findings per week by verification outcome. CONFIRMED means a manager stood behind the detector; REJECTED means it was a false positive; UNVERIFIED means nobody has looked yet.",
+            "series": [
+              {
+                "CONFIRMED": 0,
+                "REJECTED": 0,
+                "UNVERIFIED": 6,
+                "total": 6,
+                "week": "2026-09-07"
+              }
+            ],
+            "sufficient": false,
+            "title": "Damage detections",
+            "unit": "findings"
+          },
+          "retrieval_time": {
+            "kind": "line",
+            "min_points": 5,
+            "n": 0,
+            "note": "Mean measured minutes from retrieval request to ready-for-pickup. Days with fewer than three retrievals are omitted rather than plotted, because a one-car average is not a trend.",
+            "records": 0,
+            "series": [],
+            "sufficient": false,
+            "title": "Average retrieval time",
+            "unit": "minutes"
+          },
+          "security_alerts": {
+            "kind": "bar",
+            "min_points": 10,
+            "n": 1,
+            "note": "Alerts per ISO week, split by severity, with how many are still open. Weekly because alerts are sparse; a daily series would be mostly zeros.",
+            "series": [
+              {
+                "by_severity": {
+                  "HIGH": 1
+                },
+                "open": 1,
+                "total": 1,
+                "week": "2026-09-07"
+              }
+            ],
+            "sufficient": false,
+            "title": "Security alerts",
+            "unit": "alerts"
+          },
+          "vehicles_per_day": {
+            "kind": "bar",
+            "min_points": 2,
+            "n": 30,
+            "note": "Tickets issued per calendar day. Days with no arrivals are zero, not gaps.",
+            "series": [
+              {
+                "date": "2026-08-14",
+                "value": 0
+              },
+              {
+                "date": "2026-08-15",
+                "value": 0
+              },
+              {
+                "date": "2026-08-16",
+                "value": 0
+              },
+              {
+                "date": "2026-08-17",
+                "value": 0
+              },
+              {
+                "date": "2026-08-18",
+                "value": 0
+              },
+              {
+                "date": "2026-08-19",
+                "value": 0
+              },
+              {
+                "date": "2026-08-20",
+                "value": 0
+              },
+              {
+                "date": "2026-08-21",
+                "value": 0
+              },
+              {
+                "date": "2026-08-22",
+                "value": 0
+              },
+              {
+                "date": "2026-08-23",
+                "value": 0
+              },
+              {
+                "date": "2026-08-24",
+                "value": 0
+              },
+              {
+                "date": "2026-08-25",
+                "value": 0
+              },
+              {
+                "date": "2026-08-26",
+                "value": 0
+              },
+              {
+                "date": "2026-08-27",
+                "value": 0
+              },
+              {
+                "date": "2026-08-28",
+                "value": 0
+              },
+              {
+                "date": "2026-08-29",
+                "value": 0
+              },
+              {
+                "date": "2026-08-30",
+                "value": 0
+              },
+              {
+                "date": "2026-08-31",
+                "value": 0
+              },
+              {
+                "date": "2026-09-01",
+                "value": 0
+              },
+              {
+                "date": "2026-09-02",
+                "value": 0
+              },
+              {
+                "date": "2026-09-03",
+                "value": 0
+              },
+              {
+                "date": "2026-09-04",
+                "value": 0
+              },
+              {
+                "date": "2026-09-05",
+                "value": 0
+              },
+              {
+                "date": "2026-09-06",
+                "value": 0
+              },
+              {
+                "date": "2026-09-07",
+                "value": 0
+              },
+              {
+                "date": "2026-09-08",
+                "value": 0
+              },
+              {
+                "date": "2026-09-09",
+                "value": 0
+              },
+              {
+                "date": "2026-09-10",
+                "value": 1
+              },
+              {
+                "date": "2026-09-11",
+                "value": 0
+              },
+              {
+                "date": "2026-09-12",
+                "value": 1
+              }
+            ],
+            "sufficient": true,
+            "title": "Vehicles per day",
+            "unit": "vehicles"
+          }
+        },
+        "filter_options": {
+          "regions": [
+            "FRONT_BUMPER",
+            "REAR_BUMPER",
+            "HOOD",
+            "ROOF",
+            "BOOT",
+            "LEFT_FRONT_DOOR",
+            "LEFT_REAR_DOOR",
+            "RIGHT_FRONT_DOOR",
+            "RIGHT_REAR_DOOR",
+            "LEFT_FENDER",
+            "RIGHT_FENDER",
+            "WINDSHIELD",
+            "REAR_WINDSHIELD",
+            "INTERIOR",
+            "WHEELS",
+            "UNDERCARRIAGE",
+            "OTHER"
+          ],
+          "severities": [
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "statuses": [
+            "CHECKED_IN",
+            "PARKED",
+            "IN_TRANSIT",
+            "RETRIEVAL_REQUESTED",
+            "RETRIEVAL_IN_PROGRESS",
+            "READY_FOR_PICKUP",
+            "CHECKED_OUT",
+            "DISPUTED"
+          ],
+          "ticket_statuses": [
+            "ISSUED",
+            "ACTIVE",
+            "COMPLETED",
+            "CANCELLED",
+            "EXPIRED"
+          ],
+          "vehicles": [
+            {
+              "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+              "label": "DL 01 CA 9012 \u00b7 Maruti Suzuki Baleno",
+              "plate_number": "DL 01 CA 9012"
+            },
+            {
+              "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+              "label": "UP 78 AB 1234 \u00b7 Tata Nexon",
+              "plate_number": "UP 78 AB 1234"
+            }
+          ]
+        },
+        "filters": {
+          "date_from": "2026-08-14",
+          "date_to": "2026-09-12",
+          "severity": null,
+          "status": null,
+          "vehicle_id": null
+        },
+        "generated_for": {
+          "role": "ADMIN",
+          "user_id": "14254104-597c-59d0-9fd5-7320e446a3e9"
+        },
+        "metrics": {
+          "active_sessions": {
+            "label": "Active custody sessions",
+            "unit": "sessions",
+            "value": 1,
+            "windowed": false
+          },
+          "avg_custody_hours": {
+            "label": "Average custody duration",
+            "n": 1,
+            "unit": "hours",
+            "value": 4.7,
+            "windowed": true
+          },
+          "avg_retrieval_minutes": {
+            "label": "Average retrieval time",
+            "n": 1,
+            "note": "Measured request-to-ready on completed retrievals, not predicted.",
+            "unit": "minutes",
+            "value": 25.0,
+            "windowed": true
+          },
+          "completed_sessions": {
+            "label": "Completed sessions",
+            "note": "Closed within the selected range.",
+            "unit": "sessions",
+            "value": 1,
+            "windowed": true
+          },
+          "open_alerts": {
+            "label": "Open security alerts",
+            "note": "Open, acknowledged or investigating \u2014 not yet resolved.",
+            "unit": "alerts",
+            "value": 1,
+            "windowed": false
+          },
+          "pending_pickups": {
+            "label": "Pending pickups",
+            "unit": "vehicles",
+            "value": 0,
+            "windowed": false
+          },
+          "potential_damage": {
+            "label": "Potential damage cases",
+            "note": "Findings no human has verified. Unverified means the detector flagged it, not that the damage is confirmed.",
+            "unit": "findings",
+            "value": 6,
+            "windowed": true
+          },
+          "vehicles_today": {
+            "label": "Vehicles checked in today",
+            "unit": "vehicles",
+            "value": 1,
+            "windowed": false
+          }
+        },
+        "provenance": {
+          "contains_generated_history": false,
+          "generated_tickets": 0,
+          "generator_meta": null,
+          "note": "No generated operational history is present; every figure comes from records created through the application."
+        },
+        "tables": {
+          "active_vehicles": [
+            {
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "custody_status": "PARKED",
+              "customer": {
+                "name": "Aisha Verma"
+              },
+              "dropped_off_at": "2026-09-12T13:24:30+00:00",
+              "hours_in_custody": 1.7,
+              "open_alerts": 1,
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "make": "Tata",
+                "model": "Nexon",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "zone_code": "ZONE-A"
+            }
+          ],
+          "damage_cases": [
+            {
+              "captured_at": "2026-09-12T13:24:30+00:00",
+              "confidence": 0.82,
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "damage_type": "SCRATCH",
+              "id": "47682e83-c892-54c4-b2b1-61d5abc5cf7c",
+              "region": "LEFT_FRONT_DOOR",
+              "severity": "COSMETIC",
+              "stage": "DROP_OFF",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-12T18:24:30+00:00",
+              "confidence": 0.82,
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "damage_type": "SCRATCH",
+              "id": "dca6ae34-d304-5d5c-9c9f-5baf0d7a8a5e",
+              "region": "LEFT_FRONT_DOOR",
+              "severity": "COSMETIC",
+              "stage": "PICKUP",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-12T18:24:30+00:00",
+              "confidence": 0.91,
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "damage_type": "DENT",
+              "id": "d7ecdc37-6ac5-56ac-9467-dd1af8c45840",
+              "region": "REAR_BUMPER",
+              "severity": "MODERATE",
+              "stage": "PICKUP",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-10T15:24:30+00:00",
+              "confidence": 0.82,
+              "custody_session_id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+              "damage_type": "SCRATCH",
+              "id": "2e23438c-e919-5e71-bb44-5c1cc589f7a5",
+              "region": "LEFT_FRONT_DOOR",
+              "severity": "COSMETIC",
+              "stage": "DROP_OFF",
+              "vehicle": {
+                "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+                "plate_number": "DL 01 CA 9012"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-10T20:24:30+00:00",
+              "confidence": 0.82,
+              "custody_session_id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+              "damage_type": "SCRATCH",
+              "id": "f40e33a9-da36-5111-b68a-49bf743b42ac",
+              "region": "LEFT_FRONT_DOOR",
+              "severity": "COSMETIC",
+              "stage": "PICKUP",
+              "vehicle": {
+                "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+                "plate_number": "DL 01 CA 9012"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-10T20:24:30+00:00",
+              "confidence": 0.91,
+              "custody_session_id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+              "damage_type": "DENT",
+              "id": "092d288b-2576-52ad-b89d-1e8219af41d5",
+              "region": "REAR_BUMPER",
+              "severity": "MODERATE",
+              "stage": "PICKUP",
+              "vehicle": {
+                "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+                "plate_number": "DL 01 CA 9012"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            }
+          ],
+          "recent_tickets": [
+            {
+              "custody_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "custody_status": "PARKED",
+              "customer": {
+                "email": "customer.aisha@example.com",
+                "id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+                "name": "Aisha Verma"
+              },
+              "duration_hours": 1.7,
+              "is_open": true,
+              "issued_at": "2026-09-12T13:04:30+00:00",
+              "status": "ACTIVE",
+              "ticket_code": "VT-O-OPEN",
+              "ticket_id": "233e028c-6271-5a88-a32b-e63021d7c5fd",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "make": "Tata",
+                "model": "Nexon",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "zone_code": "ZONE-A"
+            },
+            {
+              "custody_id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+              "custody_status": "CHECKED_OUT",
+              "customer": {
+                "email": "customer.rohit@example.com",
+                "id": "7692e411-48ff-50e3-91b3-9b721978a47d",
+                "name": "Rohit Menon"
+              },
+              "duration_hours": 4.7,
+              "is_open": false,
+              "issued_at": "2026-09-10T15:04:30+00:00",
+              "status": "COMPLETED",
+              "ticket_code": "VT-CLOSED",
+              "ticket_id": "d807b7c4-cf74-5dd1-9e84-e0ccc98e1397",
+              "vehicle": {
+                "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+                "make": "Maruti Suzuki",
+                "model": "Baleno",
+                "plate_number": "DL 01 CA 9012"
+              },
+              "zone_code": "ZONE-B"
+            }
+          ],
+          "security_alerts": [
+            {
+              "acknowledged_by": "manager.karan@example.com",
+              "alert_type": "GEOFENCE_BREACH",
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "id": "6064d352-c982-5c17-b68d-7e9103481b82",
+              "is_open": true,
+              "occurred_at": "2026-09-12T13:42:30+00:00",
+              "reason": "Fix at 27.49575, 77.67825 is 333.8 m beyond the Zone A - Covered Parking boundary, exceeding the 25 m buffer, while custody status was PARKED.",
+              "resolved_by": null,
+              "severity": "HIGH",
+              "status": "ACKNOWLEDGED",
+              "title": "Vehicle left ZONE-A with no task in progress",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "zone_code": "ZONE-A"
+            }
+          ]
+        }
+      },
+      "meta": {
+        "request_id": "21fd99ca5a344b90a15fd5f29680ea25",
+        "server_time": 1789225630.8714585
+      },
+      "success": true
+    }
+  },
+  "GET /manager/report": {
+    "method": "GET",
+    "path": "/api/v1/manager/report",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "filters": {
+          "date_from": "2026-08-14",
+          "date_to": "2026-09-12",
+          "severity": null,
+          "status": null,
+          "vehicle_id": null
+        },
+        "generated_at": "2026-09-12T15:07:10.920118+00:00",
+        "generated_by": {
+          "role": "ADMIN",
+          "user_id": "14254104-597c-59d0-9fd5-7320e446a3e9"
+        },
+        "metrics": {
+          "active_sessions": {
+            "label": "Active custody sessions",
+            "unit": "sessions",
+            "value": 1,
+            "windowed": false
+          },
+          "avg_custody_hours": {
+            "label": "Average custody duration",
+            "n": 1,
+            "unit": "hours",
+            "value": 4.7,
+            "windowed": true
+          },
+          "avg_retrieval_minutes": {
+            "label": "Average retrieval time",
+            "n": 1,
+            "note": "Measured request-to-ready on completed retrievals, not predicted.",
+            "unit": "minutes",
+            "value": 25.0,
+            "windowed": true
+          },
+          "completed_sessions": {
+            "label": "Completed sessions",
+            "note": "Closed within the selected range.",
+            "unit": "sessions",
+            "value": 1,
+            "windowed": true
+          },
+          "open_alerts": {
+            "label": "Open security alerts",
+            "note": "Open, acknowledged or investigating \u2014 not yet resolved.",
+            "unit": "alerts",
+            "value": 1,
+            "windowed": false
+          },
+          "pending_pickups": {
+            "label": "Pending pickups",
+            "unit": "vehicles",
+            "value": 0,
+            "windowed": false
+          },
+          "potential_damage": {
+            "label": "Potential damage cases",
+            "note": "Findings no human has verified. Unverified means the detector flagged it, not that the damage is confirmed.",
+            "unit": "findings",
+            "value": 6,
+            "windowed": true
+          },
+          "vehicles_today": {
+            "label": "Vehicles checked in today",
+            "unit": "vehicles",
+            "value": 1,
+            "windowed": false
+          }
+        },
+        "provenance": {
+          "contains_generated_history": false,
+          "generated_tickets": 0,
+          "generator_meta": null,
+          "note": "No generated operational history is present; every figure comes from records created through the application."
+        },
+        "report": "valet_operations",
+        "series": {
+          "custody_duration": {
+            "n": 1,
+            "points": [
+              {
+                "bucket": "4-6h",
+                "value": 1
+              }
+            ],
+            "sufficient": false,
+            "title": "Custody duration",
+            "unit": "sessions"
+          },
+          "damage_detections": {
+            "n": 6,
+            "points": [
+              {
+                "CONFIRMED": 0,
+                "REJECTED": 0,
+                "UNVERIFIED": 6,
+                "total": 6,
+                "week": "2026-09-07"
+              }
+            ],
+            "sufficient": false,
+            "title": "Damage detections",
+            "unit": "findings"
+          },
+          "retrieval_time": {
+            "n": 0,
+            "points": [],
+            "sufficient": false,
+            "title": "Average retrieval time",
+            "unit": "minutes"
+          },
+          "security_alerts": {
+            "n": 1,
+            "points": [
+              {
+                "by_severity": {
+                  "HIGH": 1
+                },
+                "open": 1,
+                "total": 1,
+                "week": "2026-09-07"
+              }
+            ],
+            "sufficient": false,
+            "title": "Security alerts",
+            "unit": "alerts"
+          },
+          "vehicles_per_day": {
+            "n": 30,
+            "points": [
+              {
+                "date": "2026-08-14",
+                "value": 0
+              },
+              {
+                "date": "2026-08-15",
+                "value": 0
+              },
+              {
+                "date": "2026-08-16",
+                "value": 0
+              },
+              {
+                "date": "2026-08-17",
+                "value": 0
+              },
+              {
+                "date": "2026-08-18",
+                "value": 0
+              },
+              {
+                "date": "2026-08-19",
+                "value": 0
+              },
+              {
+                "date": "2026-08-20",
+                "value": 0
+              },
+              {
+                "date": "2026-08-21",
+                "value": 0
+              },
+              {
+                "date": "2026-08-22",
+                "value": 0
+              },
+              {
+                "date": "2026-08-23",
+                "value": 0
+              },
+              {
+                "date": "2026-08-24",
+                "value": 0
+              },
+              {
+                "date": "2026-08-25",
+                "value": 0
+              },
+              {
+                "date": "2026-08-26",
+                "value": 0
+              },
+              {
+                "date": "2026-08-27",
+                "value": 0
+              },
+              {
+                "date": "2026-08-28",
+                "value": 0
+              },
+              {
+                "date": "2026-08-29",
+                "value": 0
+              },
+              {
+                "date": "2026-08-30",
+                "value": 0
+              },
+              {
+                "date": "2026-08-31",
+                "value": 0
+              },
+              {
+                "date": "2026-09-01",
+                "value": 0
+              },
+              {
+                "date": "2026-09-02",
+                "value": 0
+              },
+              {
+                "date": "2026-09-03",
+                "value": 0
+              },
+              {
+                "date": "2026-09-04",
+                "value": 0
+              },
+              {
+                "date": "2026-09-05",
+                "value": 0
+              },
+              {
+                "date": "2026-09-06",
+                "value": 0
+              },
+              {
+                "date": "2026-09-07",
+                "value": 0
+              },
+              {
+                "date": "2026-09-08",
+                "value": 0
+              },
+              {
+                "date": "2026-09-09",
+                "value": 0
+              },
+              {
+                "date": "2026-09-10",
+                "value": 1
+              },
+              {
+                "date": "2026-09-11",
+                "value": 0
+              },
+              {
+                "date": "2026-09-12",
+                "value": 1
+              }
+            ],
+            "sufficient": true,
+            "title": "Vehicles per day",
+            "unit": "vehicles"
+          }
+        },
+        "tables": {
+          "active_vehicles": [
+            {
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "custody_status": "PARKED",
+              "customer": {
+                "name": "Aisha Verma"
+              },
+              "dropped_off_at": "2026-09-12T13:24:30+00:00",
+              "hours_in_custody": 1.7,
+              "open_alerts": 1,
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "make": "Tata",
+                "model": "Nexon",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "zone_code": "ZONE-A"
+            }
+          ],
+          "damage_cases": [
+            {
+              "captured_at": "2026-09-12T13:24:30+00:00",
+              "confidence": 0.82,
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "damage_type": "SCRATCH",
+              "id": "47682e83-c892-54c4-b2b1-61d5abc5cf7c",
+              "region": "LEFT_FRONT_DOOR",
+              "severity": "COSMETIC",
+              "stage": "DROP_OFF",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-12T18:24:30+00:00",
+              "confidence": 0.82,
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "damage_type": "SCRATCH",
+              "id": "dca6ae34-d304-5d5c-9c9f-5baf0d7a8a5e",
+              "region": "LEFT_FRONT_DOOR",
+              "severity": "COSMETIC",
+              "stage": "PICKUP",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-12T18:24:30+00:00",
+              "confidence": 0.91,
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "damage_type": "DENT",
+              "id": "d7ecdc37-6ac5-56ac-9467-dd1af8c45840",
+              "region": "REAR_BUMPER",
+              "severity": "MODERATE",
+              "stage": "PICKUP",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-10T15:24:30+00:00",
+              "confidence": 0.82,
+              "custody_session_id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+              "damage_type": "SCRATCH",
+              "id": "2e23438c-e919-5e71-bb44-5c1cc589f7a5",
+              "region": "LEFT_FRONT_DOOR",
+              "severity": "COSMETIC",
+              "stage": "DROP_OFF",
+              "vehicle": {
+                "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+                "plate_number": "DL 01 CA 9012"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-10T20:24:30+00:00",
+              "confidence": 0.82,
+              "custody_session_id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+              "damage_type": "SCRATCH",
+              "id": "f40e33a9-da36-5111-b68a-49bf743b42ac",
+              "region": "LEFT_FRONT_DOOR",
+              "severity": "COSMETIC",
+              "stage": "PICKUP",
+              "vehicle": {
+                "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+                "plate_number": "DL 01 CA 9012"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            },
+            {
+              "captured_at": "2026-09-10T20:24:30+00:00",
+              "confidence": 0.91,
+              "custody_session_id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+              "damage_type": "DENT",
+              "id": "092d288b-2576-52ad-b89d-1e8219af41d5",
+              "region": "REAR_BUMPER",
+              "severity": "MODERATE",
+              "stage": "PICKUP",
+              "vehicle": {
+                "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+                "plate_number": "DL 01 CA 9012"
+              },
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by": null
+            }
+          ],
+          "recent_tickets": [
+            {
+              "custody_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "custody_status": "PARKED",
+              "customer": {
+                "email": "customer.aisha@example.com",
+                "id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+                "name": "Aisha Verma"
+              },
+              "duration_hours": 1.7,
+              "is_open": true,
+              "issued_at": "2026-09-12T13:04:30+00:00",
+              "status": "ACTIVE",
+              "ticket_code": "VT-O-OPEN",
+              "ticket_id": "233e028c-6271-5a88-a32b-e63021d7c5fd",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "make": "Tata",
+                "model": "Nexon",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "zone_code": "ZONE-A"
+            },
+            {
+              "custody_id": "0d65a744-f4dc-5229-86f7-1b79853ba4b6",
+              "custody_status": "CHECKED_OUT",
+              "customer": {
+                "email": "customer.rohit@example.com",
+                "id": "7692e411-48ff-50e3-91b3-9b721978a47d",
+                "name": "Rohit Menon"
+              },
+              "duration_hours": 4.7,
+              "is_open": false,
+              "issued_at": "2026-09-10T15:04:30+00:00",
+              "status": "COMPLETED",
+              "ticket_code": "VT-CLOSED",
+              "ticket_id": "d807b7c4-cf74-5dd1-9e84-e0ccc98e1397",
+              "vehicle": {
+                "id": "41afc2ed-7d5d-5152-9f15-09a99d32fc47",
+                "make": "Maruti Suzuki",
+                "model": "Baleno",
+                "plate_number": "DL 01 CA 9012"
+              },
+              "zone_code": "ZONE-B"
+            }
+          ],
+          "security_alerts": [
+            {
+              "acknowledged_by": "manager.karan@example.com",
+              "alert_type": "GEOFENCE_BREACH",
+              "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+              "id": "6064d352-c982-5c17-b68d-7e9103481b82",
+              "is_open": true,
+              "occurred_at": "2026-09-12T13:42:30+00:00",
+              "reason": "Fix at 27.49575, 77.67825 is 333.8 m beyond the Zone A - Covered Parking boundary, exceeding the 25 m buffer, while custody status was PARKED.",
+              "resolved_by": null,
+              "severity": "HIGH",
+              "status": "ACKNOWLEDGED",
+              "title": "Vehicle left ZONE-A with no task in progress",
+              "vehicle": {
+                "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+                "plate_number": "UP 78 AB 1234"
+              },
+              "zone_code": "ZONE-A"
+            }
+          ]
+        }
+      },
+      "meta": {
+        "request_id": "b02611a29df04600b06fe07a4b6c3eb4",
+        "server_time": 1789225630.9222987
+      },
+      "success": true
+    }
+  },
+  "GET /auth/me": {
+    "method": "GET",
+    "path": "/api/v1/auth/me",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "user": {
+          "created_at": "2026-09-12T15:04:30.151668+00:00",
+          "email": "admin@valet.local",
+          "full_name": "Platform Administrator",
+          "id": "14254104-597c-59d0-9fd5-7320e446a3e9",
+          "is_active": true,
+          "is_staff": true,
+          "phone": null,
+          "role": "ADMIN",
+          "status": "ACTIVE",
+          "updated_at": "2026-09-12T15:07:10.088861+00:00"
+        }
+      },
+      "meta": {
+        "request_id": "4a34d99e9e6d4231bc3623008e0597dd",
+        "server_time": 1789225630.9283738
+      },
+      "success": true
+    }
+  },
+  "GET /api/health": {
+    "method": "GET",
+    "path": "/api/health",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "api_version": "v1",
+        "checks": {
+          "database": {
+            "latency_ms": 0.96,
+            "server_version": "17.10 (Debian 17.10-0+deb13u1)",
+            "status": "up"
+          }
+        },
+        "database_healthy": true,
+        "environment": "development",
+        "server_time": "2026-09-12T15:07:10.931969+00:00",
+        "service": "valet-transparency-api",
+        "status": "up",
+        "telemetry_source": "simulated",
+        "uptime_seconds": 153.31
+      },
+      "meta": {
+        "request_id": "39c90fcbfef4433a9200b0565392272a",
+        "server_time": 1789225630.931983
+      },
+      "success": true
+    }
+  },
+  "GET /api/readyz": {
+    "method": "GET",
+    "path": "/api/readyz",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "checks": {
+          "database": {
+            "latency_ms": 0.8,
+            "server_version": "17.10 (Debian 17.10-0+deb13u1)",
+            "status": "up"
+          }
+        },
+        "status": "ready",
+        "telemetry_source": "simulated"
+      },
+      "meta": {
+        "request_id": "b7971ece61884fdd8b594650457b5b3a",
+        "server_time": 1789225630.935153
+      },
+      "success": true
+    }
+  },
+  "GET /vehicles/<id>": {
+    "method": "GET",
+    "path": "/api/v1/vehicles/448c7417-3c19-5bb7-862c-3a8c981f95e2",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "vehicle": {
+          "color": "Titan Grey",
+          "created_at": "2026-09-12T15:04:30.151668+00:00",
+          "id": "448c7417-3c19-5bb7-862c-3a8c981f95e2",
+          "is_in_custody": false,
+          "make": "Hyundai",
+          "model": "Creta",
+          "normalized_plate": "UP78CD5678",
+          "notes": "[DEMO] Seeded demonstration vehicle.",
+          "owner": {
+            "email": "customer.aisha@example.com",
+            "full_name": "Aisha Verma",
+            "id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "phone": "+91 98100 100 10"
+          },
+          "owner_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+          "plate_number": "UP 78 CD 5678",
+          "status": "REGISTERED",
+          "updated_at": "2026-09-12T15:04:30.151668+00:00",
+          "vin": null,
+          "year": 2022
+        }
+      },
+      "meta": {
+        "request_id": "ea37c59b1ee64c05a8cc89ec958460f6",
+        "server_time": 1789225630.9409728
+      },
+      "success": true
+    }
+  },
+  "GET /vehicles/<id>/sessions": {
+    "method": "GET",
+    "path": "/api/v1/vehicles/448c7417-3c19-5bb7-862c-3a8c981f95e2/sessions",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "sessions": [],
+        "total": 0,
+        "vehicle": {
+          "color": "Titan Grey",
+          "created_at": "2026-09-12T15:04:30.151668+00:00",
+          "id": "448c7417-3c19-5bb7-862c-3a8c981f95e2",
+          "is_in_custody": false,
+          "make": "Hyundai",
+          "model": "Creta",
+          "normalized_plate": "UP78CD5678",
+          "notes": "[DEMO] Seeded demonstration vehicle.",
+          "owner_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+          "plate_number": "UP 78 CD 5678",
+          "status": "REGISTERED",
+          "updated_at": "2026-09-12T15:04:30.151668+00:00",
+          "vin": null,
+          "year": 2022
+        }
+      },
+      "meta": {
+        "request_id": "2503036a4a974999a106b3b21b26c50b",
+        "server_time": 1789225630.9483252
+      },
+      "success": true
+    }
+  },
+  "GET /tickets/<id>": {
+    "method": "GET",
+    "path": "/api/v1/tickets/233e028c-6271-5a88-a32b-e63021d7c5fd",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "ticket": {
+          "actual_drop_off_at": "2026-09-12T13:24:30+00:00",
+          "actual_pickup_at": null,
+          "custody_session": {
+            "assigned_valet_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "condition_accepted": null,
+            "dropped_off_at": "2026-09-12T13:24:30+00:00",
+            "id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "is_open": true,
+            "picked_up_at": null,
+            "retrieval_requested_at": "2026-09-12T17:34:30+00:00",
+            "status": "PARKED",
+            "ticket_id": "233e028c-6271-5a88-a32b-e63021d7c5fd",
+            "vehicle_id": "b88418a6-7799-5f31-856f-fd424e58a176",
+            "zone_assigned_at": "2026-09-12T13:30:30+00:00",
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          "customer": {
+            "email": "customer.aisha@example.com",
+            "full_name": "Aisha Verma",
+            "id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "phone": "+91 98100 100 10"
+          },
+          "customer_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+          "expected_return_at": "2026-09-12T19:04:30+00:00",
+          "id": "233e028c-6271-5a88-a32b-e63021d7c5fd",
+          "issued_at": "2026-09-12T13:04:30+00:00",
+          "parking_zone": {
+            "code": "ZONE-A",
+            "id": "5880e6e0-752c-5742-885b-72ef61090d8a",
+            "name": "Zone A - Covered Parking"
+          },
+          "qr_code_path": "tickets/demo/demo-open.png",
+          "qr_payload": "VALET:VT-O-OPEN",
+          "qr_url": "/media/tickets/demo/demo-open.png",
+          "special_instructions": "[DEMO] Please handle with care.",
+          "status": "IN_CUSTODY",
+          "stored_status": "ACTIVE",
+          "ticket_code": "VT-O-OPEN",
+          "vehicle": {
+            "color": "Pearl White",
+            "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+            "make": "Tata",
+            "model": "Nexon",
+            "plate_number": "UP 78 AB 1234",
+            "status": "IN_CUSTODY",
+            "year": 2023
+          },
+          "vehicle_id": "b88418a6-7799-5f31-856f-fd424e58a176"
+        }
+      },
+      "meta": {
+        "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+        "server_time": 1789225630.957613
+      },
+      "success": true
+    }
+  },
+  "GET /custody-sessions/<id>": {
+    "method": "GET",
+    "path": "/api/v1/custody-sessions/5514bf61-f332-5956-8e9f-aeb5062621b5",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "custody_session": {
+          "assigned_valet_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+          "condition_accepted": null,
+          "dropped_off_at": "2026-09-12T13:24:30+00:00",
+          "id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+          "is_open": true,
+          "picked_up_at": null,
+          "retrieval_requested_at": "2026-09-12T17:34:30+00:00",
+          "status": "PARKED",
+          "ticket_id": "233e028c-6271-5a88-a32b-e63021d7c5fd",
+          "vehicle_id": "b88418a6-7799-5f31-856f-fd424e58a176",
+          "zone_assigned_at": "2026-09-12T13:30:30+00:00",
+          "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+        }
+      },
+      "meta": {
+        "request_id": "9f28f71f70d74eb5b3481ce35eaec621",
+        "server_time": 1789225630.9639184
+      },
+      "success": true
+    }
+  },
+  "GET /gps/<custody_id>": {
+    "method": "GET",
+    "path": "/api/v1/gps/5514bf61-f332-5956-8e9f-aeb5062621b5",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "alerts": [
+          {
+            "acknowledged_at": "2026-09-12T13:48:30+00:00",
+            "acknowledged_by_email": "manager.karan@example.com",
+            "acknowledged_by_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+            "alert_type": "GEOFENCE_BREACH",
+            "confidence": 0.94,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "description": "[DEMO] Two consecutive fixes fell outside the assigned zone while the custody session had no retrieval in progress.",
+            "evidence": {
+              "buffer_metres": 25.0,
+              "custody_status_at_fix": "PARKED",
+              "distance_metres": 333.83,
+              "movement_status": "BREACH",
+              "speed_kmph": 34.0,
+              "telemetry_source": "SIMULATED",
+              "zone_code": "ZONE-A"
+            },
+            "gps_event_id": "082dd5a5-84e9-5138-bdf4-71c81cd33f35",
+            "id": "6064d352-c982-5c17-b68d-7e9103481b82",
+            "is_open": true,
+            "occurred_at": "2026-09-12T13:42:30+00:00",
+            "reason": "Fix at 27.49575, 77.67825 is 333.8 m beyond the Zone A - Covered Parking boundary, exceeding the 25 m buffer, while custody status was PARKED.",
+            "resolution_notes": null,
+            "resolved_at": null,
+            "resolved_by_email": null,
+            "resolved_by_id": null,
+            "severity": "HIGH",
+            "status": "ACKNOWLEDGED",
+            "title": "Vehicle left ZONE-A with no task in progress",
+            "vehicle_id": "b88418a6-7799-5f31-856f-fd424e58a176",
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          }
+        ],
+        "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+        "custody_status": "PARKED",
+        "fix_count": 8,
+        "has_hardware_telemetry": false,
+        "has_simulated_telemetry": true,
+        "last_updated_at": "2026-09-12T13:46:30+00:00",
+        "latest_fix": {
+          "accuracy_metres": 4.5,
+          "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+          "device_id": "SIM-TELEMETRY-001",
+          "distance_from_zone_metres": 469.12,
+          "heading_degrees": 85.0,
+          "id": "514d1f5e-bc05-566b-8d7f-17480aea5719",
+          "is_simulated": true,
+          "is_within_zone": false,
+          "latitude": 27.49635,
+          "longitude": 77.67945,
+          "ml": null,
+          "movement_status": "BREACH",
+          "recorded_at": "2026-09-12T13:46:30+00:00",
+          "source": "SIMULATED",
+          "speed_kmph": 41.0,
+          "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+        },
+        "movement_expected": false,
+        "movement_status": "BREACH",
+        "open_alert_count": 1,
+        "retrieval_active": false,
+        "sources": [
+          "SIMULATED"
+        ],
+        "status_counts": {
+          "BREACH": 2,
+          "NORMAL": 6,
+          "SUSPICIOUS": 0,
+          "WARNING": 0
+        },
+        "telemetry_note": "This track contains SIMULATED telemetry generated for development and must not be presented as hardware data.",
+        "track": [
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -4.93,
+            "heading_degrees": 85.0,
+            "id": "d532605a-c170-5d90-bc90-03b977dfb6ea",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49385,
+            "longitude": 77.67545,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:24:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 12.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -38.92,
+            "heading_degrees": 85.0,
+            "id": "fcb897f5-c101-5bbe-a857-adea41096463",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49365,
+            "longitude": 77.67505,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:26:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 9.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -61.16,
+            "heading_degrees": 85.0,
+            "id": "b415188f-62fb-5d16-a309-df1eb7fd4914",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49345,
+            "longitude": 77.67465,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:28:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 5.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -83.4,
+            "heading_degrees": 85.0,
+            "id": "cc474311-df9e-5b5c-a035-50bb85df2ba8",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49325,
+            "longitude": 77.67425,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:30:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 0.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -83.4,
+            "heading_degrees": 85.0,
+            "id": "f4347225-675b-5a6e-a3a8-5aac487e10f5",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49325,
+            "longitude": 77.67425,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:34:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 0.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -83.4,
+            "heading_degrees": 85.0,
+            "id": "cce29f21-55fb-5a00-9d91-acb8e010e332",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49325,
+            "longitude": 77.67425,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:38:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 0.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": 333.83,
+            "heading_degrees": 85.0,
+            "id": "082dd5a5-84e9-5138-bdf4-71c81cd33f35",
+            "is_simulated": true,
+            "is_within_zone": false,
+            "latitude": 27.49575,
+            "longitude": 77.67825,
+            "ml": null,
+            "movement_status": "BREACH",
+            "recorded_at": "2026-09-12T13:42:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 34.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": 469.12,
+            "heading_degrees": 85.0,
+            "id": "514d1f5e-bc05-566b-8d7f-17480aea5719",
+            "is_simulated": true,
+            "is_within_zone": false,
+            "latitude": 27.49635,
+            "longitude": 77.67945,
+            "ml": null,
+            "movement_status": "BREACH",
+            "recorded_at": "2026-09-12T13:46:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 41.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          }
+        ],
+        "vehicle": {
+          "color": "Pearl White",
+          "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+          "make": "Tata",
+          "model": "Nexon",
+          "plate_number": "UP 78 AB 1234"
+        },
+        "zone": {
+          "available_slots": 39,
+          "buffer_metres": 25.0,
+          "capacity": 40,
+          "centre": {
+            "latitude": 27.49325,
+            "longitude": 77.67425
+          },
+          "code": "ZONE-A",
+          "current_occupancy": 1,
+          "description": "[DEMO] Demonstration zone with a 4-sided geofence.",
+          "effective_radius_metres": 148.9,
+          "geofence_polygon": [
+            [
+              77.673,
+              27.4925
+            ],
+            [
+              77.6755,
+              27.4925
+            ],
+            [
+              77.6755,
+              27.494
+            ],
+            [
+              77.673,
+              27.494
+            ],
+            [
+              77.673,
+              27.4925
+            ]
+          ],
+          "id": "5880e6e0-752c-5742-885b-72ef61090d8a",
+          "name": "Zone A - Covered Parking",
+          "radius_metres": null,
+          "status": "ACTIVE"
+        }
+      },
+      "meta": {
+        "request_id": "4d850e983e474f2ea19e81112423b64f",
+        "server_time": 1789225630.9728174
+      },
+      "success": true
+    }
+  },
+  "GET /gps/<custody_id>/fixes": {
+    "method": "GET",
+    "path": "/api/v1/gps/5514bf61-f332-5956-8e9f-aeb5062621b5/fixes?limit=3",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+        "fixes": [
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": 469.12,
+            "heading_degrees": 85.0,
+            "id": "514d1f5e-bc05-566b-8d7f-17480aea5719",
+            "is_simulated": true,
+            "is_within_zone": false,
+            "latitude": 27.49635,
+            "longitude": 77.67945,
+            "ml": null,
+            "movement_status": "BREACH",
+            "recorded_at": "2026-09-12T13:46:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 41.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": 333.83,
+            "heading_degrees": 85.0,
+            "id": "082dd5a5-84e9-5138-bdf4-71c81cd33f35",
+            "is_simulated": true,
+            "is_within_zone": false,
+            "latitude": 27.49575,
+            "longitude": 77.67825,
+            "ml": null,
+            "movement_status": "BREACH",
+            "recorded_at": "2026-09-12T13:42:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 34.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -83.4,
+            "heading_degrees": 85.0,
+            "id": "cce29f21-55fb-5a00-9d91-acb8e010e332",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49325,
+            "longitude": 77.67425,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:38:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 0.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -83.4,
+            "heading_degrees": 85.0,
+            "id": "f4347225-675b-5a6e-a3a8-5aac487e10f5",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49325,
+            "longitude": 77.67425,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:34:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 0.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -83.4,
+            "heading_degrees": 85.0,
+            "id": "cc474311-df9e-5b5c-a035-50bb85df2ba8",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49325,
+            "longitude": 77.67425,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:30:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 0.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -61.16,
+            "heading_degrees": 85.0,
+            "id": "b415188f-62fb-5d16-a309-df1eb7fd4914",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49345,
+            "longitude": 77.67465,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:28:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 5.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -38.92,
+            "heading_degrees": 85.0,
+            "id": "fcb897f5-c101-5bbe-a857-adea41096463",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49365,
+            "longitude": 77.67505,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:26:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 9.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          },
+          {
+            "accuracy_metres": 4.5,
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "device_id": "SIM-TELEMETRY-001",
+            "distance_from_zone_metres": -4.93,
+            "heading_degrees": 85.0,
+            "id": "d532605a-c170-5d90-bc90-03b977dfb6ea",
+            "is_simulated": true,
+            "is_within_zone": true,
+            "latitude": 27.49385,
+            "longitude": 77.67545,
+            "ml": null,
+            "movement_status": "NORMAL",
+            "recorded_at": "2026-09-12T13:24:30+00:00",
+            "source": "SIMULATED",
+            "speed_kmph": 12.0,
+            "zone_id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+          }
+        ],
+        "page": 1,
+        "page_size": 100,
+        "total": 8
+      },
+      "meta": {
+        "page": 1,
+        "page_size": 100,
+        "request_id": "9d23f8fd45ed43f49dda0c7d250b1bce",
+        "server_time": 1789225630.981525
+      },
+      "success": true
+    }
+  },
+  "GET /inspections/<custody_id>": {
+    "method": "GET",
+    "path": "/api/v1/inspections/5514bf61-f332-5956-8e9f-aeb5062621b5",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "comparison_ready": true,
+        "confirmed_count": 0,
+        "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+        "detector_disclaimer": "Findings are produced by classical OpenCV image differencing, not a trained damage classifier. Unverified findings are potential damage and require human confirmation.",
+        "drop_off": {
+          "captured_at": "2026-09-12T13:24:30+00:00",
+          "comparisons": [],
+          "confirmed_count": 0,
+          "created": false,
+          "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+          "damage_count": 0,
+          "detections": [
+            {
+              "algorithm_params": {
+                "canny_high": 150,
+                "canny_low": 60,
+                "lab_delta_threshold": 18.0,
+                "min_contour_area_px": 420
+              },
+              "angle": null,
+              "bounding_box": {
+                "height": 0.09,
+                "width": 0.14,
+                "x": 0.31,
+                "y": 0.58
+              },
+              "comparison_image_path": "inspections/demo/4fc8aafe-bf35-5649-a906-8affcdb6d3ce-comparison-0.jpg",
+              "comparison_url": "/media/inspections/demo/4fc8aafe-bf35-5649-a906-8affcdb6d3ce-comparison-0.jpg",
+              "confidence": 0.82,
+              "damage_type": "SCRATCH",
+              "detection_reasoning": "Hairline scratch, ~9 cm, visible under raking light.",
+              "evidence_image_path": "inspections/demo/4fc8aafe-bf35-5649-a906-8affcdb6d3ce-evidence-0.jpg",
+              "evidence_url": "/media/inspections/demo/4fc8aafe-bf35-5649-a906-8affcdb6d3ce-evidence-0.jpg",
+              "id": "47682e83-c892-54c4-b2b1-61d5abc5cf7c",
+              "inspection_id": "4fc8aafe-bf35-5649-a906-8affcdb6d3ce",
+              "is_pre_existing": true,
+              "is_verified": false,
+              "method": "CLASSICAL_CV",
+              "model_version": null,
+              "presentation_label": "Potential Damage",
+              "region": "LEFT_FRONT_DOOR",
+              "requires_customer_attention": false,
+              "severity": "COSMETIC",
+              "type_confidence": null,
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by_id": null
+            }
+          ],
+          "id": "4fc8aafe-bf35-5649-a906-8affcdb6d3ce",
+          "inspector_notes": "[DEMO] Condition recorded by the seeded demonstration dataset.",
+          "is_new_damage": false,
+          "location": "Inspection Bay 2",
+          "odometer_reading": 24310,
+          "outcome": "REVIEWED",
+          "photo_count": 5,
+          "photos": [
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-front_left",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "1f2d724888480a934ef3a823243c150d7b883ce0a91a1b731eeb2e4b797aeec5",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-front_left.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-front_right",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "28f2c19bf7d157f494c7f80985361de63e9399b082fb798947974a56d2cce4bd",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-front_right.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-rear_left",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "b298697cdd1d23cc91b71f9de082f97ea41d682af9e49bab6a2f9562e48bac1d",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-rear_left.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-rear_right",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "b65abae8672429dfbe0c6f33910cc4ef09f161f3fc40cba6438705fa9faf1bc1",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-rear_right.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-roof",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "53f8dc8c357fba709e5e91b50c09db416f5a5ff9064dac4308666746f202883c",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-roof.jpg",
+              "width": 3024
+            }
+          ],
+          "rejected_count": 0,
+          "reviewed_at": "2026-09-12T13:34:30+00:00",
+          "stage": "DROP_OFF",
+          "unmatched_angles": [],
+          "unverified_count": 1
+        },
+        "pickup": {
+          "captured_at": "2026-09-12T18:24:30+00:00",
+          "comparisons": [
+            {
+              "alignment": null,
+              "angle": "GENERAL",
+              "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+              "damage_detected": true,
+              "findings": [
+                {
+                  "algorithm_params": {
+                    "canny_high": 150,
+                    "canny_low": 60,
+                    "lab_delta_threshold": 18.0,
+                    "min_contour_area_px": 420
+                  },
+                  "angle": null,
+                  "bounding_box": {
+                    "height": 0.09,
+                    "width": 0.14,
+                    "x": 0.31,
+                    "y": 0.58
+                  },
+                  "comparison_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+                  "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+                  "confidence": 0.82,
+                  "damage_type": "SCRATCH",
+                  "detection_reasoning": "Same hairline scratch recorded at drop-off; unchanged.",
+                  "evidence_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-0.jpg",
+                  "evidence_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-0.jpg",
+                  "id": "dca6ae34-d304-5d5c-9c9f-5baf0d7a8a5e",
+                  "inspection_id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+                  "is_pre_existing": true,
+                  "is_verified": false,
+                  "method": "CLASSICAL_CV",
+                  "model_version": null,
+                  "presentation_label": "Potential Damage",
+                  "region": "LEFT_FRONT_DOOR",
+                  "requires_customer_attention": false,
+                  "severity": "COSMETIC",
+                  "type_confidence": null,
+                  "verification_notes": null,
+                  "verification_status": "UNVERIFIED",
+                  "verified_at": null,
+                  "verified_by_id": null
+                },
+                {
+                  "algorithm_params": {
+                    "canny_high": 150,
+                    "canny_low": 60,
+                    "lab_delta_threshold": 18.0,
+                    "min_contour_area_px": 420
+                  },
+                  "angle": null,
+                  "bounding_box": {
+                    "height": 0.09,
+                    "width": 0.14,
+                    "x": 0.31,
+                    "y": 0.58
+                  },
+                  "comparison_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-1.jpg",
+                  "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-1.jpg",
+                  "confidence": 0.91,
+                  "damage_type": "DENT",
+                  "detection_reasoning": "Depression ~6 cm across on the rear bumper. Not present in the drop-off set; LAB colour difference and edge displacement both exceed the configured thresholds.",
+                  "evidence_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-1.jpg",
+                  "evidence_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-1.jpg",
+                  "id": "d7ecdc37-6ac5-56ac-9467-dd1af8c45840",
+                  "inspection_id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+                  "is_pre_existing": false,
+                  "is_verified": false,
+                  "method": "CLASSICAL_CV",
+                  "model_version": null,
+                  "presentation_label": "Potential Damage",
+                  "region": "REAR_BUMPER",
+                  "requires_customer_attention": true,
+                  "severity": "MODERATE",
+                  "type_confidence": null,
+                  "verification_notes": null,
+                  "verification_status": "UNVERIFIED",
+                  "verified_at": null,
+                  "verified_by_id": null
+                }
+              ],
+              "parameters": null,
+              "statistics": null,
+              "warnings": []
+            }
+          ],
+          "confirmed_count": 0,
+          "created": false,
+          "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+          "damage_count": 0,
+          "detections": [
+            {
+              "algorithm_params": {
+                "canny_high": 150,
+                "canny_low": 60,
+                "lab_delta_threshold": 18.0,
+                "min_contour_area_px": 420
+              },
+              "angle": null,
+              "bounding_box": {
+                "height": 0.09,
+                "width": 0.14,
+                "x": 0.31,
+                "y": 0.58
+              },
+              "comparison_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-1.jpg",
+              "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-1.jpg",
+              "confidence": 0.91,
+              "damage_type": "DENT",
+              "detection_reasoning": "Depression ~6 cm across on the rear bumper. Not present in the drop-off set; LAB colour difference and edge displacement both exceed the configured thresholds.",
+              "evidence_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-1.jpg",
+              "evidence_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-1.jpg",
+              "id": "d7ecdc37-6ac5-56ac-9467-dd1af8c45840",
+              "inspection_id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+              "is_pre_existing": false,
+              "is_verified": false,
+              "method": "CLASSICAL_CV",
+              "model_version": null,
+              "presentation_label": "Potential Damage",
+              "region": "REAR_BUMPER",
+              "requires_customer_attention": true,
+              "severity": "MODERATE",
+              "type_confidence": null,
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by_id": null
+            },
+            {
+              "algorithm_params": {
+                "canny_high": 150,
+                "canny_low": 60,
+                "lab_delta_threshold": 18.0,
+                "min_contour_area_px": 420
+              },
+              "angle": null,
+              "bounding_box": {
+                "height": 0.09,
+                "width": 0.14,
+                "x": 0.31,
+                "y": 0.58
+              },
+              "comparison_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+              "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+              "confidence": 0.82,
+              "damage_type": "SCRATCH",
+              "detection_reasoning": "Same hairline scratch recorded at drop-off; unchanged.",
+              "evidence_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-0.jpg",
+              "evidence_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-0.jpg",
+              "id": "dca6ae34-d304-5d5c-9c9f-5baf0d7a8a5e",
+              "inspection_id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+              "is_pre_existing": true,
+              "is_verified": false,
+              "method": "CLASSICAL_CV",
+              "model_version": null,
+              "presentation_label": "Potential Damage",
+              "region": "LEFT_FRONT_DOOR",
+              "requires_customer_attention": false,
+              "severity": "COSMETIC",
+              "type_confidence": null,
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by_id": null
+            }
+          ],
+          "id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+          "inspector_notes": "[DEMO] Condition recorded by the seeded demonstration dataset.",
+          "is_new_damage": false,
+          "location": "Inspection Bay 2",
+          "odometer_reading": 24310,
+          "outcome": "CLEAN",
+          "photo_count": 5,
+          "photos": [
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-front_left",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "203d4b759e5a182aaa7f7939ab3361ee659d0220f00888af1b442d10f1f0792d",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-front_left.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-front_right",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "7ceff125447dc7bfd51aa4bf47e4be841c142972c2b718d063afb323aae1c3cd",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-front_right.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-rear_left",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "951b4615dee7375550874cc078997570a205b621fcb74e96bc4f9ab824dc22da",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-rear_left.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-rear_right",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "3086a01d93c4f5d41f489432d95d052f9dbf96b06480463b6866e3e14bf8d982",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-rear_right.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-roof",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "1262971c4b981116ffe083215b5748c4a3b9908173098ee2246efbe8f2898466",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-roof.jpg",
+              "width": 3024
+            }
+          ],
+          "rejected_count": 0,
+          "reviewed_at": "2026-09-12T18:34:30+00:00",
+          "stage": "PICKUP",
+          "unmatched_angles": [],
+          "unverified_count": 2
+        },
+        "requires_review": true,
+        "ticket_code": "VT-O-OPEN",
+        "total_detections": 3,
+        "unverified_count": 3,
+        "vehicle": {
+          "color": "Pearl White",
+          "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+          "make": "Tata",
+          "model": "Nexon",
+          "plate_number": "UP 78 AB 1234",
+          "year": 2023
+        }
+      },
+      "meta": {
+        "request_id": "63ff02a6893a4959af5144f477fd47dc",
+        "server_time": 1789225630.99057
+      },
+      "success": true
+    }
+  },
+  "GET /retrieval/<custody_id>": {
+    "method": "GET",
+    "path": "/api/v1/retrieval/5514bf61-f332-5956-8e9f-aeb5062621b5",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "actual_ready_at": "2026-09-12T17:59:30+00:00",
+        "confidence": 0.71,
+        "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+        "data_basis": "synthetic historical retrieval records generated for this MVP by ai/retrieval/dataset.py; no real valet operation data was used",
+        "disclaimer": "This estimate comes from a baseline model trained on synthetic historical data generated for this MVP. It has never seen a real valet operation and must not be treated as an operational forecast. Treat it as an indicative planning number.",
+        "dispatch_after": "2026-09-12T17:40:30+00:00",
+        "dispatch_delay_minutes": 0,
+        "dispatch_label": "Now",
+        "explanation": "Estimated from the mean retrieval time for Zone A (11.4 min over synthetic history), adjusted for a queue of 3 and the current hour. The 10-22 minute range reflects the observed spread. This estimate is derived from demonstration data, not from real operational history.",
+        "fetch_minutes": null,
+        "id": "56591a9f-e1ff-56cd-ae01-d507d3fd3a71",
+        "inputs_snapshot": {
+          "avg_retrieval_minutes_zone": 11.4,
+          "history_is_synthetic": true,
+          "hour_of_day": 14,
+          "queue_length": 3,
+          "zone": "ZONE-A"
+        },
+        "max_wait_minutes": 22,
+        "method": "heuristic-queue-v1",
+        "min_wait_minutes": 10,
+        "model_version": "retrieval-baseline/1.0.0",
+        "predicted_ready_at": "2026-09-12T17:48:30+00:00",
+        "predicted_wait_minutes": 14,
+        "queue_position": 2,
+        "requested_at": "2026-09-12T17:34:30+00:00",
+        "status": "DISPATCHED",
+        "trained_on_synthetic_data": true
+      },
+      "meta": {
+        "request_id": "60702f4a77c549099abc1cc50774fb69",
+        "server_time": 1789225630.9994354
+      },
+      "success": true
+    }
+  },
+  "GET /audit/timeline/<custody_id>": {
+    "method": "GET",
+    "path": "/api/v1/audit/timeline/5514bf61-f332-5956-8e9f-aeb5062621b5",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+        "dropped_off_at": "2026-09-12T13:24:30+00:00",
+        "event_count": 6,
+        "events": [
+          {
+            "action": "VEHICLE_CHECKED_IN",
+            "actor_deleted_at": null,
+            "actor_email": "valet.suresh@example.com",
+            "actor_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "actor_role": "VALET_OPERATOR",
+            "created_at": "2026-09-12T15:04:30.151668+00:00",
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "description": "[DEMO] Vehicle dropped off and custody opened by the seeder.",
+            "entity_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "entity_type": "custody_sessions",
+            "failure_reason": null,
+            "id": "41c393d2-57dc-49b2-90ec-d4192089fcc5",
+            "ip_address": null,
+            "is_lifecycle_event": true,
+            "label": "Vehicle checked in",
+            "metadata": null,
+            "new_values": {
+              "status": "PARKED",
+              "zone": "ZONE-A"
+            },
+            "occurred_at": "2026-09-12T15:04:30.151668+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "seed-fffac3ca337c",
+            "scope": "custody",
+            "seq": 2,
+            "user_agent": null
+          },
+          {
+            "action": "SECURITY_ALERT_CREATED",
+            "actor_deleted_at": null,
+            "actor_email": null,
+            "actor_id": null,
+            "actor_role": null,
+            "created_at": "2026-09-12T15:04:30.151668+00:00",
+            "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+            "description": "[DEMO] Geofence breach raised from simulated telemetry.",
+            "entity_id": "6064d352-c982-5c17-b68d-7e9103481b82",
+            "entity_type": "security_alerts",
+            "failure_reason": null,
+            "id": "be002fb2-8efb-4cf7-9ff7-29e0ab3a027e",
+            "ip_address": null,
+            "is_lifecycle_event": true,
+            "label": "Security alert raised",
+            "metadata": null,
+            "new_values": {
+              "alert_type": "GEOFENCE_BREACH",
+              "severity": "HIGH"
+            },
+            "occurred_at": "2026-09-12T15:04:30.151668+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "seed-621a9773a376",
+            "scope": "custody",
+            "seq": 4,
+            "user_agent": null
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "customer.aisha@example.com",
+            "actor_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "actor_role": "CUSTOMER",
+            "created_at": "2026-09-12T15:06:30.708892+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "ec2efcae-1420-4583-a5b8-6287597aac68",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "CUSTOMER"
+            },
+            "occurred_at": "2026-09-12T15:06:30.708892+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "04e6674935e34abdac0c8ae52d72bf52",
+            "scope": "login",
+            "seq": 7,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "valet.suresh@example.com",
+            "actor_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "actor_role": "VALET_OPERATOR",
+            "created_at": "2026-09-12T15:06:30.859074+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "92728715-66f1-4dc0-888e-624a37806f47",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "VALET_OPERATOR"
+            },
+            "occurred_at": "2026-09-12T15:06:30.859074+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "cdaa3d0b400b4d1cba83c047fbbade58",
+            "scope": "login",
+            "seq": 8,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "customer.aisha@example.com",
+            "actor_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "actor_role": "CUSTOMER",
+            "created_at": "2026-09-12T15:07:10.234052+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "5d4776d4-18f7-5bbd-934a-db567bb48f9a",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "e3ff5fb2-9274-4582-a1b4-26c76f07f6b4",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "CUSTOMER"
+            },
+            "occurred_at": "2026-09-12T15:07:10.234052+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "77d5bff20f3a4154a3bf503ba3c6fa98",
+            "scope": "login",
+            "seq": 12,
+            "user_agent": "python-requests/2.33.0"
+          },
+          {
+            "action": "USER_LOGIN",
+            "actor_deleted_at": null,
+            "actor_email": "valet.suresh@example.com",
+            "actor_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "actor_role": "VALET_OPERATOR",
+            "created_at": "2026-09-12T15:07:10.400135+00:00",
+            "custody_session_id": null,
+            "description": "Signed in.",
+            "entity_id": "2a9aca56-4bcd-5263-9454-27f20980716a",
+            "entity_type": "users",
+            "failure_reason": null,
+            "id": "2e9f567c-39f6-4b1d-86c6-b76f6a5df486",
+            "ip_address": "127.0.0.1",
+            "is_lifecycle_event": true,
+            "label": "User logged in",
+            "metadata": null,
+            "new_values": {
+              "role": "VALET_OPERATOR"
+            },
+            "occurred_at": "2026-09-12T15:07:10.400135+00:00",
+            "old_values": null,
+            "outcome": "SUCCESS",
+            "request_id": "0911a057f5e04dd694afbc4ee41ae2ff",
+            "scope": "login",
+            "seq": 13,
+            "user_agent": "python-requests/2.33.0"
+          }
+        ],
+        "had_security_incident": false,
+        "lifecycle_missing": [
+          "VEHICLE_CREATED",
+          "TICKET_CREATED",
+          "IMAGE_UPLOADED",
+          "CUSTODY_STARTED",
+          "GPS_BREACH",
+          "PICKUP_REQUESTED",
+          "RETRIEVAL_PREDICTED",
+          "PICKUP_IMAGE_CAPTURED",
+          "DAMAGE_DETECTED",
+          "VEHICLE_PICKED_UP",
+          "CUSTODY_COMPLETED"
+        ],
+        "lifecycle_progress": {
+          "CUSTODY_COMPLETED": false,
+          "CUSTODY_STARTED": false,
+          "DAMAGE_DETECTED": false,
+          "GPS_BREACH": false,
+          "IMAGE_UPLOADED": false,
+          "PICKUP_IMAGE_CAPTURED": false,
+          "PICKUP_REQUESTED": false,
+          "RETRIEVAL_PREDICTED": false,
+          "SECURITY_ALERT_CREATED": true,
+          "TICKET_CREATED": false,
+          "USER_LOGIN": true,
+          "VEHICLE_CHECKED_IN": true,
+          "VEHICLE_CREATED": false,
+          "VEHICLE_PICKED_UP": false
+        },
+        "picked_up_at": null,
+        "scope_note": "Includes ticket and vehicle registration events that predate the custody session, and logins by its participants within the custody window. Each event is labelled with its scope.",
+        "status": "PARKED",
+        "vehicle": {
+          "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+          "make": "Tata",
+          "model": "Nexon",
+          "plate_number": "UP 78 AB 1234"
+        },
+        "zone": {
+          "code": "ZONE-A",
+          "id": "5880e6e0-752c-5742-885b-72ef61090d8a"
+        }
+      },
+      "meta": {
+        "request_id": "9632628ce924466aa4e8e62dcce9708f",
+        "server_time": 1789225631.0243623
+      },
+      "success": true
+    }
+  },
+  "GET /staff/custody/<id>/condition": {
+    "method": "GET",
+    "path": "/api/v1/staff/custody/5514bf61-f332-5956-8e9f-aeb5062621b5/condition",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "comparison_ready": true,
+        "confirmed_count": 0,
+        "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+        "detector_disclaimer": "Findings are produced by classical OpenCV image differencing, not a trained damage classifier. Unverified findings are potential damage and require human confirmation.",
+        "drop_off": {
+          "captured_at": "2026-09-12T13:24:30+00:00",
+          "comparisons": [],
+          "confirmed_count": 0,
+          "created": false,
+          "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+          "damage_count": 0,
+          "detections": [
+            {
+              "algorithm_params": {
+                "canny_high": 150,
+                "canny_low": 60,
+                "lab_delta_threshold": 18.0,
+                "min_contour_area_px": 420
+              },
+              "angle": null,
+              "bounding_box": {
+                "height": 0.09,
+                "width": 0.14,
+                "x": 0.31,
+                "y": 0.58
+              },
+              "comparison_image_path": "inspections/demo/4fc8aafe-bf35-5649-a906-8affcdb6d3ce-comparison-0.jpg",
+              "comparison_url": "/media/inspections/demo/4fc8aafe-bf35-5649-a906-8affcdb6d3ce-comparison-0.jpg",
+              "confidence": 0.82,
+              "damage_type": "SCRATCH",
+              "detection_reasoning": "Hairline scratch, ~9 cm, visible under raking light.",
+              "evidence_image_path": "inspections/demo/4fc8aafe-bf35-5649-a906-8affcdb6d3ce-evidence-0.jpg",
+              "evidence_url": "/media/inspections/demo/4fc8aafe-bf35-5649-a906-8affcdb6d3ce-evidence-0.jpg",
+              "id": "47682e83-c892-54c4-b2b1-61d5abc5cf7c",
+              "inspection_id": "4fc8aafe-bf35-5649-a906-8affcdb6d3ce",
+              "is_pre_existing": true,
+              "is_verified": false,
+              "method": "CLASSICAL_CV",
+              "model_version": null,
+              "presentation_label": "Potential Damage",
+              "region": "LEFT_FRONT_DOOR",
+              "requires_customer_attention": false,
+              "severity": "COSMETIC",
+              "type_confidence": null,
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by_id": null
+            }
+          ],
+          "id": "4fc8aafe-bf35-5649-a906-8affcdb6d3ce",
+          "inspector_notes": "[DEMO] Condition recorded by the seeded demonstration dataset.",
+          "is_new_damage": false,
+          "location": "Inspection Bay 2",
+          "odometer_reading": 24310,
+          "outcome": "REVIEWED",
+          "photo_count": 5,
+          "photos": [
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-front_left",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "1f2d724888480a934ef3a823243c150d7b883ce0a91a1b731eeb2e4b797aeec5",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-front_left.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-front_right",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "28f2c19bf7d157f494c7f80985361de63e9399b082fb798947974a56d2cce4bd",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-front_right.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-rear_left",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "b298697cdd1d23cc91b71f9de082f97ea41d682af9e49bab6a2f9562e48bac1d",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-rear_left.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-rear_right",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "b65abae8672429dfbe0c6f33910cc4ef09f161f3fc40cba6438705fa9faf1bc1",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-rear_right.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-roof",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "53f8dc8c357fba709e5e91b50c09db416f5a5ff9064dac4308666746f202883c",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-DROP_OFF-roof.jpg",
+              "width": 3024
+            }
+          ],
+          "rejected_count": 0,
+          "reviewed_at": "2026-09-12T13:34:30+00:00",
+          "stage": "DROP_OFF",
+          "unmatched_angles": [],
+          "unverified_count": 1
+        },
+        "pickup": {
+          "captured_at": "2026-09-12T18:24:30+00:00",
+          "comparisons": [
+            {
+              "alignment": null,
+              "angle": "GENERAL",
+              "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+              "damage_detected": true,
+              "findings": [
+                {
+                  "algorithm_params": {
+                    "canny_high": 150,
+                    "canny_low": 60,
+                    "lab_delta_threshold": 18.0,
+                    "min_contour_area_px": 420
+                  },
+                  "angle": null,
+                  "bounding_box": {
+                    "height": 0.09,
+                    "width": 0.14,
+                    "x": 0.31,
+                    "y": 0.58
+                  },
+                  "comparison_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+                  "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+                  "confidence": 0.82,
+                  "damage_type": "SCRATCH",
+                  "detection_reasoning": "Same hairline scratch recorded at drop-off; unchanged.",
+                  "evidence_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-0.jpg",
+                  "evidence_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-0.jpg",
+                  "id": "dca6ae34-d304-5d5c-9c9f-5baf0d7a8a5e",
+                  "inspection_id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+                  "is_pre_existing": true,
+                  "is_verified": false,
+                  "method": "CLASSICAL_CV",
+                  "model_version": null,
+                  "presentation_label": "Potential Damage",
+                  "region": "LEFT_FRONT_DOOR",
+                  "requires_customer_attention": false,
+                  "severity": "COSMETIC",
+                  "type_confidence": null,
+                  "verification_notes": null,
+                  "verification_status": "UNVERIFIED",
+                  "verified_at": null,
+                  "verified_by_id": null
+                },
+                {
+                  "algorithm_params": {
+                    "canny_high": 150,
+                    "canny_low": 60,
+                    "lab_delta_threshold": 18.0,
+                    "min_contour_area_px": 420
+                  },
+                  "angle": null,
+                  "bounding_box": {
+                    "height": 0.09,
+                    "width": 0.14,
+                    "x": 0.31,
+                    "y": 0.58
+                  },
+                  "comparison_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-1.jpg",
+                  "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-1.jpg",
+                  "confidence": 0.91,
+                  "damage_type": "DENT",
+                  "detection_reasoning": "Depression ~6 cm across on the rear bumper. Not present in the drop-off set; LAB colour difference and edge displacement both exceed the configured thresholds.",
+                  "evidence_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-1.jpg",
+                  "evidence_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-1.jpg",
+                  "id": "d7ecdc37-6ac5-56ac-9467-dd1af8c45840",
+                  "inspection_id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+                  "is_pre_existing": false,
+                  "is_verified": false,
+                  "method": "CLASSICAL_CV",
+                  "model_version": null,
+                  "presentation_label": "Potential Damage",
+                  "region": "REAR_BUMPER",
+                  "requires_customer_attention": true,
+                  "severity": "MODERATE",
+                  "type_confidence": null,
+                  "verification_notes": null,
+                  "verification_status": "UNVERIFIED",
+                  "verified_at": null,
+                  "verified_by_id": null
+                }
+              ],
+              "parameters": null,
+              "statistics": null,
+              "warnings": []
+            }
+          ],
+          "confirmed_count": 0,
+          "created": false,
+          "custody_session_id": "5514bf61-f332-5956-8e9f-aeb5062621b5",
+          "damage_count": 0,
+          "detections": [
+            {
+              "algorithm_params": {
+                "canny_high": 150,
+                "canny_low": 60,
+                "lab_delta_threshold": 18.0,
+                "min_contour_area_px": 420
+              },
+              "angle": null,
+              "bounding_box": {
+                "height": 0.09,
+                "width": 0.14,
+                "x": 0.31,
+                "y": 0.58
+              },
+              "comparison_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-1.jpg",
+              "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-1.jpg",
+              "confidence": 0.91,
+              "damage_type": "DENT",
+              "detection_reasoning": "Depression ~6 cm across on the rear bumper. Not present in the drop-off set; LAB colour difference and edge displacement both exceed the configured thresholds.",
+              "evidence_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-1.jpg",
+              "evidence_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-1.jpg",
+              "id": "d7ecdc37-6ac5-56ac-9467-dd1af8c45840",
+              "inspection_id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+              "is_pre_existing": false,
+              "is_verified": false,
+              "method": "CLASSICAL_CV",
+              "model_version": null,
+              "presentation_label": "Potential Damage",
+              "region": "REAR_BUMPER",
+              "requires_customer_attention": true,
+              "severity": "MODERATE",
+              "type_confidence": null,
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by_id": null
+            },
+            {
+              "algorithm_params": {
+                "canny_high": 150,
+                "canny_low": 60,
+                "lab_delta_threshold": 18.0,
+                "min_contour_area_px": 420
+              },
+              "angle": null,
+              "bounding_box": {
+                "height": 0.09,
+                "width": 0.14,
+                "x": 0.31,
+                "y": 0.58
+              },
+              "comparison_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+              "comparison_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-comparison-0.jpg",
+              "confidence": 0.82,
+              "damage_type": "SCRATCH",
+              "detection_reasoning": "Same hairline scratch recorded at drop-off; unchanged.",
+              "evidence_image_path": "inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-0.jpg",
+              "evidence_url": "/media/inspections/demo/2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7-evidence-0.jpg",
+              "id": "dca6ae34-d304-5d5c-9c9f-5baf0d7a8a5e",
+              "inspection_id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+              "is_pre_existing": true,
+              "is_verified": false,
+              "method": "CLASSICAL_CV",
+              "model_version": null,
+              "presentation_label": "Potential Damage",
+              "region": "LEFT_FRONT_DOOR",
+              "requires_customer_attention": false,
+              "severity": "COSMETIC",
+              "type_confidence": null,
+              "verification_notes": null,
+              "verification_status": "UNVERIFIED",
+              "verified_at": null,
+              "verified_by_id": null
+            }
+          ],
+          "id": "2ed5c8b1-4804-5d62-a17a-2b204dd8bbc7",
+          "inspector_notes": "[DEMO] Condition recorded by the seeded demonstration dataset.",
+          "is_new_damage": false,
+          "location": "Inspection Bay 2",
+          "odometer_reading": 24310,
+          "outcome": "CLEAN",
+          "photo_count": 5,
+          "photos": [
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-front_left",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "203d4b759e5a182aaa7f7939ab3361ee659d0220f00888af1b442d10f1f0792d",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-front_left.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-front_right",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "7ceff125447dc7bfd51aa4bf47e4be841c142972c2b718d063afb323aae1c3cd",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-front_right.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-rear_left",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "951b4615dee7375550874cc078997570a205b621fcb74e96bc4f9ab824dc22da",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-rear_left.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-rear_right",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "3086a01d93c4f5d41f489432d95d052f9dbf96b06480463b6866e3e14bf8d982",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-rear_right.jpg",
+              "width": 3024
+            },
+            {
+              "angle": "5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-roof",
+              "byte_size": 248371,
+              "captured_at": "2026-09-07T09:12:44+00:00",
+              "height": 4032,
+              "sha256": "1262971c4b981116ffe083215b5748c4a3b9908173098ee2246efbe8f2898466",
+              "url": "/media/inspections/demo/5514bf61-f332-5956-8e9f-aeb5062621b5-PICKUP-roof.jpg",
+              "width": 3024
+            }
+          ],
+          "rejected_count": 0,
+          "reviewed_at": "2026-09-12T18:34:30+00:00",
+          "stage": "PICKUP",
+          "unmatched_angles": [],
+          "unverified_count": 2
+        },
+        "requires_review": true,
+        "ticket_code": "VT-O-OPEN",
+        "total_detections": 3,
+        "unverified_count": 3,
+        "vehicle": {
+          "color": "Pearl White",
+          "id": "b88418a6-7799-5f31-856f-fd424e58a176",
+          "make": "Tata",
+          "model": "Nexon",
+          "plate_number": "UP 78 AB 1234",
+          "year": 2023
+        }
+      },
+      "meta": {
+        "request_id": "239837b2ff964c3e9c5ef3038e361ffe",
+        "server_time": 1789225631.0366037
+      },
+      "success": true
+    }
+  },
+  "GET /audit/vehicles/<id>": {
+    "method": "GET",
+    "path": "/api/v1/audit/vehicles/448c7417-3c19-5bb7-862c-3a8c981f95e2",
+    "role": "admin",
+    "status": 200,
+    "body": {
+      "data": {
+        "custody_count": 0,
+        "timelines": [],
+        "vehicle": {
+          "color": "Titan Grey",
+          "id": "448c7417-3c19-5bb7-862c-3a8c981f95e2",
+          "make": "Hyundai",
+          "model": "Creta",
+          "plate_number": "UP 78 CD 5678",
+          "status": "REGISTERED"
+        }
+      },
+      "meta": {
+        "request_id": "e8c1435349584eb2b04a6debcdb8044c",
+        "server_time": 1789225631.0451152
+      },
+      "success": true
+    }
+  },
+  "ERR unauthenticated": {
+    "error": "requests.api.request() got multiple values for keyword argument 'headers'",
+    "headers": {
+      "Authorization": "Bearer <bad>"
+    }
+  },
+  "ERR forbidden (customer -> audit)": {
+    "method": "GET",
+    "path": "/api/v1/audit",
+    "role": "customer",
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "AUTHORIZATION_ERROR",
+        "details": {
+          "required": [
+            "VALET_MANAGER",
+            "ADMIN"
+          ],
+          "role": "CUSTOMER"
+        },
+        "message": "Role 'CUSTOMER' cannot read the audit trail. Required: VALET_MANAGER, ADMIN."
+      },
+      "meta": {
+        "request_id": "5f68bba8fcfa438abe3635c15cebe4bc",
+        "server_time": 1789225631.0512617
+      },
+      "success": false
+    }
+  },
+  "ERR validation (bad plate)": {
+    "method": "POST",
+    "path": "/api/v1/vehicles",
+    "role": "customer",
+    "status": 422,
+    "body": {
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "details": {
+          "field": "plate_number",
+          "received": "XX"
+        },
+        "message": "'plate_number' does not look like a valid Indian registration number (e.g. UP85CA1234, MH12DE1234 or 25BH0987AB)."
+      },
+      "meta": {
+        "request_id": "569396f81e9445319aa7a9ed240c1b9d",
+        "server_time": 1789225631.0570483
+      },
+      "success": false
+    }
+  },
+  "ERR not found": {
+    "method": "GET",
+    "path": "/api/v1/vehicles/00000000-0000-0000-0000-000000000000",
+    "role": "admin",
+    "status": 404,
+    "body": {
+      "error": {
+        "code": "NOT_FOUND",
+        "details": {
+          "vehicle_id": "00000000-0000-0000-0000-000000000000"
+        },
+        "message": "No vehicle was found with that id."
+      },
+      "meta": {
+        "request_id": "f676154d2b884f15b1de8c26a976576c",
+        "server_time": 1789225631.0652413
+      },
+      "success": false
+    }
+  },
+  "ERR register staff role": {
+    "method": "POST",
+    "path": "/api/v1/auth/register",
+    "role": "admin",
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "AUTHORIZATION_ERROR",
+        "details": {
+          "field": "role",
+          "permitted": "CUSTOMER"
+        },
+        "message": "Role 'ADMIN' cannot be self-assigned. Public registration creates customer accounts; staff accounts are created by an administrator."
+      },
+      "meta": {
+        "request_id": "7b6b9375b3ae4214a13ef722a1256eee",
+        "server_time": 1789225631.070985
+      },
+      "success": false
+    }
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "model_version": "security-prototype/1.0.0",
+  "algorithm": "logistic",
+  "feature_columns": [
+    "speed_kmph",
+    "distance_from_zone_metres",
+    "movement_duration_seconds",
+    "direction_change_degrees",
+    "distance_travelled_metres",
+    "zone_breach",
+    "time_sin",
+    "time_cos"
+  ],
+  "classes": [
+    "NORMAL",
+    "SUSPICIOUS"
+  ],
+  "trained_at": "2026-10-17T16:22:03.631620+00:00",
+  "training_summary": {
+    "algorithm": "logistic",
+    "class_weight": "balanced",
+    "rows": 11269,
+    "episodes": 1200,
+    "features": [
+      "speed_kmph",
+      "distance_from_zone_metres",
+      "movement_duration_seconds",
+      "direction_change_degrees",
+      "distance_travelled_metres",
+      "zone_breach",
+      "time_sin",
+      "time_cos"
+    ],
+    "classes": [
+      "NORMAL",
+      "SUSPICIOUS"
+    ],
+    "train_rows": 8339,
+    "test_rows": 2930,
+    "train_normal": 5343,
+    "train_suspicious": 2996,
+    "test_normal": 1693,
+    "test_suspicious": 1237
+  },
+  "metrics": {
+    "accuracy": 0.9635,
+    "precision": 0.9772,
+    "recall": 0.9353,
+    "f1": 0.9558,
+    "confusion_matrix": {
+      "labels": [
+        "NORMAL",
+        "SUSPICIOUS"
+      ],
+      "matrix": [
+        [
+          1666,
+          27
+        ],
+        [
+          80,
+          1157
+        ]
+      ],
+      "reading": "rows are the true label, columns the predicted label"
+    },
+    "rows": 2930,
+    "baseline_accuracy_always_normal": 0.5778
+  },
+  "trained_on_synthetic_data": true,
+  "prototype_disclaimer": "Prototype classifier trained and evaluated on synthetic telemetry whose labels were written by hand. It has never seen a real vehicle and must not be represented as a production model or relied on as the sole basis for a security decision. Rule-based geofence checks remain authoritative.",
+  "format": "json-logistic-v1",
+  "estimator_classes": [
+    0,
+    1
+  ],
+  "scaler": {
+    "mean": [
+      20.535458327573863,
+      11.252453128461624,
+      342.51796346319065,
+      46.79631587529614,
+      63.325571205412935,
+      0.17975776471999041,
+      0.006201611768656263,
+      -0.005068950907883333
+    ],
+    "scale": [
+      18.83425916205805,
+      160.5432948644058,
+      563.7817761806846,
+      33.194638812191556,
+      80.9347135402454,
+      0.3839855605916377,
+      0.6986180040699193,
+      0.7154500193147858
+    ]
+  },
+  "coefficients": [
+    1.8939452400461303,
+    0.9816136154772516,
+    4.162463985191662,
+    1.6489430602708033,
+    2.395576907514882,
+    3.102117028133162,
+    0.6064101934915455,
+    0.8560513388501535
+  ],
+  "intercept": 2.1715740920327495
+}

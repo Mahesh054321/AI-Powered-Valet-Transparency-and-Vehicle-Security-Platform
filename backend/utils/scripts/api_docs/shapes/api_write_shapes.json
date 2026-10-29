@@ -1,0 +1,2465 @@
+{
+  "POST /auth/register": {
+    "status": 201,
+    "body": {
+      "data": {
+        "message": "Account created. You can sign in now.",
+        "user": {
+          "created_at": "2026-09-12T16:01:46.071075+00:00",
+          "email": "docprobe.799e6643@example.com",
+          "full_name": "Doc Probe",
+          "id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+          "is_active": true,
+          "is_staff": false,
+          "phone": "9876543210",
+          "role": "CUSTOMER",
+          "status": "ACTIVE",
+          "updated_at": "2026-09-12T16:01:46.071075+00:00"
+        }
+      },
+      "meta": {
+        "request_id": "8ac1f8634d6f4129bc2ee547b1fff1c6",
+        "server_time": 1789228906.249017
+      },
+      "success": true
+    }
+  },
+  "POST /auth/users": {
+    "status": 201,
+    "body": {
+      "data": {
+        "message": "VALET_OPERATOR account created.",
+        "user": {
+          "created_at": "2026-09-12T16:01:46.418284+00:00",
+          "email": "docstaff.e26a78b4@example.com",
+          "full_name": "Doc Staff",
+          "id": "801e7fea-b303-43d5-bd95-01164967a458",
+          "is_active": true,
+          "is_staff": true,
+          "phone": null,
+          "role": "VALET_OPERATOR",
+          "status": "ACTIVE",
+          "updated_at": "2026-09-12T16:01:46.418284+00:00"
+        }
+      },
+      "meta": {
+        "request_id": "4c808aac25e14a1b81c5be34ae67df8f",
+        "server_time": 1789228906.6376553
+      },
+      "success": true
+    }
+  },
+  "POST /vehicles": {
+    "status": 201,
+    "body": {
+      "data": {
+        "message": "UP98AB9533 registered.",
+        "vehicle": {
+          "color": "Silver",
+          "created_at": "2026-09-12T16:01:46.642491+00:00",
+          "id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+          "is_in_custody": false,
+          "make": "Tata",
+          "model": "Nexon",
+          "normalized_plate": "UP98AB9533",
+          "notes": "Documentation probe vehicle.",
+          "owner": {
+            "email": "docprobe.799e6643@example.com",
+            "full_name": "Doc Probe",
+            "id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+            "phone": "9876543210"
+          },
+          "owner_id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+          "plate_number": "UP98AB9533",
+          "status": "REGISTERED",
+          "updated_at": "2026-09-12T16:01:46.642491+00:00",
+          "vin": null,
+          "year": 2022
+        }
+      },
+      "meta": {
+        "request_id": "3db6dd8dbeca46abbed0826aee0b2511",
+        "server_time": 1789228906.651453
+      },
+      "success": true
+    }
+  },
+  "PATCH /vehicles/<id>": {
+    "status": 200,
+    "body": {
+      "data": {
+        "message": "Vehicle updated.",
+        "vehicle": {
+          "color": "Graphite",
+          "created_at": "2026-09-12T16:01:46.642491+00:00",
+          "id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+          "is_in_custody": false,
+          "make": "Tata",
+          "model": "Nexon",
+          "normalized_plate": "UP98AB9533",
+          "notes": "Colour corrected.",
+          "owner": {
+            "email": "docprobe.799e6643@example.com",
+            "full_name": "Doc Probe",
+            "id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+            "phone": "9876543210"
+          },
+          "owner_id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+          "plate_number": "UP98AB9533",
+          "status": "REGISTERED",
+          "updated_at": "2026-09-12T16:01:46.655549+00:00",
+          "vin": null,
+          "year": 2022
+        }
+      },
+      "meta": {
+        "request_id": "e87391bb73a24c85af320ce6815a5ce6",
+        "server_time": 1789228906.6646714
+      },
+      "success": true
+    }
+  },
+  "POST /tickets": {
+    "status": 201,
+    "body": {
+      "data": {
+        "message": "Ticket VT-202609-UFRWWV issued.",
+        "ticket": {
+          "actual_drop_off_at": null,
+          "actual_pickup_at": null,
+          "custody_session": null,
+          "customer": {
+            "email": "docprobe.799e6643@example.com",
+            "full_name": "Doc Probe",
+            "id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+            "phone": "9876543210"
+          },
+          "customer_id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+          "expected_return_at": null,
+          "id": "e99aeb57-d900-497a-9c75-638e53ec25bd",
+          "issued_at": "2026-09-12T16:01:46.687251+00:00",
+          "qr_code_path": "qr/8818cafe94d548fd8ea34f100ceb9f4c.png",
+          "qr_payload": "VALET:VT-202609-UFRWWV",
+          "qr_url": "/media/qr/8818cafe94d548fd8ea34f100ceb9f4c.png",
+          "special_instructions": null,
+          "status": "CREATED",
+          "stored_status": "ISSUED",
+          "ticket_code": "VT-202609-UFRWWV",
+          "vehicle": {
+            "color": "Graphite",
+            "id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+            "make": "Tata",
+            "model": "Nexon",
+            "plate_number": "UP98AB9533",
+            "status": "REGISTERED",
+            "year": 2022
+          },
+          "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a"
+        }
+      },
+      "meta": {
+        "request_id": "7b575712235c45c39dfea2bff044c0b4",
+        "server_time": 1789228906.714622
+      },
+      "success": true
+    }
+  },
+  "POST /tickets/<id>/check-in": {
+    "status": 200,
+    "body": {
+      "data": {
+        "message": "Vehicle checked in. Custody session started.",
+        "ticket": {
+          "actual_drop_off_at": "2026-09-12T16:01:46.730231+00:00",
+          "actual_pickup_at": null,
+          "custody_session": {
+            "assigned_valet_id": null,
+            "condition_accepted": null,
+            "dropped_off_at": "2026-09-12T16:01:46.730231+00:00",
+            "id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+            "is_open": true,
+            "picked_up_at": null,
+            "retrieval_requested_at": null,
+            "status": "PARKED",
+            "ticket_id": "e99aeb57-d900-497a-9c75-638e53ec25bd",
+            "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+            "zone_assigned_at": "2026-09-12T16:01:46.730231+00:00",
+            "zone_id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf"
+          },
+          "customer": {
+            "email": "docprobe.799e6643@example.com",
+            "full_name": "Doc Probe",
+            "id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+            "phone": "9876543210"
+          },
+          "customer_id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+          "expected_return_at": null,
+          "id": "e99aeb57-d900-497a-9c75-638e53ec25bd",
+          "issued_at": "2026-09-12T16:01:46.687251+00:00",
+          "parking_zone": {
+            "code": "DOC8F74F",
+            "id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf",
+            "name": "Documentation probe zone"
+          },
+          "qr_code_path": "qr/8818cafe94d548fd8ea34f100ceb9f4c.png",
+          "qr_payload": "VALET:VT-202609-UFRWWV",
+          "qr_url": "/media/qr/8818cafe94d548fd8ea34f100ceb9f4c.png",
+          "special_instructions": null,
+          "status": "IN_CUSTODY",
+          "stored_status": "ACTIVE",
+          "ticket_code": "VT-202609-UFRWWV",
+          "vehicle": {
+            "color": "Graphite",
+            "id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+            "make": "Tata",
+            "model": "Nexon",
+            "plate_number": "UP98AB9533",
+            "status": "IN_CUSTODY",
+            "year": 2022
+          },
+          "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a"
+        }
+      },
+      "meta": {
+        "request_id": "9fe3105551a84f90a0157540993d59d3",
+        "server_time": 1789228906.7502322
+      },
+      "success": true
+    }
+  },
+  "POST /retrieval/request": {
+    "status": 201,
+    "body": {
+      "data": {
+        "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+        "custody_status": "RETRIEVAL_REQUESTED",
+        "data_basis": "synthetic historical retrieval records generated for this MVP by ai/retrieval/dataset.py; no real valet operation data was used",
+        "disclaimer": "This estimate comes from a baseline model trained on synthetic historical data generated for this MVP. It has never seen a real valet operation and must not be treated as an operational forecast. Treat it as an indicative planning number.",
+        "estimate": {
+          "confidence": 0.679,
+          "contributions": {
+            "active_valets": -0.13636422916568658,
+            "dow_cos": -0.035013623720164144,
+            "dow_sin": 0.5963032564167559,
+            "historical_zone_mean_minutes": -0.1157916116712825,
+            "hour_cos": 0.07149590919037511,
+            "hour_sin": 0.9950187267063652,
+            "queue_position": -0.8478208331784922,
+            "queue_size": 0.042710593316796296,
+            "vehicle_flagged": -0.42233442773821284,
+            "zone_capacity": -1.9262798266062398,
+            "zone_occupancy_percent": -0.6894154888626916
+          },
+          "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+          "disclaimer": "This estimate comes from a baseline model trained on synthetic historical data generated for this MVP. It has never seen a real valet operation and must not be treated as an operational forecast. Treat it as an indicative planning number.",
+          "dispatch_after": "Sat, 12 Sep 2026 16:01:46 GMT",
+          "dispatch_delay_minutes": 0,
+          "dispatch_label": "Now",
+          "estimated_minutes": 6,
+          "estimated_minutes_raw": 6.41,
+          "estimated_ready_at": "Sat, 12 Sep 2026 16:07:46 GMT",
+          "fetch_minutes": 6,
+          "historical_sample_size": 0,
+          "history_is_fallback": true,
+          "inputs": {
+            "active_valets": 7.0,
+            "dow_cos": -0.2225209339563146,
+            "dow_sin": -0.9749279121818236,
+            "historical_zone_mean_minutes": 8.4,
+            "hour_cos": -0.4932611971991734,
+            "hour_sin": -0.8698812512852764,
+            "queue_position": 1.0,
+            "queue_size": 1.0,
+            "vehicle_flagged": 0.0,
+            "zone_capacity": 10.0,
+            "zone_occupancy_percent": 20.0
+          },
+          "max_wait_minutes": 8,
+          "method": "linear-ridge-v1",
+          "min_wait_minutes": 4,
+          "model_version": "retrieval-baseline/1.0.0",
+          "persisted": true,
+          "prediction_id": "d60c5132-e70e-42da-a8cc-e01e0772ae1f",
+          "queue_position": 1,
+          "queue_size": 1,
+          "reason": "Baseline linear model estimates 6 minutes. zone capacity 10.00 saves 1.9 min; time of day -0.87 adds 1.0 min; position in queue 1.00 saves 0.8 min. Basis: exact linear contributions in minutes. Trained on synthetic data - an indicative planning number, not an operational forecast.",
+          "requested_at": "Sat, 12 Sep 2026 16:01:46 GMT",
+          "trained_on_synthetic_data": true,
+          "zone_code": "DOC8F74F"
+        },
+        "estimate_available": true,
+        "estimate_error": null,
+        "estimated_minutes": 6,
+        "estimated_retrieval_time": "Sat, 12 Sep 2026 16:07:46 GMT",
+        "message": "Vehicle requested. A valet has been notified and your estimated retrieval time is below.",
+        "previous_status": "PARKED",
+        "queue_position": 1,
+        "recommended_dispatch": "Now",
+        "requested_at": "2026-09-12T16:01:46.762336+00:00",
+        "trained_on_synthetic_data": true,
+        "valet_notification": {
+          "delivery": "polled",
+          "note": "The valet dashboard reads this queue on a short poll. There is no websocket channel, so the request appears there within one poll interval rather than instantly.",
+          "queued": true
+        }
+      },
+      "meta": {
+        "request_id": "cb1600a3159b4c7082ede9ed473c16fb",
+        "server_time": 1789228906.799006
+      },
+      "success": true
+    }
+  },
+  "PATCH /custody-sessions/<id>": {
+    "status": 200,
+    "body": {
+      "data": {
+        "custody_session": {
+          "assigned_valet_id": null,
+          "condition_accepted": null,
+          "dropped_off_at": "2026-09-12T16:01:46.730231+00:00",
+          "id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+          "is_open": true,
+          "picked_up_at": null,
+          "retrieval_requested_at": "2026-09-12T16:01:46.762336+00:00",
+          "status": "RETRIEVAL_IN_PROGRESS",
+          "ticket_id": "e99aeb57-d900-497a-9c75-638e53ec25bd",
+          "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+          "zone_assigned_at": "2026-09-12T16:01:46.730231+00:00",
+          "zone_id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf"
+        },
+        "message": "Custody session is now RETRIEVAL_IN_PROGRESS."
+      },
+      "meta": {
+        "request_id": "477c3a902f6a47a6ac679c0ffc9058d8",
+        "server_time": 1789228906.8251157
+      },
+      "success": true
+    }
+  },
+  "ERR illegal custody transition": {
+    "status": 422,
+    "body": {
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "details": {
+          "field": "status"
+        },
+        "message": "Use the ticket completion endpoint to close a custody session; it also settles the ticket, the zone occupancy and the vehicle status."
+      },
+      "meta": {
+        "request_id": "04d9cb6e055a440f9e21bf5cb2128150",
+        "server_time": 1789228906.836867
+      },
+      "success": false
+    }
+  },
+  "POST /uploads/images": {
+    "status": 201,
+    "body": {
+      "data": {
+        "images": [
+          {
+            "byte_size": 346,
+            "captured_at": "2026-09-12T16:01:46.861776+00:00",
+            "height": 120,
+            "mime_type": "image/png",
+            "path": "inspections/2026/09/12/8447673ffd1c44f8a782a2d48c242806.png",
+            "sha256": "bd005d02a1d757cce387fadf4dd44d12f4d24b452b686836d3633880bee1b2ae",
+            "width": 120
+          }
+        ],
+        "message": "Stored 1 image(s).",
+        "total": 1
+      },
+      "meta": {
+        "request_id": "fc205c6a468f46438b40b4ec17ff5d18",
+        "server_time": 1789228906.8618646
+      },
+      "success": true
+    }
+  },
+  "POST /inspections/dropoff": {
+    "status": 201,
+    "body": {
+      "data": {
+        "captured_at": "2026-09-12T16:01:46.871934+00:00",
+        "comparisons": [],
+        "confirmed_count": 0,
+        "created": false,
+        "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+        "damage_count": 0,
+        "detections": [],
+        "id": "a6456b3d-1558-4bdc-9ebf-36d5f03814b9",
+        "inspector_notes": "Clean.",
+        "is_new_damage": false,
+        "location": null,
+        "odometer_reading": null,
+        "outcome": "CLEAN",
+        "photo_count": 2,
+        "photos": [
+          {
+            "angle": "FRONT",
+            "byte_size": 407,
+            "captured_at": "2026-09-12T16:01:46.870546+00:00",
+            "height": 140,
+            "sha256": "04953d98db28ab8abcc482bbea901164b21099c417bcbd916ff848ea46403669",
+            "url": "/media/inspections/drop_off/2026/09/12/9e2f45d325ac4e45907ea2948f3ed5b9.png",
+            "width": 140
+          },
+          {
+            "angle": "REAR",
+            "byte_size": 407,
+            "captured_at": "2026-09-12T16:01:46.871048+00:00",
+            "height": 140,
+            "sha256": "04953d98db28ab8abcc482bbea901164b21099c417bcbd916ff848ea46403669",
+            "url": "/media/inspections/drop_off/2026/09/12/63242fa95ffa4fe5a4a1bafd61937d5c.png",
+            "width": 140
+          }
+        ],
+        "rejected_count": 0,
+        "reviewed_at": null,
+        "stage": "DROP_OFF",
+        "unmatched_angles": [],
+        "unverified_count": 0
+      },
+      "meta": {
+        "request_id": "93da34e99c664eabba35c8751ac4ade4",
+        "server_time": 1789228906.8791866
+      },
+      "success": true
+    }
+  },
+  "POST /inspections/pickup": {
+    "status": 201,
+    "body": {
+      "data": {
+        "captured_at": "2026-09-12T16:01:46.888981+00:00",
+        "comparisons": [
+          {
+            "alignment": {
+              "applied": false,
+              "inliers": 0,
+              "matches": 0,
+              "quality": 0.0,
+              "reason": "No features could be detected in one of the images. Plain, uniformly lit panels give ORB nothing to match."
+            },
+            "angle": "FRONT",
+            "comparison_url": "/media/comparisons/2026/09/12/3007b79f81cc42fcb6b5ee8d5a6ede64.png",
+            "damage_detected": false,
+            "drop_off_url": "/media/inspections/drop_off/2026/09/12/9e2f45d325ac4e45907ea2948f3ed5b9.png",
+            "findings": [],
+            "parameters": {
+              "bloblike_aspect_ratio": 2.5,
+              "border_margin_fraction": 0.015,
+              "chroma_weight": 1.0,
+              "dent_bipolarity": 0.7,
+              "difference_blur_kernel": 5,
+              "difference_threshold": 22.0,
+              "diffuse_mean_ceiling": 12.0,
+              "diffuse_region_fraction": 0.35,
+              "edge_floor_minimum": 3.0,
+              "edge_floor_percentile": 99.0,
+              "edge_weight": 0.8,
+              "elongated_aspect_ratio": 3.0,
+              "lighting_correction_strength": 0.85,
+              "low_alignment_penalty": 0.6,
+              "luminance_floor": 8.0,
+              "luminance_weight": 1.0,
+              "match_ratio": 0.75,
+              "max_gain_deviation": 0.45,
+              "merge_iou": 0.3,
+              "min_alignment_quality": 0.25,
+              "min_confidence": 0.05,
+              "min_image_dimension": 96,
+              "min_matches": 12,
+              "min_region_area_fraction": 0.0006,
+              "morph_kernel_size": 5,
+              "new_edge_saturation": 2.0,
+              "orb_features": 2000,
+              "pre_existing_edge_ceiling": 40.0,
+              "ransac_threshold": 4.0,
+              "residue_chroma_fraction": 0.5,
+              "saturation_difference": 70.0,
+              "significant_chroma": 14.0,
+              "significant_luminance_change": 10.0,
+              "sobel_kernel": 3,
+              "version": "classical-cv/1.0.0",
+              "working_width": 1024
+            },
+            "pickup_url": "/media/inspections/pickup/2026/09/12/3209920f4e044adb847f9b6c95787e89.png",
+            "statistics": {
+              "after": {
+                "height": 140,
+                "orientation_applied": false,
+                "source_height": 140,
+                "source_width": 140,
+                "width": 140
+              },
+              "alignment": {
+                "applied": false,
+                "inliers": 0,
+                "matches": 0,
+                "quality": 0.0,
+                "reason": "No features could be detected in one of the images. Plain, uniformly lit panels give ORB nothing to match."
+              },
+              "before": {
+                "height": 140,
+                "orientation_applied": false,
+                "source_height": 140,
+                "source_width": 140,
+                "width": 140
+              },
+              "changed_pixel_fraction": 0.0,
+              "evidence_crops_rendered": 0,
+              "evidence_crops_skipped": 0,
+              "frame": {
+                "height": 140,
+                "width": 140
+              },
+              "luminance_gain_applied": 1.0,
+              "viewpoint": "FRONT"
+            },
+            "warnings": [
+              "Alignment was not applied: No features could be detected in one of the images. Plain, uniformly lit panels give ORB nothing to match. Regions may reflect camera movement rather than changes to the vehicle.",
+              "No region exceeded the detection thresholds. This is not a guarantee that the vehicle is undamaged -- it means nothing stood out against these parameters."
+            ]
+          },
+          {
+            "alignment": {
+              "applied": false,
+              "inliers": 0,
+              "matches": 0,
+              "quality": 0.0,
+              "reason": "No features could be detected in one of the images. Plain, uniformly lit panels give ORB nothing to match."
+            },
+            "angle": "REAR",
+            "comparison_url": "/media/comparisons/2026/09/12/a27f710051fa4192802271e06e9cea3f.png",
+            "damage_detected": false,
+            "drop_off_url": "/media/inspections/drop_off/2026/09/12/63242fa95ffa4fe5a4a1bafd61937d5c.png",
+            "findings": [],
+            "parameters": {
+              "bloblike_aspect_ratio": 2.5,
+              "border_margin_fraction": 0.015,
+              "chroma_weight": 1.0,
+              "dent_bipolarity": 0.7,
+              "difference_blur_kernel": 5,
+              "difference_threshold": 22.0,
+              "diffuse_mean_ceiling": 12.0,
+              "diffuse_region_fraction": 0.35,
+              "edge_floor_minimum": 3.0,
+              "edge_floor_percentile": 99.0,
+              "edge_weight": 0.8,
+              "elongated_aspect_ratio": 3.0,
+              "lighting_correction_strength": 0.85,
+              "low_alignment_penalty": 0.6,
+              "luminance_floor": 8.0,
+              "luminance_weight": 1.0,
+              "match_ratio": 0.75,
+              "max_gain_deviation": 0.45,
+              "merge_iou": 0.3,
+              "min_alignment_quality": 0.25,
+              "min_confidence": 0.05,
+              "min_image_dimension": 96,
+              "min_matches": 12,
+              "min_region_area_fraction": 0.0006,
+              "morph_kernel_size": 5,
+              "new_edge_saturation": 2.0,
+              "orb_features": 2000,
+              "pre_existing_edge_ceiling": 40.0,
+              "ransac_threshold": 4.0,
+              "residue_chroma_fraction": 0.5,
+              "saturation_difference": 70.0,
+              "significant_chroma": 14.0,
+              "significant_luminance_change": 10.0,
+              "sobel_kernel": 3,
+              "version": "classical-cv/1.0.0",
+              "working_width": 1024
+            },
+            "pickup_url": "/media/inspections/pickup/2026/09/12/588ca1b0ae704a62a5f0941189307a85.png",
+            "statistics": {
+              "after": {
+                "height": 140,
+                "orientation_applied": false,
+                "source_height": 140,
+                "source_width": 140,
+                "width": 140
+              },
+              "alignment": {
+                "applied": false,
+                "inliers": 0,
+                "matches": 0,
+                "quality": 0.0,
+                "reason": "No features could be detected in one of the images. Plain, uniformly lit panels give ORB nothing to match."
+              },
+              "before": {
+                "height": 140,
+                "orientation_applied": false,
+                "source_height": 140,
+                "source_width": 140,
+                "width": 140
+              },
+              "changed_pixel_fraction": 0.0,
+              "evidence_crops_rendered": 0,
+              "evidence_crops_skipped": 0,
+              "frame": {
+                "height": 140,
+                "width": 140
+              },
+              "luminance_gain_applied": 1.0,
+              "viewpoint": "REAR"
+            },
+            "warnings": [
+              "Alignment was not applied: No features could be detected in one of the images. Plain, uniformly lit panels give ORB nothing to match. Regions may reflect camera movement rather than changes to the vehicle.",
+              "No region exceeded the detection thresholds. This is not a guarantee that the vehicle is undamaged -- it means nothing stood out against these parameters."
+            ]
+          }
+        ],
+        "confirmed_count": 0,
+        "created": true,
+        "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+        "damage_count": 0,
+        "detections": [],
+        "id": "8587c919-f1b9-4580-b3a5-eaeebcba3c0c",
+        "inspector_notes": null,
+        "is_new_damage": false,
+        "location": null,
+        "odometer_reading": null,
+        "outcome": "CLEAN",
+        "photo_count": 2,
+        "photos": [
+          {
+            "angle": "FRONT",
+            "byte_size": 407,
+            "captured_at": "2026-09-12T16:01:46.887725+00:00",
+            "height": 140,
+            "sha256": "04953d98db28ab8abcc482bbea901164b21099c417bcbd916ff848ea46403669",
+            "url": "/media/inspections/pickup/2026/09/12/3209920f4e044adb847f9b6c95787e89.png",
+            "width": 140
+          },
+          {
+            "angle": "REAR",
+            "byte_size": 407,
+            "captured_at": "2026-09-12T16:01:46.888180+00:00",
+            "height": 140,
+            "sha256": "04953d98db28ab8abcc482bbea901164b21099c417bcbd916ff848ea46403669",
+            "url": "/media/inspections/pickup/2026/09/12/588ca1b0ae704a62a5f0941189307a85.png",
+            "width": 140
+          }
+        ],
+        "rejected_count": 0,
+        "reviewed_at": null,
+        "stage": "PICKUP",
+        "unmatched_angles": [],
+        "unverified_count": 0
+      },
+      "meta": {
+        "request_id": "a177c3a7f3b1457dab9c36a7d5964bca",
+        "server_time": 1789228906.9361086
+      },
+      "success": true
+    }
+  },
+  "POST /inspections/demo": {
+    "status": 200,
+    "body": {
+      "data": {
+        "alignment": {
+          "applied": true,
+          "inliers": 34,
+          "matches": 37,
+          "quality": 0.9189,
+          "reason": null
+        },
+        "angle": "left_side",
+        "available_scenarios": [
+          {
+            "description": "The same panel photographed twice with no change. The pipeline must report nothing; if it reports something here, it is producing false positives.",
+            "label": "No damage - identical conditions",
+            "name": "clean"
+          },
+          {
+            "description": "The pickup photo is 18% brighter, as if a cloud moved. Nothing changed on the vehicle. This is the scenario the lighting normalisation and diffuse-region filters exist to survive.",
+            "label": "Lighting change only - no damage",
+            "name": "lighting_only"
+          },
+          {
+            "description": "A thin scuff drawn along the lower door. Exercises the elongated, edge-dominant branch of the labeller.",
+            "label": "Scratch along the front door",
+            "name": "scratch"
+          },
+          {
+            "description": "A shading depression with no colour change. Exercises the dark-and-achromatic branch.",
+            "label": "Dent on the front wing",
+            "name": "dent"
+          },
+          {
+            "description": "A warm, mottled colour shift. Exercises the chroma channel, which is the only one that can see this at all.",
+            "label": "Rust patch on the lower wing",
+            "name": "rust"
+          },
+          {
+            "description": "A scratch, a dent and a paint chip, with the pickup frame shifted and rotated so alignment has to do real work. The fullest demonstration of the pipeline.",
+            "label": "Three defects, camera moved",
+            "name": "multiple"
+          }
+        ],
+        "comparison_url": "/media/demo/comparisons/2026/09/12/cc648bad539041d58ff11a7ceb4e305f.png",
+        "damage_detected": true,
+        "detected_count": 3,
+        "detections": [
+          {
+            "bounding_box": {
+              "height": 0.025,
+              "width": 0.208333,
+              "x": 0.475,
+              "y": 0.589063
+            },
+            "comparison_url": "/media/demo/comparisons/2026/09/12/cc648bad539041d58ff11a7ceb4e305f.png",
+            "confidence": 0.925,
+            "damage_type": "SCRATCH",
+            "detection_reasoning": "Region flagged as a potential change: mean difference 85.5 (threshold 22.0), peak 134.0, covering 0.39% of the frame. Labelled SCRATCH because the region is thin and stretched (aspect ratio 12.5, fill 0.75) and the change is concentrated in new edges rather than in colour. This label is a heuristic reading of shape and colour statistics, not a classification by a trained model, and needs human confirmation. Mapped from the middle-centre third of a left side view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+            "evidence_url": "/media/demo/evidence/2026/09/12/c304ada2a6ac4f81bb080b73c478b28a.png",
+            "is_verified": false,
+            "method": "CLASSICAL_CV",
+            "pixel_area": 2403,
+            "presentation_label": "Potential Damage",
+            "region": "LEFT_FRONT_DOOR",
+            "region_mapping": {
+              "basis": "Mapped from the middle-centre third of a left side view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+              "grid_cell": [
+                1,
+                1
+              ],
+              "mapped": true,
+              "region": "LEFT_FRONT_DOOR",
+              "viewpoint": "LEFT_SIDE"
+            },
+            "severity": "SEVERE",
+            "statistics": {
+              "area": 2403,
+              "area_fraction": 0.003911,
+              "aspect_ratio": 12.5,
+              "bbox": [
+                456,
+                377,
+                200,
+                16
+              ],
+              "fill_ratio": 0.7509,
+              "fragments": 1,
+              "mean_abs_delta_l": 48.877,
+              "mean_chroma": 35.319,
+              "mean_delta_a": -29.466,
+              "mean_delta_b": -19.313,
+              "mean_delta_l": 30.535,
+              "mean_difference": 85.501,
+              "mean_edge": 200.29,
+              "mean_pre_existing_edge": 10.094,
+              "normalised_bbox": {
+                "height": 0.025,
+                "width": 0.208333,
+                "x": 0.475,
+                "y": 0.589063
+              },
+              "peak_difference": 134.021
+            },
+            "type_confidence": 0.78,
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "bounding_box": {
+              "height": 0.071875,
+              "width": 0.047917,
+              "x": 0.277083,
+              "y": 0.382812
+            },
+            "comparison_url": "/media/demo/comparisons/2026/09/12/cc648bad539041d58ff11a7ceb4e305f.png",
+            "confidence": 0.903,
+            "damage_type": "PAINT_CHIP",
+            "detection_reasoning": "Region flagged as a potential change: mean difference 73.2 (threshold 22.0), peak 123.2, covering 0.26% of the frame. Labelled PAINT_CHIP because a compact region became noticeably brighter (delta L +86.1) with a colour shift of 58.0, consistent with bare substrate showing through paint. This label is a heuristic reading of shape and colour statistics, not a classification by a trained model, and needs human confirmation. Mapped from the middle-left third of a left side view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+            "evidence_url": "/media/demo/evidence/2026/09/12/692399a2f97e4cb79cd34861f23e43bc.png",
+            "is_verified": false,
+            "method": "CLASSICAL_CV",
+            "pixel_area": 1620,
+            "presentation_label": "Potential Damage",
+            "region": "FRONT_BUMPER",
+            "region_mapping": {
+              "basis": "Mapped from the middle-left third of a left side view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+              "grid_cell": [
+                1,
+                0
+              ],
+              "mapped": true,
+              "region": "FRONT_BUMPER",
+              "viewpoint": "LEFT_SIDE"
+            },
+            "severity": "SEVERE",
+            "statistics": {
+              "area": 1620,
+              "area_fraction": 0.002637,
+              "aspect_ratio": 1.0,
+              "bbox": [
+                266,
+                245,
+                46,
+                46
+              ],
+              "fill_ratio": 0.7656,
+              "fragments": 1,
+              "mean_abs_delta_l": 87.001,
+              "mean_chroma": 57.964,
+              "mean_delta_a": -48.956,
+              "mean_delta_b": -31.02,
+              "mean_delta_l": 86.079,
+              "mean_difference": 73.171,
+              "mean_edge": 77.155,
+              "mean_pre_existing_edge": 9.534,
+              "normalised_bbox": {
+                "height": 0.071875,
+                "width": 0.047917,
+                "x": 0.277083,
+                "y": 0.382812
+              },
+              "peak_difference": 123.232
+            },
+            "type_confidence": 0.6,
+            "verification_status": "UNVERIFIED"
+          },
+          {
+            "bounding_box": {
+              "height": 0.104688,
+              "width": 0.111458,
+              "x": 0.771875,
+              "y": 0.660937
+            },
+            "comparison_url": "/media/demo/comparisons/2026/09/12/cc648bad539041d58ff11a7ceb4e305f.png",
+            "confidence": 0.578,
+            "damage_type": "DENT",
+            "detection_reasoning": "Region flagged as a potential change: mean difference 37.1 (threshold 22.0), peak 75.4, covering 0.35% of the frame. Labelled DENT because a localised region changed brightness substantially (mean absolute delta L 24.4) with no colour change (chroma 11.9), which is how a depression reads: it alters how the panel catches light without altering the paint. Bipolar shading scores 0.14, which is lower than a textbook depression would give, so this label is weak. This label is a heuristic reading of shape and colour statistics, not a classification by a trained model, and needs human confirmation. Mapped from the lower-right third of a left side view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+            "evidence_url": "/media/demo/evidence/2026/09/12/3499789bfb594ce598d9a4dd7ef2cddd.png",
+            "is_verified": false,
+            "method": "CLASSICAL_CV",
+            "pixel_area": 2135,
+            "presentation_label": "Potential Damage",
+            "region": "WHEELS",
+            "region_mapping": {
+              "basis": "Mapped from the lower-right third of a left side view, using a 3x3 grid. This is a coarse geometric mapping, not part segmentation.",
+              "grid_cell": [
+                2,
+                2
+              ],
+              "mapped": true,
+              "region": "WHEELS",
+              "viewpoint": "LEFT_SIDE"
+            },
+            "severity": "MINOR",
+            "statistics": {
+              "area": 2135,
+              "area_fraction": 0.003475,
+              "aspect_ratio": 1.597,
+              "bbox": [
+                741,
+                423,
+                107,
+                67
+              ],
+              "fill_ratio": 0.2978,
+              "fragments": 1,
+              "mean_abs_delta_l": 24.446,
+              "mean_chroma": 11.909,
+              "mean_delta_a": 8.533,
+              "mean_delta_b": 5.888,
+              "mean_delta_l": 21.131,
+              "mean_difference": 37.123,
+              "mean_edge": 87.678,
+              "mean_pre_existing_edge": 8.993,
+              "normalised_bbox": {
+                "height": 0.104688,
+                "width": 0.111458,
+                "x": 0.771875,
+                "y": 0.660937
+              },
+              "peak_difference": 75.393
+            },
+            "type_confidence": 0.499,
+            "verification_status": "UNVERIFIED"
+          }
+        ],
+        "disclaimer": "Both photographs are synthetic, generated by OpenCV for this demo. The findings are real pipeline output computed from those pixels, not canned results - but they are unverified candidates from a heuristic, not a confirmed assessment.",
+        "drop_off_url": "/media/demo/photos/2026/09/12/9e6fbfe17ee24e5f83b345b53c3b37f7.png",
+        "ground_truth": {
+          "angle": "left_side",
+          "camera_jitter": true,
+          "label": "Three defects, camera moved",
+          "lighting_shift": 1.0,
+          "paint": "racing_red",
+          "planted_defects": [
+            {
+              "centre": [
+                0.58,
+                0.6
+              ],
+              "expected_region": "LEFT_FRONT_DOOR",
+              "expected_type": "SCRATCH",
+              "kind": "scratch"
+            },
+            {
+              "centre": [
+                0.83,
+                0.7
+              ],
+              "expected_region": "WHEELS",
+              "expected_type": "DENT",
+              "kind": "dent"
+            },
+            {
+              "centre": [
+                0.3,
+                0.42
+              ],
+              "expected_region": "FRONT_BUMPER",
+              "expected_type": "PAINT_CHIP",
+              "kind": "paint_chip"
+            }
+          ],
+          "synthetic": true
+        },
+        "parameters": {
+          "bloblike_aspect_ratio": 2.5,
+          "border_margin_fraction": 0.015,
+          "chroma_weight": 1.0,
+          "dent_bipolarity": 0.7,
+          "difference_blur_kernel": 5,
+          "difference_threshold": 22.0,
+          "diffuse_mean_ceiling": 12.0,
+          "diffuse_region_fraction": 0.35,
+          "edge_floor_minimum": 3.0,
+          "edge_floor_percentile": 99.0,
+          "edge_weight": 0.8,
+          "elongated_aspect_ratio": 3.0,
+          "lighting_correction_strength": 0.85,
+          "low_alignment_penalty": 0.6,
+          "luminance_floor": 8.0,
+          "luminance_weight": 1.0,
+          "match_ratio": 0.75,
+          "max_gain_deviation": 0.45,
+          "merge_iou": 0.3,
+          "min_alignment_quality": 0.25,
+          "min_confidence": 0.05,
+          "min_image_dimension": 96,
+          "min_matches": 12,
+          "min_region_area_fraction": 0.0006,
+          "morph_kernel_size": 5,
+          "new_edge_saturation": 2.0,
+          "orb_features": 2000,
+          "pre_existing_edge_ceiling": 40.0,
+          "ransac_threshold": 4.0,
+          "residue_chroma_fraction": 0.5,
+          "saturation_difference": 70.0,
+          "significant_chroma": 14.0,
+          "significant_luminance_change": 10.0,
+          "sobel_kernel": 3,
+          "version": "classical-cv/1.0.0",
+          "working_width": 1024
+        },
+        "pickup_url": "/media/demo/photos/2026/09/12/a49746b60e3b4840bbb6aa4484ad1dad.png",
+        "planted_count": 3,
+        "scenario": "multiple",
+        "scenario_description": "A scratch, a dent and a paint chip, with the pickup frame shifted and rotated so alignment has to do real work. The fullest demonstration of the pipeline.",
+        "scenario_label": "Three defects, camera moved",
+        "statistics": {
+          "after": {
+            "height": 640,
+            "orientation_applied": false,
+            "source_height": 640,
+            "source_width": 960,
+            "width": 960
+          },
+          "alignment": {
+            "applied": true,
+            "inliers": 34,
+            "matches": 37,
+            "quality": 0.9189,
+            "reason": null
+          },
+          "before": {
+            "height": 640,
+            "orientation_applied": false,
+            "source_height": 640,
+            "source_width": 960,
+            "width": 960
+          },
+          "changed_pixel_fraction": 0.016789,
+          "evidence_crops_rendered": 3,
+          "evidence_crops_skipped": 0,
+          "frame": {
+            "height": 640,
+            "width": 960
+          },
+          "luminance_gain_applied": 1.0,
+          "viewpoint": "LEFT_SIDE"
+        },
+        "synthetic": true,
+        "warnings": []
+      },
+      "meta": {
+        "request_id": "bfaf3259115e46b5a25e211699be62b1",
+        "server_time": 1789228907.494975
+      },
+      "success": true
+    }
+  },
+  "POST /gps/events": {
+    "status": 201,
+    "body": {
+      "data": {
+        "accepted": 1,
+        "alerts_raised": 0,
+        "results": [
+          {
+            "alerts_raised": [],
+            "alerts_suppressed": [],
+            "escalated_by_ml": false,
+            "evidence": {
+              "breach_margin_metres": 150.0,
+              "buffer_metres": 25.0,
+              "distance_from_boundary_metres": -59.92,
+              "movement_expected": true,
+              "prior_fix_count": 0,
+              "rules_fired": [],
+              "speed_kmph": 0.0,
+              "speed_limit_applies": true,
+              "zone_speed_limit_kmph": 20.0
+            },
+            "gps_event": {
+              "accuracy_metres": null,
+              "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+              "device_id": "doc-probe-device",
+              "distance_from_zone_metres": -59.92,
+              "heading_degrees": 90.0,
+              "id": "1df16ed0-d81f-4929-9e80-5a00540ee4ad",
+              "is_simulated": true,
+              "is_within_zone": true,
+              "latitude": 28.6139,
+              "longitude": 77.209,
+              "ml": {
+                "classification": "NORMAL",
+                "model_version": "security-prototype/1.0.0",
+                "probability": 0.00011052289786074517
+              },
+              "movement_status": "NORMAL",
+              "recorded_at": "2026-09-12T10:00:00+00:00",
+              "source": "SIMULATED",
+              "speed_kmph": 0.0,
+              "zone_id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf"
+            },
+            "ml": {
+              "classification": "NORMAL",
+              "disclaimer": "Prototype classifier trained and evaluated on synthetic telemetry whose labels were written by hand. It has never seen a real vehicle and must not be represented as a production model or relied on as the sole basis for a security decision. Rule-based geofence checks remain authoritative.",
+              "model_version": "security-prototype/1.0.0",
+              "probability": 0.00011052289786074517,
+              "reason": "Prototype classifier: 0% chance of suspicious behaviour (logistic). Nothing in this fix stood out against the synthetic examples it was trained on. Contribution basis: exact log-odds contributions.",
+              "severity": "LOW",
+              "top_factors": [
+                {
+                  "feature": "movement_duration_seconds",
+                  "weight": -2.5288484790253327
+                },
+                {
+                  "feature": "direction_change_degrees",
+                  "weight": -2.324606113215771
+                },
+                {
+                  "feature": "speed_kmph",
+                  "weight": -2.065015311567173
+                },
+                {
+                  "feature": "distance_travelled_metres",
+                  "weight": -1.8743660093322252
+                },
+                {
+                  "feature": "zone_breach",
+                  "weight": -1.4522150833428518
+                }
+              ]
+            },
+            "movement_status": "NORMAL",
+            "reasons": [],
+            "rule_movement_status": "NORMAL"
+          }
+        ]
+      },
+      "meta": {
+        "request_id": "ca1ef2e486fe4babaf9c74ae870b8e1a",
+        "server_time": 1789228907.505561
+      },
+      "success": true
+    }
+  },
+  "POST /gps/simulate": {
+    "status": 201,
+    "body": {
+      "data": {
+        "alerts_raised": [
+          {
+            "acknowledged_at": null,
+            "acknowledged_by_email": null,
+            "acknowledged_by_id": null,
+            "alert_type": "TELEMETRY_LOSS",
+            "confidence": 1.0,
+            "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+            "description": "Detected at 2026-09-12T15:56:17.511231+00:00 for vehicle UP98AB9533.",
+            "evidence": {
+              "breach_margin_metres": 150.0,
+              "buffer_metres": 25.0,
+              "distance_from_boundary_metres": -22.33,
+              "finding": "TELEMETRY_LOSS",
+              "finding_status": "WARNING",
+              "fix_id": "fbf4737b-8c95-4542-bdc7-cdefe2d5d534",
+              "movement_expected": true,
+              "prior_fix_count": 1,
+              "rules_fired": [
+                {
+                  "alert_type": "TELEMETRY_LOSS",
+                  "reason": "No position reported for 356 minutes; the threshold is 5 minutes.",
+                  "severity": "MEDIUM",
+                  "status": "WARNING"
+                }
+              ],
+              "speed_kmph": 0.11,
+              "speed_limit_applies": true,
+              "zone_speed_limit_kmph": 20.0
+            },
+            "gps_event_id": "fbf4737b-8c95-4542-bdc7-cdefe2d5d534",
+            "id": "fc0f04e2-1433-4757-9db5-a68c02005c24",
+            "is_open": true,
+            "occurred_at": "2026-09-12T15:56:17.511231+00:00",
+            "reason": "No position reported for 356 minutes; the threshold is 5 minutes.",
+            "resolution_notes": null,
+            "resolved_at": null,
+            "resolved_by_email": null,
+            "resolved_by_id": null,
+            "severity": "MEDIUM",
+            "status": "OPEN",
+            "title": "Telemetry gap detected",
+            "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+            "zone_id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf"
+          }
+        ],
+        "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+        "fix_count": 12,
+        "is_simulated": true,
+        "notes": [
+          "Every fix in this track is SIMULATED telemetry generated for development. It is labelled as such on each row and in the dashboard, and it must not be presented as hardware data."
+        ],
+        "source": "SIMULATED",
+        "status_counts": {
+          "NORMAL": 11,
+          "WARNING": 1
+        },
+        "track": {
+          "description": "A parked vehicle with ordinary GPS wander. Every fix should classify as NORMAL; this is the baseline the other scenarios are compared against.",
+          "ends_at": "2026-09-12T16:07:17.511231+00:00",
+          "fix_count": 12,
+          "movement_expected": false,
+          "notes": [
+            "parked inside the geofence"
+          ],
+          "scenario": "parked",
+          "source": "SIMULATED",
+          "starts_at": "2026-09-12T16:01:47.511231+00:00"
+        },
+        "zone": {
+          "available_slots": 8,
+          "buffer_metres": 25.0,
+          "capacity": 10,
+          "centre": {
+            "latitude": 28.6139,
+            "longitude": 77.209
+          },
+          "code": "DOC8F74F",
+          "current_occupancy": 2,
+          "description": null,
+          "effective_radius_metres": 60.0,
+          "geofence_polygon": [
+            [
+              77.209,
+              28.6144396
+            ],
+            [
+              77.2090602,
+              28.614437
+            ],
+            [
+              77.2091199,
+              28.6144292
+            ],
+            [
+              77.2091784,
+              28.6144164
+            ],
+            [
+              77.2092352,
+              28.6143985
+            ],
+            [
+              77.2092898,
+              28.6143759
+            ],
+            [
+              77.2093415,
+              28.6143487
+            ],
+            [
+              77.2093899,
+              28.6143171
+            ],
+            [
+              77.2094346,
+              28.6142815
+            ],
+            [
+              77.2094751,
+              28.6142423
+            ],
+            [
+              77.2095111,
+              28.6141998
+            ],
+            [
+              77.2095421,
+              28.6141544
+            ],
+            [
+              77.2095679,
+              28.6141065
+            ],
+            [
+              77.2095882,
+              28.6140566
+            ],
+            [
+              77.2096029,
+              28.6140053
+            ],
+            [
+              77.2096117,
+              28.6139529
+            ],
+            [
+              77.2096147,
+              28.6139
+            ],
+            [
+              77.2096117,
+              28.6138471
+            ],
+            [
+              77.2096029,
+              28.6137947
+            ],
+            [
+              77.2095882,
+              28.6137434
+            ],
+            [
+              77.2095679,
+              28.6136935
+            ],
+            [
+              77.2095421,
+              28.6136456
+            ],
+            [
+              77.2095111,
+              28.6136002
+            ],
+            [
+              77.2094751,
+              28.6135577
+            ],
+            [
+              77.2094346,
+              28.6135184
+            ],
+            [
+              77.2093899,
+              28.6134829
+            ],
+            [
+              77.2093415,
+              28.6134513
+            ],
+            [
+              77.2092897,
+              28.6134241
+            ],
+            [
+              77.2092352,
+              28.6134015
+            ],
+            [
+              77.2091784,
+              28.6133836
+            ],
+            [
+              77.2091199,
+              28.6133708
+            ],
+            [
+              77.2090602,
+              28.613363
+            ],
+            [
+              77.209,
+              28.6133604
+            ],
+            [
+              77.2089398,
+              28.613363
+            ],
+            [
+              77.2088801,
+              28.6133708
+            ],
+            [
+              77.2088216,
+              28.6133836
+            ],
+            [
+              77.2087648,
+              28.6134015
+            ],
+            [
+              77.2087103,
+              28.6134241
+            ],
+            [
+              77.2086585,
+              28.6134513
+            ],
+            [
+              77.2086101,
+              28.6134829
+            ],
+            [
+              77.2085654,
+              28.6135184
+            ],
+            [
+              77.2085249,
+              28.6135577
+            ],
+            [
+              77.2084889,
+              28.6136002
+            ],
+            [
+              77.2084579,
+              28.6136456
+            ],
+            [
+              77.2084321,
+              28.6136935
+            ],
+            [
+              77.2084118,
+              28.6137434
+            ],
+            [
+              77.2083971,
+              28.6137947
+            ],
+            [
+              77.2083883,
+              28.6138471
+            ],
+            [
+              77.2083853,
+              28.6139
+            ],
+            [
+              77.2083883,
+              28.6139529
+            ],
+            [
+              77.2083971,
+              28.6140053
+            ],
+            [
+              77.2084118,
+              28.6140566
+            ],
+            [
+              77.2084321,
+              28.6141065
+            ],
+            [
+              77.2084579,
+              28.6141544
+            ],
+            [
+              77.2084889,
+              28.6141998
+            ],
+            [
+              77.2085249,
+              28.6142423
+            ],
+            [
+              77.2085654,
+              28.6142815
+            ],
+            [
+              77.2086101,
+              28.6143171
+            ],
+            [
+              77.2086585,
+              28.6143487
+            ],
+            [
+              77.2087102,
+              28.6143759
+            ],
+            [
+              77.2087648,
+              28.6143985
+            ],
+            [
+              77.2088216,
+              28.6144164
+            ],
+            [
+              77.2088801,
+              28.6144292
+            ],
+            [
+              77.2089398,
+              28.614437
+            ]
+          ],
+          "id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf",
+          "name": "Documentation probe zone",
+          "radius_metres": 60.0,
+          "status": "ACTIVE"
+        }
+      },
+      "meta": {
+        "request_id": "89e6e8f5f39f41c389cbf2c2c204c86f",
+        "server_time": 1789228907.5676422
+      },
+      "success": true
+    }
+  },
+  "POST /ml/classify": {
+    "status": 200,
+    "body": {
+      "data": {
+        "classification": "SUSPICIOUS",
+        "confidence": 1.0,
+        "disclaimer": "Prototype classifier trained and evaluated on synthetic telemetry whose labels were written by hand. It has never seen a real vehicle and must not be represented as a production model or relied on as the sole basis for a security decision. Rule-based geofence checks remain authoritative.",
+        "inputs": {
+          "direction_change_degrees": 140.0,
+          "distance_from_zone_metres": 320.0,
+          "distance_travelled_metres": 380.0,
+          "movement_duration_seconds": 95.0,
+          "speed_kmph": 14.0,
+          "time_cos": -0.49,
+          "time_sin": 0.87,
+          "zone_breach": 1.0
+        },
+        "model_version": "security-prototype/1.0.0",
+        "probability": 1.0,
+        "reason": "Prototype classifier: 100% chance of suspicious behaviour (logistic). Leading factors: distance travelled since the previous fix = 380.0 m (+9.37), geofence breach = 1.0 (+6.63), change of direction = 140.0 \u00b0 (+4.63). Contribution basis: exact log-odds contributions.",
+        "severity": "HIGH",
+        "severity_bands": [
+          {
+            "min_probability": 0.9,
+            "severity": "HIGH"
+          },
+          {
+            "min_probability": 0.7,
+            "severity": "MEDIUM"
+          },
+          {
+            "min_probability": 0.0,
+            "severity": "LOW"
+          }
+        ],
+        "severity_basis": "graded from P(SUSPICIOUS), not from measured risk",
+        "top_factors": [
+          {
+            "contribution": 9.3732,
+            "direction": "towards SUSPICIOUS",
+            "feature": "distance_travelled_metres",
+            "label": "distance travelled since the previous fix",
+            "unit": "m",
+            "value": 380.0
+          },
+          {
+            "contribution": 6.6265,
+            "direction": "towards SUSPICIOUS",
+            "feature": "zone_breach",
+            "label": "geofence breach",
+            "unit": "",
+            "value": 1.0
+          },
+          {
+            "contribution": 4.6299,
+            "direction": "towards SUSPICIOUS",
+            "feature": "direction_change_degrees",
+            "label": "change of direction",
+            "unit": "\u00b0",
+            "value": 140.0
+          },
+          {
+            "contribution": 1.8878,
+            "direction": "towards SUSPICIOUS",
+            "feature": "distance_from_zone_metres",
+            "label": "distance from the zone boundary",
+            "unit": "m",
+            "value": 320.0
+          },
+          {
+            "contribution": -1.8275,
+            "direction": "towards NORMAL",
+            "feature": "movement_duration_seconds",
+            "label": "time spent moving",
+            "unit": "s",
+            "value": 95.0
+          }
+        ],
+        "trained_on_synthetic_data": true
+      },
+      "meta": {
+        "request_id": "67432fa3cf2341dba71be13d5eaa70fe",
+        "server_time": 1789228907.572828
+      },
+      "success": true
+    }
+  },
+  "POST /geofences": {
+    "status": 201,
+    "body": {
+      "data": {
+        "available_slots": 10,
+        "buffer_metres": 25.0,
+        "capacity": 10,
+        "centre": {
+          "latitude": 28.6139,
+          "longitude": 77.209
+        },
+        "code": "DOC8CD42",
+        "current_occupancy": 0,
+        "description": null,
+        "effective_radius_metres": 60.0,
+        "geofence_polygon": [
+          [
+            77.209,
+            28.6144396
+          ],
+          [
+            77.2090602,
+            28.614437
+          ],
+          [
+            77.2091199,
+            28.6144292
+          ],
+          [
+            77.2091784,
+            28.6144164
+          ],
+          [
+            77.2092352,
+            28.6143985
+          ],
+          [
+            77.2092898,
+            28.6143759
+          ],
+          [
+            77.2093415,
+            28.6143487
+          ],
+          [
+            77.2093899,
+            28.6143171
+          ],
+          [
+            77.2094346,
+            28.6142815
+          ],
+          [
+            77.2094751,
+            28.6142423
+          ],
+          [
+            77.2095111,
+            28.6141998
+          ],
+          [
+            77.2095421,
+            28.6141544
+          ],
+          [
+            77.2095679,
+            28.6141065
+          ],
+          [
+            77.2095882,
+            28.6140566
+          ],
+          [
+            77.2096029,
+            28.6140053
+          ],
+          [
+            77.2096117,
+            28.6139529
+          ],
+          [
+            77.2096147,
+            28.6139
+          ],
+          [
+            77.2096117,
+            28.6138471
+          ],
+          [
+            77.2096029,
+            28.6137947
+          ],
+          [
+            77.2095882,
+            28.6137434
+          ],
+          [
+            77.2095679,
+            28.6136935
+          ],
+          [
+            77.2095421,
+            28.6136456
+          ],
+          [
+            77.2095111,
+            28.6136002
+          ],
+          [
+            77.2094751,
+            28.6135577
+          ],
+          [
+            77.2094346,
+            28.6135184
+          ],
+          [
+            77.2093899,
+            28.6134829
+          ],
+          [
+            77.2093415,
+            28.6134513
+          ],
+          [
+            77.2092897,
+            28.6134241
+          ],
+          [
+            77.2092352,
+            28.6134015
+          ],
+          [
+            77.2091784,
+            28.6133836
+          ],
+          [
+            77.2091199,
+            28.6133708
+          ],
+          [
+            77.2090602,
+            28.613363
+          ],
+          [
+            77.209,
+            28.6133604
+          ],
+          [
+            77.2089398,
+            28.613363
+          ],
+          [
+            77.2088801,
+            28.6133708
+          ],
+          [
+            77.2088216,
+            28.6133836
+          ],
+          [
+            77.2087648,
+            28.6134015
+          ],
+          [
+            77.2087103,
+            28.6134241
+          ],
+          [
+            77.2086585,
+            28.6134513
+          ],
+          [
+            77.2086101,
+            28.6134829
+          ],
+          [
+            77.2085654,
+            28.6135184
+          ],
+          [
+            77.2085249,
+            28.6135577
+          ],
+          [
+            77.2084889,
+            28.6136002
+          ],
+          [
+            77.2084579,
+            28.6136456
+          ],
+          [
+            77.2084321,
+            28.6136935
+          ],
+          [
+            77.2084118,
+            28.6137434
+          ],
+          [
+            77.2083971,
+            28.6137947
+          ],
+          [
+            77.2083883,
+            28.6138471
+          ],
+          [
+            77.2083853,
+            28.6139
+          ],
+          [
+            77.2083883,
+            28.6139529
+          ],
+          [
+            77.2083971,
+            28.6140053
+          ],
+          [
+            77.2084118,
+            28.6140566
+          ],
+          [
+            77.2084321,
+            28.6141065
+          ],
+          [
+            77.2084579,
+            28.6141544
+          ],
+          [
+            77.2084889,
+            28.6141998
+          ],
+          [
+            77.2085249,
+            28.6142423
+          ],
+          [
+            77.2085654,
+            28.6142815
+          ],
+          [
+            77.2086101,
+            28.6143171
+          ],
+          [
+            77.2086585,
+            28.6143487
+          ],
+          [
+            77.2087102,
+            28.6143759
+          ],
+          [
+            77.2087648,
+            28.6143985
+          ],
+          [
+            77.2088216,
+            28.6144164
+          ],
+          [
+            77.2088801,
+            28.6144292
+          ],
+          [
+            77.2089398,
+            28.614437
+          ]
+        ],
+        "id": "2538322f-f6dc-47ea-95c1-9a9a2e301d86",
+        "name": "Documentation probe zone",
+        "radius_metres": 60.0,
+        "status": "ACTIVE"
+      },
+      "meta": {
+        "request_id": "351754dc3bc54d638de99015c66218be",
+        "server_time": 1789228907.5812614
+      },
+      "success": true
+    }
+  },
+  "PATCH /geofences/<id>": {
+    "status": 200,
+    "body": {
+      "data": {
+        "available_slots": 10,
+        "buffer_metres": 25.0,
+        "capacity": 10,
+        "centre": {
+          "latitude": 28.6139,
+          "longitude": 77.209
+        },
+        "code": "DOC8CD42",
+        "current_occupancy": 0,
+        "description": null,
+        "effective_radius_metres": 60.0,
+        "geofence_polygon": [
+          [
+            77.209,
+            28.6144396
+          ],
+          [
+            77.2090602,
+            28.614437
+          ],
+          [
+            77.2091199,
+            28.6144292
+          ],
+          [
+            77.2091784,
+            28.6144164
+          ],
+          [
+            77.2092352,
+            28.6143985
+          ],
+          [
+            77.2092898,
+            28.6143759
+          ],
+          [
+            77.2093415,
+            28.6143487
+          ],
+          [
+            77.2093899,
+            28.6143171
+          ],
+          [
+            77.2094346,
+            28.6142815
+          ],
+          [
+            77.2094751,
+            28.6142423
+          ],
+          [
+            77.2095111,
+            28.6141998
+          ],
+          [
+            77.2095421,
+            28.6141544
+          ],
+          [
+            77.2095679,
+            28.6141065
+          ],
+          [
+            77.2095882,
+            28.6140566
+          ],
+          [
+            77.2096029,
+            28.6140053
+          ],
+          [
+            77.2096117,
+            28.6139529
+          ],
+          [
+            77.2096147,
+            28.6139
+          ],
+          [
+            77.2096117,
+            28.6138471
+          ],
+          [
+            77.2096029,
+            28.6137947
+          ],
+          [
+            77.2095882,
+            28.6137434
+          ],
+          [
+            77.2095679,
+            28.6136935
+          ],
+          [
+            77.2095421,
+            28.6136456
+          ],
+          [
+            77.2095111,
+            28.6136002
+          ],
+          [
+            77.2094751,
+            28.6135577
+          ],
+          [
+            77.2094346,
+            28.6135184
+          ],
+          [
+            77.2093899,
+            28.6134829
+          ],
+          [
+            77.2093415,
+            28.6134513
+          ],
+          [
+            77.2092897,
+            28.6134241
+          ],
+          [
+            77.2092352,
+            28.6134015
+          ],
+          [
+            77.2091784,
+            28.6133836
+          ],
+          [
+            77.2091199,
+            28.6133708
+          ],
+          [
+            77.2090602,
+            28.613363
+          ],
+          [
+            77.209,
+            28.6133604
+          ],
+          [
+            77.2089398,
+            28.613363
+          ],
+          [
+            77.2088801,
+            28.6133708
+          ],
+          [
+            77.2088216,
+            28.6133836
+          ],
+          [
+            77.2087648,
+            28.6134015
+          ],
+          [
+            77.2087103,
+            28.6134241
+          ],
+          [
+            77.2086585,
+            28.6134513
+          ],
+          [
+            77.2086101,
+            28.6134829
+          ],
+          [
+            77.2085654,
+            28.6135184
+          ],
+          [
+            77.2085249,
+            28.6135577
+          ],
+          [
+            77.2084889,
+            28.6136002
+          ],
+          [
+            77.2084579,
+            28.6136456
+          ],
+          [
+            77.2084321,
+            28.6136935
+          ],
+          [
+            77.2084118,
+            28.6137434
+          ],
+          [
+            77.2083971,
+            28.6137947
+          ],
+          [
+            77.2083883,
+            28.6138471
+          ],
+          [
+            77.2083853,
+            28.6139
+          ],
+          [
+            77.2083883,
+            28.6139529
+          ],
+          [
+            77.2083971,
+            28.6140053
+          ],
+          [
+            77.2084118,
+            28.6140566
+          ],
+          [
+            77.2084321,
+            28.6141065
+          ],
+          [
+            77.2084579,
+            28.6141544
+          ],
+          [
+            77.2084889,
+            28.6141998
+          ],
+          [
+            77.2085249,
+            28.6142423
+          ],
+          [
+            77.2085654,
+            28.6142815
+          ],
+          [
+            77.2086101,
+            28.6143171
+          ],
+          [
+            77.2086585,
+            28.6143487
+          ],
+          [
+            77.2087102,
+            28.6143759
+          ],
+          [
+            77.2087648,
+            28.6143985
+          ],
+          [
+            77.2088216,
+            28.6144164
+          ],
+          [
+            77.2088801,
+            28.6144292
+          ],
+          [
+            77.2089398,
+            28.614437
+          ]
+        ],
+        "id": "2538322f-f6dc-47ea-95c1-9a9a2e301d86",
+        "name": "Documentation probe zone (renamed)",
+        "radius_metres": 60.0,
+        "status": "ACTIVE"
+      },
+      "meta": {
+        "request_id": "13ad38439eef4ab1b97f3288ae15c700",
+        "server_time": 1789228907.5890703
+      },
+      "success": true
+    }
+  },
+  "ERR geofence create by operator (403)": {
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "AUTHORIZATION_ERROR",
+        "details": {
+          "required": [
+            "VALET_MANAGER",
+            "ADMIN"
+          ],
+          "role": "VALET_OPERATOR"
+        },
+        "message": "Role 'VALET_OPERATOR' cannot create a geofence. Required: VALET_MANAGER, ADMIN."
+      },
+      "meta": {
+        "request_id": "4861ffab4f08410c99cc5f68ac77775d",
+        "server_time": 1789228907.5929084
+      },
+      "success": false
+    }
+  },
+  "POST /retrieval/predict": {
+    "status": 201,
+    "body": {
+      "data": {
+        "confidence": 0.679,
+        "contributions": {
+          "active_valets": -0.13636422916568658,
+          "dow_cos": -0.035013623720164144,
+          "dow_sin": 0.5963032564167559,
+          "historical_zone_mean_minutes": -0.1157916116712825,
+          "hour_cos": 0.07149590919037511,
+          "hour_sin": 0.9950187267063652,
+          "queue_position": -0.8478208331784922,
+          "queue_size": 0.042710593316796296,
+          "vehicle_flagged": -0.42233442773821284,
+          "zone_capacity": -1.9262798266062398,
+          "zone_occupancy_percent": -0.6894154888626916
+        },
+        "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+        "data_basis": "synthetic historical retrieval records generated for this MVP by ai/retrieval/dataset.py; no real valet operation data was used",
+        "disclaimer": "This estimate comes from a baseline model trained on synthetic historical data generated for this MVP. It has never seen a real valet operation and must not be treated as an operational forecast. Treat it as an indicative planning number.",
+        "dispatch_delay_minutes": 0,
+        "estimated_minutes": 6,
+        "estimated_minutes_exact": 6.41,
+        "estimated_retrieval_time": "Sat, 12 Sep 2026 16:07:46 GMT",
+        "fetch_minutes": 6,
+        "history_note": "This zone has no completed retrieval on record yet, so the historical component of the estimate is a model default rather than a measurement.",
+        "inputs": {
+          "active_valets": 7.0,
+          "dow_cos": -0.2225209339563146,
+          "dow_sin": -0.9749279121818236,
+          "historical_zone_mean_minutes": 8.4,
+          "hour_cos": -0.4932611971991734,
+          "hour_sin": -0.8698812512852764,
+          "queue_position": 1.0,
+          "queue_size": 1.0,
+          "vehicle_flagged": 0.0,
+          "zone_capacity": 10.0,
+          "zone_occupancy_percent": 20.0
+        },
+        "max_wait_minutes": 8,
+        "method": "linear-ridge-v1",
+        "min_wait_minutes": 4,
+        "mode": "custody_session",
+        "model_version": "retrieval-baseline/1.0.0",
+        "persisted": true,
+        "prediction_id": "8a7d9cab-3d5c-4791-8930-007db3ce8ecf",
+        "queue_position": 1,
+        "queue_size": 1,
+        "reason": "Baseline linear model estimates 6 minutes. zone capacity 10.00 saves 1.9 min; time of day -0.87 adds 1.0 min; position in queue 1.00 saves 0.8 min. Basis: exact linear contributions in minutes. Trained on synthetic data - an indicative planning number, not an operational forecast.",
+        "recommended_dispatch": "Now",
+        "recommended_dispatch_time": "Sat, 12 Sep 2026 16:01:46 GMT",
+        "requested_at": "Sat, 12 Sep 2026 16:01:46 GMT",
+        "trained_on_synthetic_data": true
+      },
+      "meta": {
+        "request_id": "e749e497e6234b678f55ad697e1378c3",
+        "server_time": 1789228907.6066644
+      },
+      "success": true
+    }
+  },
+  "POST /alerts/<id>/acknowledge": {
+    "status": 200,
+    "body": {
+      "data": {
+        "acknowledged_at": "2026-09-12T16:01:47.617621+00:00",
+        "acknowledged_by_email": "manager.karan@example.com",
+        "acknowledged_by_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+        "alert_type": "TELEMETRY_LOSS",
+        "confidence": 1.0,
+        "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+        "description": "Detected at 2026-09-12T15:56:17.511231+00:00 for vehicle UP98AB9533.",
+        "evidence": {
+          "breach_margin_metres": 150.0,
+          "buffer_metres": 25.0,
+          "distance_from_boundary_metres": -22.33,
+          "finding": "TELEMETRY_LOSS",
+          "finding_status": "WARNING",
+          "fix_id": "fbf4737b-8c95-4542-bdc7-cdefe2d5d534",
+          "movement_expected": true,
+          "prior_fix_count": 1,
+          "rules_fired": [
+            {
+              "alert_type": "TELEMETRY_LOSS",
+              "reason": "No position reported for 356 minutes; the threshold is 5 minutes.",
+              "severity": "MEDIUM",
+              "status": "WARNING"
+            }
+          ],
+          "speed_kmph": 0.11,
+          "speed_limit_applies": true,
+          "zone_speed_limit_kmph": 20.0
+        },
+        "gps_event_id": "fbf4737b-8c95-4542-bdc7-cdefe2d5d534",
+        "id": "fc0f04e2-1433-4757-9db5-a68c02005c24",
+        "is_open": true,
+        "occurred_at": "2026-09-12T15:56:17.511231+00:00",
+        "reason": "No position reported for 356 minutes; the threshold is 5 minutes.",
+        "resolution_notes": null,
+        "resolved_at": null,
+        "resolved_by_email": null,
+        "resolved_by_id": null,
+        "severity": "MEDIUM",
+        "status": "ACKNOWLEDGED",
+        "title": "Telemetry gap detected",
+        "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+        "zone_id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf"
+      },
+      "meta": {
+        "request_id": "9e0386101ed44560a511a0a590071731",
+        "server_time": 1789228907.6215823
+      },
+      "success": true
+    }
+  },
+  "POST /alerts/<id>/resolve": {
+    "status": 200,
+    "body": {
+      "data": {
+        "acknowledged_at": "2026-09-12T16:01:47.617621+00:00",
+        "acknowledged_by_email": "manager.karan@example.com",
+        "acknowledged_by_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+        "alert_type": "TELEMETRY_LOSS",
+        "confidence": 1.0,
+        "custody_session_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+        "description": "Detected at 2026-09-12T15:56:17.511231+00:00 for vehicle UP98AB9533.",
+        "evidence": {
+          "breach_margin_metres": 150.0,
+          "buffer_metres": 25.0,
+          "distance_from_boundary_metres": -22.33,
+          "finding": "TELEMETRY_LOSS",
+          "finding_status": "WARNING",
+          "fix_id": "fbf4737b-8c95-4542-bdc7-cdefe2d5d534",
+          "movement_expected": true,
+          "prior_fix_count": 1,
+          "rules_fired": [
+            {
+              "alert_type": "TELEMETRY_LOSS",
+              "reason": "No position reported for 356 minutes; the threshold is 5 minutes.",
+              "severity": "MEDIUM",
+              "status": "WARNING"
+            }
+          ],
+          "speed_kmph": 0.11,
+          "speed_limit_applies": true,
+          "zone_speed_limit_kmph": 20.0
+        },
+        "gps_event_id": "fbf4737b-8c95-4542-bdc7-cdefe2d5d534",
+        "id": "fc0f04e2-1433-4757-9db5-a68c02005c24",
+        "is_open": false,
+        "occurred_at": "2026-09-12T15:56:17.511231+00:00",
+        "reason": "No position reported for 356 minutes; the threshold is 5 minutes.",
+        "resolution_notes": null,
+        "resolved_at": "2026-09-12T16:01:47.625911+00:00",
+        "resolved_by_email": "manager.karan@example.com",
+        "resolved_by_id": "24758677-b3ca-581e-bc94-9dea4082aba2",
+        "severity": "MEDIUM",
+        "status": "RESOLVED",
+        "title": "Telemetry gap detected",
+        "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+        "zone_id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf"
+      },
+      "meta": {
+        "request_id": "fc023d01e56b43e5a3290fba14a433a0",
+        "server_time": 1789228907.6296897
+      },
+      "success": true
+    }
+  },
+  "POST /feed": {
+    "status": 201,
+    "body": {
+      "data": {
+        "alert_id": "fd241227-e47a-4e3b-86cd-211850f674b4",
+        "audiences": [
+          "CUSTOMER",
+          "VALET_MANAGER"
+        ],
+        "created_at": "2026-09-12T16:01:47.632564+00:00",
+        "custody_id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+        "is_open": true,
+        "is_read": false,
+        "message": "Documentation probe alert.",
+        "read_at": null,
+        "resolution_notes": null,
+        "resolved_at": null,
+        "resolved_by": null,
+        "severity": "LOW",
+        "source": {
+          "entity_type": null,
+          "id": null,
+          "type": null
+        },
+        "status": "OPEN",
+        "type": "RETRIEVAL_READY",
+        "vehicle": null,
+        "vehicle_id": null
+      },
+      "meta": {
+        "request_id": "4cddb1c1b6fd473f9b763ec90749e8e8",
+        "server_time": 1789228907.6425407
+      },
+      "success": true
+    }
+  },
+  "POST /tickets/<id>/complete": {
+    "status": 200,
+    "body": {
+      "data": {
+        "message": "Ticket VT-202609-UFRWWV completed.",
+        "ticket": {
+          "actual_drop_off_at": "2026-09-12T16:01:46.730231+00:00",
+          "actual_pickup_at": "2026-09-12T16:01:47.648270+00:00",
+          "custody_session": {
+            "assigned_valet_id": null,
+            "condition_accepted": true,
+            "dropped_off_at": "2026-09-12T16:01:46.730231+00:00",
+            "id": "27d10e8e-68dd-4efe-a31c-a07f10f44249",
+            "is_open": false,
+            "picked_up_at": "2026-09-12T16:01:47.648270+00:00",
+            "retrieval_requested_at": "2026-09-12T16:01:46.762336+00:00",
+            "status": "CHECKED_OUT",
+            "ticket_id": "e99aeb57-d900-497a-9c75-638e53ec25bd",
+            "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+            "zone_assigned_at": "2026-09-12T16:01:46.730231+00:00",
+            "zone_id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf"
+          },
+          "customer": {
+            "email": "docprobe.799e6643@example.com",
+            "full_name": "Doc Probe",
+            "id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+            "phone": "9876543210"
+          },
+          "customer_id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+          "expected_return_at": null,
+          "id": "e99aeb57-d900-497a-9c75-638e53ec25bd",
+          "issued_at": "2026-09-12T16:01:46.687251+00:00",
+          "parking_zone": {
+            "code": "DOC8F74F",
+            "id": "d4333df6-decb-4e76-98b2-bebd01b6f7cf",
+            "name": "Documentation probe zone"
+          },
+          "qr_code_path": "qr/8818cafe94d548fd8ea34f100ceb9f4c.png",
+          "qr_payload": "VALET:VT-202609-UFRWWV",
+          "qr_url": "/media/qr/8818cafe94d548fd8ea34f100ceb9f4c.png",
+          "special_instructions": null,
+          "status": "COMPLETED",
+          "stored_status": "COMPLETED",
+          "ticket_code": "VT-202609-UFRWWV",
+          "vehicle": {
+            "color": "Graphite",
+            "id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+            "make": "Tata",
+            "model": "Nexon",
+            "plate_number": "UP98AB9533",
+            "status": "REGISTERED",
+            "year": 2022
+          },
+          "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a"
+        }
+      },
+      "meta": {
+        "request_id": "f078040f97c84ca1beebb4891df37cc9",
+        "server_time": 1789228907.6574728
+      },
+      "success": true
+    }
+  },
+  "POST /tickets/<id>/cancel": {
+    "status": 200,
+    "body": {
+      "data": {
+        "message": "Ticket VT-202609-N43GGT cancelled.",
+        "ticket": {
+          "actual_drop_off_at": null,
+          "actual_pickup_at": null,
+          "custody_session": null,
+          "customer": {
+            "email": "docprobe.799e6643@example.com",
+            "full_name": "Doc Probe",
+            "id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+            "phone": "9876543210"
+          },
+          "customer_id": "a280053c-b2ae-45b6-8541-3dbc8d459166",
+          "expected_return_at": null,
+          "id": "526593fb-d12f-4019-8d69-0f41658b2921",
+          "issued_at": "2026-09-12T16:01:47.660567+00:00",
+          "qr_code_path": "qr/674e9ae129b5433eb52e11b73904300d.png",
+          "qr_payload": "VALET:VT-202609-N43GGT",
+          "qr_url": "/media/qr/674e9ae129b5433eb52e11b73904300d.png",
+          "special_instructions": null,
+          "status": "CANCELLED",
+          "stored_status": "CANCELLED",
+          "ticket_code": "VT-202609-N43GGT",
+          "vehicle": {
+            "color": "Graphite",
+            "id": "3120854d-1367-42a9-80cd-6742eb61e33a",
+            "make": "Tata",
+            "model": "Nexon",
+            "plate_number": "UP98AB9533",
+            "status": "REGISTERED",
+            "year": 2022
+          },
+          "vehicle_id": "3120854d-1367-42a9-80cd-6742eb61e33a"
+        }
+      },
+      "meta": {
+        "request_id": "8626f67c9255471b9d87089b9bb4d519",
+        "server_time": 1789228907.685914
+      },
+      "success": true
+    }
+  },
+  "DELETE /vehicles/<id>": {
+    "status": 204,
+    "body": ""
+  },
+  "POST /auth/logout": {
+    "status": 200,
+    "body": {
+      "data": {
+        "message": "Signed out. The access token has been revoked."
+      },
+      "meta": {
+        "request_id": "7c492560da834508b64ad864598fc018",
+        "server_time": 1789228907.7065299
+      },
+      "success": true
+    }
+  }
+}

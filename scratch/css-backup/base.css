@@ -1,0 +1,326 @@
+/* ============================================================================
+   BASE — reset, typography, layout primitives, accessibility
+   ----------------------------------------------------------------------------
+   Loaded after tokens.css and before components.css. Nothing here knows about
+   a specific screen; it establishes the typographic and spatial baseline every
+   component inherits.
+   ============================================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Every rem in the system resolves against this, so the whole scale moves
+     together for a user who changes their browser default. */
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  font-weight: var(--weight-regular);
+  color: var(--text-primary);
+  background: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Long unbroken ids and plates must not blow out a narrow column. */
+  overflow-wrap: break-word;
+}
+
+/* ------------------------------------------------------------ headings ---- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-2xl);
+}
+h2 {
+  font-size: var(--text-lg);
+}
+h3 {
+  font-size: var(--text-md);
+}
+h4 {
+  font-size: var(--text-base);
+}
+
+p {
+  margin: 0 0 var(--space-3);
+  line-height: var(--leading-relaxed);
+}
+p:last-child {
+  margin-bottom: 0;
+}
+
+small {
+  font-size: var(--text-xs);
+}
+
+strong,
+b {
+  font-weight: var(--weight-semibold);
+}
+
+/* -------------------------------------------------------------- links ----- */
+
+a {
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+a:hover {
+  color: var(--text-link-hover);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* --------------------------------------------------------------- code ----- */
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+}
+
+code {
+  font-size: 0.86em;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 0.08rem 0.32rem;
+}
+
+pre {
+  margin: 0;
+  overflow-x: auto;
+}
+
+/* ------------------------------------------------------------- lists ------ */
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+/* ------------------------------------------------------------- media ------ */
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+/* ------------------------------------------------------------- forms ------
+     Inherit by default: a control that does not is how a select ends up
+     rendered in a different typeface from the input beside it. */
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* ----------------------------------------------------------- utilities ---- */
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-variant-numeric: var(--font-numeric);
+  letter-spacing: -0.01em;
+}
+
+.muted {
+  color: var(--text-secondary);
+}
+
+.tnum {
+  font-variant-numeric: var(--font-numeric);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.stack--tight {
+  gap: var(--space-2);
+}
+
+.stack--loose {
+  gap: var(--space-6);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* --------------------------------------------------------- accessibility -- */
+
+/* A visible focus indicator on every interactive element, drawn once and
+   consistently. Keyboard users get this; pointer users do not, because a
+   ring left behind after a click reads as a rendering bug. */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+  border-radius: var(--radius-sm);
+}
+
+/* The skip link is invisible until focused, then it is the first thing on
+   screen. Without it a keyboard user tabs through the whole nav on every
+   page load to reach the content. */
+.skip-link {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--z-toast);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  transform: translateY(-200%);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* Reduced motion: drop transitions and animation, but keep the state changes
+   they convey. Nothing here depends on motion to be understood, so removing it
+   removes decoration and not meaning. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Forced-colors (Windows High Contrast): let the OS draw the edges. Hardcoded
+   backgrounds would otherwise paint over the user's chosen scheme. */
+@media (forced-colors: active) {
+  .panel,
+  .card,
+  .btn,
+  .badge,
+  .dialog {
+    border: 1px solid CanvasText;
+  }
+}
+
+/* --------------------------------------------------------- scrollbars -----
+     Styled, but only where the platform lets us do it without breaking the
+     native feel. Width is kept generous enough to be a usable hit target. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--slate-300) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--slate-300);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--slate-400);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ------------------------------------------------------ print -------------
+     A manager printing a report should get the figures, not the chrome. */
+@media print {
+  .shell__sidebar,
+  .topbar,
+  .footer,
+  .skip-link,
+  .toast-region {
+    display: none !important;
+  }
+
+  .shell {
+    display: block;
+  }
+
+  .content {
+    padding: 0;
+    max-width: none;
+  }
+
+  .panel,
+  .card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+}

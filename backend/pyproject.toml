@@ -1,0 +1,51 @@
+[project]
+name = "valet-transparency-backend"
+version = "0.1.0"
+description = "Flask REST API for the AI-Powered Valet Transparency and Vehicle Security Platform"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["migrations/versions", "storage"]
+
+[tool.ruff.lint]
+# E/W pycodestyle, F pyflakes, I isort, B bugbear, S bandit-style security,
+# UP pyupgrade, C4 comprehensions, SIM simplification.
+select = ["E", "W", "F", "I", "B", "S", "UP", "C4", "SIM"]
+ignore = [
+  "S101",  # assert is fine inside tests
+  "B008",  # function call in default argument (used by Flask dependency helpers)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S105", "S106"]
+"utils/scripts/*" = ["S105", "S106"]
+"migrations/versions/*" = ["E501"]
+# The API-docs catalogue is prose: endpoint descriptions, field notes and the
+# error sentences that get rendered into the reference. Wrapping those at 100
+# columns would break the sentences the documentation is made of, and the
+# generator emits them verbatim. Same reasoning as migrations above.
+"utils/scripts/api_docs/*" = ["E501"]
+# `_DECOY_PASSWORD_HASH` is a fixed, publicly-visible hash that matches no
+# password; it exists so a failed login costs the same time whether or not the
+# address exists. Ruff reports S105 on a multi-line concatenated literal at the
+# assignment line, where a trailing `# noqa` does not attach, so the exception
+# is scoped to this one file and rule.
+"services/auth.py" = ["S105"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "routes", "models", "schemas", "services", "database", "middleware", "utils", "ai", "config"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+markers = [
+  "postgres: test requires a reachable PostgreSQL server (skipped otherwise)",
+  "integration: test exercises multiple layers end to end",
+]
+filterwarnings = [
+  "ignore::DeprecationWarning:flask.*",
+]
