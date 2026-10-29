@@ -1,0 +1,942 @@
+/* ============================================================================
+   INSPECTIONS — findings, comparisons, photo grids
+   ----------------------------------------------------------------------------
+   This is where the project makes its honesty claim visible, so the styling
+   carries part of that weight: an uncertain detection must not look like a
+   confirmed one, and a missing comparison must read as "not run" rather than
+   "nothing found".
+   ============================================================================ */
+
+/* ------------------------------------------------------------ findings ---- */
+
+.findings {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.finding {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+
+/* The visual distinction the brief asks for. A rejected finding is struck
+   through and muted rather than removed, so the record of a decision survives;
+   a confirmed one keeps full weight. */
+.finding--confirmed {
+  border-color: var(--danger-border);
+  background: var(--danger-subtle);
+}
+
+.finding--rejected {
+  opacity: 0.62;
+  background: var(--surface-sunken);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-tertiary);
+}
+
+.finding--unverified .finding__title {
+  font-style: italic;
+}
+
+.finding__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.finding__title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.finding__confidence {
+  font-size: var(--text-sm);
+  font-variant-numeric: var(--font-numeric);
+  color: var(--text-secondary);
+}
+
+.finding__body {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.finding__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  font-size: var(--text-xs);
+}
+
+.finding__meta dt {
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  font-size: var(--text-2xs);
+}
+
+.finding__meta dd {
+  margin: 0;
+  color: var(--text-secondary);
+  font-variant-numeric: var(--font-numeric);
+}
+
+.finding__verification {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.finding__verification--verified {
+  border-left-color: var(--success);
+  background: var(--success-subtle);
+  color: var(--success-strong);
+}
+
+.finding__verification--rejected {
+  border-left-color: var(--danger);
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+.finding__method {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.finding__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ----------------------------------------------------------- comparisons -- */
+
+.comparison {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.comparison__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.comparison__warnings {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--warning-strong);
+}
+
+/* Drop-off and pickup side by side at the same aspect ratio, so a difference
+   between the two frames is attributable to the car and not to the crop. */
+.comparison__image {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.comparison__image figure {
+  margin: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.comparison__image img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+}
+
+.comparison__image figcaption {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .comparison__image {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---------------------------------------------------------- photo grids --- */
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-3);
+}
+
+.photo-grid figure {
+  margin: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.photo-grid img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+}
+
+.photo-grid figcaption {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+/* The capture screen's hero frame: the angle just photographed is the thing the
+   operator is checking, so it gets the width. */
+.photo-grid__wide {
+  grid-column: 1 / -1;
+}
+
+.photo-grid__wide img {
+  height: 320px;
+}
+
+/* ------------------------------------------------------------- capture ---- */
+
+/* A slot for each required angle, filled or empty. Empty slots must stay
+   visible: a grid that only shows what has been uploaded hides what is still
+   missing, which is the one thing the operator needs to know before submitting. */
+.photo-card {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  padding: var(--space-3);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  min-height: 180px;
+  align-content: center;
+}
+
+.photo-card--filled {
+  border-style: solid;
+  border-color: var(--border-default);
+  background: var(--surface-raised);
+}
+
+.photo-card__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+}
+
+.photo-card img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+}
+
+.photo-card__thumb {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+}
+
+.photo-card__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Photos staged before a batch submit. Each carries its own angle selector, so
+   the operator can reassign an angle rather than re-picking the file. */
+.queued-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.queued-photo {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+
+.queued-photo img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.queued-photo__controls {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* ------------------------------------------------------- condition report - */
+
+.report__identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.report__identity h3 {
+  margin: 0;
+  font-size: var(--text-xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Standing caveat on the detector, rendered with the report rather than buried
+   in a docs page. */
+.report__disclaimer {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--info);
+  border-radius: var(--radius-sm);
+  background: var(--info-subtle);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.report__incomplete {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.report__stages {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  .report__stages {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.report__unmatched {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  line-height: var(--leading-relaxed);
+}
+
+/* --------------------------------------------------- DamageCard variants --
+   The finding card as used by the ML detector: it carries its own reasoning,
+   its own crop images, and its own verification controls. Those extra regions
+   are what make the "explainable output" requirement visible rather than
+   asserted. */
+
+.finding__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.finding__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+/* Where on the car the detector thinks it saw something, as a plain sentence.
+   A bounding box number on its own is not an explanation. */
+.finding__where {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* The crops the detector compared. Shown rather than described, so a reviewer
+   can disagree with the model on the evidence it actually used. */
+.finding__images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
+
+.finding__images figure {
+  margin: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.finding__images img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+}
+
+.finding__images figcaption {
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.finding__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.finding__metric-label {
+  display: block;
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+  margin-bottom: 2px;
+}
+
+.finding__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-variant-numeric: var(--font-numeric);
+  color: var(--text-secondary);
+}
+
+/* Why the model scored it this way, in words. Collapsed so the card stays
+   scannable, but never omitted. */
+.finding__reasoning {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.finding__notes {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+/* The standing caveat, attached to the individual finding rather than only to
+   the report header, so it survives being read in isolation. */
+.finding__caveat {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  line-height: var(--leading-relaxed);
+}
+
+/* An unconfirmed detection is labelled, never asserted as damage. The wording
+   is the product requirement; the styling keeps it visually quieter than a
+   confirmed finding so the two are not equally loud. */
+.finding__flag {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--warning-strong);
+}
+
+.finding__verify {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.finding__verify-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ------------------------------------------------ interactive viewer ---- */
+
+.comparison-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.comparison-viewer--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  border-radius: 0;
+  background: #0f172a;
+  color: #fff;
+  padding: 1rem;
+}
+
+.comparison-viewer__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.btn--tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn--tab:hover {
+  background: var(--surface-hover);
+}
+
+.btn--tab-active {
+  background: var(--primary-subtle);
+  border-color: var(--primary-border);
+  color: var(--primary-strong);
+  font-weight: var(--weight-semibold);
+}
+
+.badge--dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.comparison-viewer__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+}
+
+.comparison-viewer__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.comparison-viewer__slider-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+}
+
+.range-input {
+  cursor: pointer;
+}
+
+.checkbox-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.comparison-viewer__stage {
+  position: relative;
+  width: 100%;
+  min-height: 420px;
+  max-height: 600px;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Draggable wipe slider */
+.slider-stage {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  user-select: none;
+  touch-action: none;
+  cursor: ew-resize;
+  overflow: hidden;
+}
+
+.slider-stage__layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.slider-stage__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.slider-stage__badge {
+  position: absolute;
+  top: 1rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+.slider-stage__badge--before {
+  left: 1rem;
+  background: rgba(15, 23, 42, 0.85);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.slider-stage__badge--after {
+  right: 1rem;
+  background: rgba(15, 23, 42, 0.85);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.slider-stage__handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  margin-left: -20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.slider-stage__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.slider-stage__knob {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  border: 2px solid #0284c7;
+}
+
+.slider-stage__annotations {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
+
+.annotation-box {
+  cursor: pointer;
+}
+
+.annotation-box__rect {
+  fill: rgba(234, 179, 8, 0.25);
+  stroke: #eab308;
+  stroke-width: 0.6;
+  transition: all 0.15s ease;
+}
+
+.annotation-box:hover .annotation-box__rect,
+.annotation-box--active .annotation-box__rect {
+  fill: rgba(239, 68, 68, 0.35);
+  stroke: #ef4444;
+  stroke-width: 1.0;
+}
+
+.annotation-box__label {
+  fill: #fef08a;
+  font-size: 2.8px;
+  font-weight: bold;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+}
+
+/* Side by side stage */
+.side-by-side-stage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3);
+}
+
+@media (max-width: 768px) {
+  .side-by-side-stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+.side-by-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+}
+
+.side-by-side-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.side-by-side-frame {
+  height: 380px;
+  background: #000;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.responsive-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Overlay stage */
+.overlay-stage {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.overlay-stage__frame {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  height: 480px;
+  background: #000;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.overlay-stage__base {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.overlay-stage__heat {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.overlay-stage__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.legend-chip {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+}
+
+.legend-chip--heat {
+  border-left: 3px solid #3b82f6;
+}
+
+.legend-chip--box {
+  border-left: 3px solid #eab308;
+}
+
+.composite-stage {
+  width: 100%;
+  padding: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.composite-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.comparison-viewer__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-sunken);
+  border-top: 1px solid var(--border-default);
+  font-size: var(--text-xs);
+}
+
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.modal-body {
+  padding: var(--space-4);
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-default);
+}
+
+.dispute-findings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 160px;
+  overflow-y: auto;
+  padding: var(--space-2);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+.dispute-finding-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+

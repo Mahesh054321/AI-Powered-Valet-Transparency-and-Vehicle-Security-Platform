@@ -1,0 +1,291 @@
+/* ============================================================================
+   DESIGN TOKENS — single source of truth
+   ----------------------------------------------------------------------------
+   Every visual decision in the product is named here. Nothing downstream may
+   hardcode a colour, a spacing value or a font size: if a value is not in this
+   file it is not part of the design system.
+
+   Two rules keep this honest:
+
+   1. **Palette and semantics are separate layers.** `--slate-500` is a colour;
+      `--text-secondary` is a decision. Components consume semantics only, so a
+      retheme changes this file and nothing else.
+   2. **Legacy names are aliases, not copies.** Earlier modules were written
+      against `--color-primary` and `--space-lg`; newer ones reached for
+      `--primary` and `--space-4`. Both vocabularies resolve to the same value
+      here rather than drifting apart. New code should use the semantic names.
+   ============================================================================ */
+
+:root {
+  /* ------------------------------------------------------------ palette ---
+     Named by lightness so "500" always means the same weight of any hue. */
+
+  --slate-0: #ffffff;
+  --slate-25: #fcfdfe;
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-150: #eaeff5;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --slate-950: #080d17;
+
+  --brand-50: #eef4ff;
+  --brand-100: #dbe6fe;
+  --brand-200: #bfd3fe;
+  --brand-300: #93b4fd;
+  --brand-400: #6090fa;
+  --brand-500: #3b6ff6;
+  --brand-600: #2451eb;
+  --brand-700: #1d40c8;
+  --brand-800: #1e37a3;
+  --brand-900: #1e3380;
+
+  --green-50: #ecfdf5;
+  --green-100: #d1fae5;
+  --green-500: #10b981;
+  --green-600: #059669;
+  --green-700: #047857;
+
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+
+  --cyan-50: #ecfeff;
+  --cyan-100: #cffafe;
+  --cyan-500: #06b6d4;
+  --cyan-600: #0891b2;
+  --cyan-700: #0e7490;
+
+  --violet-50: #f5f3ff;
+  --violet-100: #ede9fe;
+  --violet-500: #8b5cf6;
+  --violet-600: #7c3aed;
+  --violet-700: #6d28d9;
+
+  /* ------------------------------------------------------- surfaces/text ---
+     Semantic layer. Components use these and never a palette name directly. */
+
+  --surface-page: var(--slate-50);
+  --surface-raised: var(--slate-0);
+  --surface-sunken: var(--slate-100);
+  --surface-muted: var(--slate-50);
+  --surface-inverse: var(--slate-900);
+  --surface-overlay: rgb(8 13 23 / 55%);
+
+  --text-primary: var(--slate-900);
+  --text-secondary: var(--slate-600);
+  --text-tertiary: var(--slate-500);
+  --text-disabled: var(--slate-400);
+  --text-inverse: var(--slate-0);
+  --text-link: var(--brand-700);
+  --text-link-hover: var(--brand-800);
+
+  --border-subtle: var(--slate-150);
+  --border-default: var(--slate-200);
+  --border-strong: var(--slate-300);
+  --border-focus: var(--brand-500);
+
+  /* ------------------------------------------------------------- brand ---- */
+
+  --primary: var(--brand-600);
+  --primary-hover: var(--brand-700);
+  --primary-active: var(--brand-800);
+  --primary-subtle: var(--brand-50);
+  --primary-border: var(--brand-200);
+  --primary-ring: rgb(59 111 246 / 22%);
+
+  /* -------------------------------------------------------- semantics ----- */
+
+  --success: var(--green-700);
+  --success-strong: var(--green-600);
+  --success-subtle: var(--green-50);
+  --success-border: var(--green-100);
+
+  --warning: var(--amber-700);
+  --warning-strong: var(--amber-600);
+  --warning-subtle: var(--amber-50);
+  --warning-border: var(--amber-100);
+
+  --danger: var(--red-700);
+  --danger-strong: var(--red-600);
+  --danger-subtle: var(--red-50);
+  --danger-border: var(--red-100);
+
+  --info: var(--cyan-700);
+  --info-strong: var(--cyan-600);
+  --info-subtle: var(--cyan-50);
+  --info-border: var(--cyan-100);
+
+  --accent: var(--violet-600);
+  --accent-subtle: var(--violet-50);
+  --accent-border: var(--violet-100);
+
+  /* ------------------------------------------------------- spacing --------
+     4px base scale. Every gap, padding and margin in the product is one of
+     these, which is what makes two screens feel like the same product. */
+
+  --space-0: 0;
+  --space-1: 0.25rem; /*  4px */
+  --space-2: 0.5rem;  /*  8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem;    /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem;  /* 24px */
+  --space-7: 2rem;    /* 32px */
+  --space-8: 2.5rem;  /* 40px */
+  --space-9: 3rem;    /* 48px */
+  --space-10: 4rem;   /* 64px */
+
+  /* Aliases for the older t-shirt vocabulary. Same values, one scale. */
+  --space-xs: var(--space-2);
+  --space-sm: var(--space-3);
+  --space-md: var(--space-5);
+  --space-lg: var(--space-7);
+  --space-xl: var(--space-9);
+
+  /* ---------------------------------------------------------- type -------- */
+
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue',
+    Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Mono', ui-monospace, 'SF Mono',
+    Consolas, 'Courier New', monospace;
+
+  /* Sizes paired with a line-height, so a body size can never be set with a
+     heading's leading by accident. */
+  --text-2xs: 0.6875rem; /* 11px */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.8125rem;  /* 13px */
+  --text-base: 0.875rem; /* 14px */
+  --text-md: 0.9375rem;  /* 15px */
+  --text-lg: 1.0625rem;  /* 17px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --tracking-tight: -0.018em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.045em;
+
+  /* Numeric figures in tables and KPI cards must not jiggle as digits change. */
+  --font-numeric: tabular-nums;
+
+  /* --------------------------------------------------------- radii -------- */
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* -------------------------------------------------------- elevation ----- */
+
+  --shadow-xs: 0 1px 2px rgb(15 23 42 / 5%);
+  --shadow-sm: 0 1px 3px rgb(15 23 42 / 7%), 0 1px 2px rgb(15 23 42 / 4%);
+  --shadow-md: 0 4px 8px -2px rgb(15 23 42 / 8%), 0 2px 4px -2px rgb(15 23 42 / 4%);
+  --shadow-lg: 0 12px 24px -6px rgb(15 23 42 / 12%), 0 4px 8px -4px rgb(15 23 42 / 6%);
+  --shadow-xl: 0 24px 48px -12px rgb(15 23 42 / 20%);
+  --shadow-inset: inset 0 1px 0 rgb(255 255 255 / 60%);
+
+  /* Focus ring, as a single reusable value so focus never looks different
+     between two controls. */
+  --ring-offset: 0 0 0 2px var(--surface-raised);
+  --ring-focus: 0 0 0 2px var(--surface-raised), 0 0 0 4px var(--brand-400);
+
+  /* ---------------------------------------------------------- z-index ----- */
+
+  --z-base: 0;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 900;
+  --z-modal: 1000;
+  --z-toast: 1100;
+
+  /* ----------------------------------------------------------- motion ----- */
+
+  --duration-instant: 80ms;
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* ----------------------------------------------------------- layout ----- */
+
+  --sidebar-width: 260px;
+  --sidebar-width-collapsed: 72px;
+  --topbar-height: 60px;
+  --content-max-width: 1440px;
+  --content-gutter: var(--space-6);
+
+  /* Breakpoints are documented here for reference. They CANNOT be consumed as
+     `var()` inside a `@media` query — CSS resolves custom properties too late
+     for that — so media queries repeat the literal value and must be kept in
+     step with these:
+       sm  640px   md  768px   lg  1024px   xl  1280px   2xl  1536px */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ============================================================ aliases ===
+     The pre-design-system vocabulary, kept resolving so the ~3200 lines of
+     existing page CSS stay correct. Treated as deprecated: prefer the
+     semantic names above in new code. */
+
+
+  --surface: var(--surface-raised);
+  --surface-2: var(--surface-sunken);
+  --surface-alt: var(--surface-sunken);
+  --border: var(--border-default);
+  --text: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --muted: var(--text-secondary);
+  --muted-bg: var(--surface-sunken);
+  --radius: var(--radius-md);
+
+  --success-bg: var(--green-50);
+  --warning-bg: var(--amber-50);
+  --danger-bg: var(--red-50);
+  --info-bg: var(--cyan-50);
+}
+
+/* High-contrast pointer environments: a hairline border disappears on some
+   displays, so interactive edges get slightly more presence. */
+@media (prefers-contrast: more) {
+  :root {
+    --border-subtle: var(--slate-300);
+    --border-default: var(--slate-400);
+    --border-strong: var(--slate-500);
+  }
+}

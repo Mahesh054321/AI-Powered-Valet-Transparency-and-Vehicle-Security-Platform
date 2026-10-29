@@ -1,0 +1,202 @@
+1. Project folder open
+cd "E:\Projects\AI-Powered-Valet-Transparency-and-Vehicle-Security-Plateform"
+
+Check files:
+dir
+
+2. Virtual Environment
+Activate
+.\.venv\Scripts\Activate.ps1
+
+Agar activate ho gaya toh terminal mein:
+(.venv)
+
+dikhega.
+Check Python
+python --version
+
+Check pip
+python -m pip --version
+
+Deactivate
+deactivate
+
+3. Backend Dependencies
+Backend folder:
+cd backend
+
+Install dependencies:
+python -m pip install --timeout 120 --retries 10 -r requirements.txt -r requirements-dev.txt
+
+Check installed packages:
+pip list
+
+Quick dependency test:
+python -c "import flask, sqlalchemy, cv2, sklearn, psycopg2; print('BACKEND DEPENDENCIES OK')"
+
+4. PostgreSQL
+Check PostgreSQL service:
+Get-Service *postgres*
+
+Start:
+Start-Service postgresql-x64-18
+
+Stop:
+Stop-Service postgresql-x64-18
+
+Check PostgreSQL:
+psql --version
+
+Agar psql command nahi milti:
+$env:Path += ";C:\Program Files\PostgreSQL\18\bin"
+
+Test connection:
+psql -h localhost -p 5432 -U postgres -c "SELECT version();"
+
+5. Database Initialize / Migrations
+Important: project mein script backend\utils\scripts\init_db.py hai.
+Backend folder mein:
+python utils/scripts/init_db.py --env development --seed
+
+Ye database/migrations + seed data ke liye important command hai.
+Setup verify:
+python utils/scripts/verify_setup.py
+
+6. Backend Run
+Backend folder mein:
+python utils/scripts/run_api.py
+
+Normally backend:
+http://127.0.0.1:5000
+
+Health check browser mein:
+http://127.0.0.1:5000/api/health
+
+Ready check:
+http://127.0.0.1:5000/api/readyz
+
+7. Backend Tests
+Backend folder mein:
+pytest
+
+Detailed output:
+pytest -v
+
+Specific test:
+pytest path\to\test_file.py -v
+
+8. Backend Code Check
+Syntax check:
+python -m compileall .
+
+Ruff check:
+ruff check .
+
+9. Frontend
+Backend terminal ko band mat karna.
+Second PowerShell terminal kholo.
+Project root:
+cd "E:\Projects\AI-Powered-Valet-Transparency-and-Vehicle-Security-Plateform"
+
+Frontend:
+cd frontend
+
+Install packages:
+npm install
+
+Run frontend:
+npm run dev
+
+Frontend normally:
+http://localhost:5173
+
+10. Frontend Build
+npm run build
+
+Preview production build:
+npm run preview
+
+Tests:
+npm test
+
+Agar project mein specific test command configured ho toh:
+npm run test
+
+Available scripts dekhne ke liye:
+npm run
+
+11. Root se dono check karna
+Project root mein:
+cd "E:\Projects\AI-Powered-Valet-Transparency-and-Vehicle-Security-Plateform"
+
+Package scripts:
+npm run
+
+Project structure:
+dir
+
+12. ML Models
+Project ke ML modules ke liye ye commands important hain.
+Backend folder:
+cd backend
+
+Retrieval history generate:
+python utils/scripts/generate_retrieval_history.py
+
+Retrieval model train:
+python utils/scripts/train_retrieval_model.py
+
+Evaluate:
+python utils/scripts/evaluate_retrieval_model.py
+
+Security model:
+python utils/scripts/train_security_model.py
+
+Inhe abhi blindly run mat karna. Pehle core application properly run kar lena.
+🔥 Tere liye MOST IMPORTANT 10 commands
+Agar exam/meeting ke liye nahi, daily project work ke liye sirf ye yaad rakh:
+1. Project open
+cd "E:\Projects\AI-Powered-Valet-Transparency-and-Vehicle-Security-Plateform"
+
+2. Environment
+.\.venv\Scripts\Activate.ps1
+
+3. Backend
+cd backend
+
+4. Dependencies
+python -m pip install -r requirements.txt -r requirements-dev.txt
+
+5. Database
+python utils/scripts/init_db.py --env development --seed
+
+6. Setup check
+python utils/scripts/verify_setup.py
+
+7. Backend start
+python utils/scripts/run_api.py
+
+8. Frontend terminal
+cd "E:\Projects\AI-Powered-Valet-Transparency-and-Vehicle-Security-Plateform\frontend"
+
+9. Frontend dependencies
+npm install
+
+10. Frontend start
+npm run dev
+
+Final setup mein 2 terminals:
+Terminal 1 — Backend
+cd "E:\Projects\AI-Powered-Valet-Transparency-and-Vehicle-Security-Plateform"
+.\.venv\Scripts\Activate.ps1
+cd backend
+python utils/scripts/run_api.py
+
+Terminal 2 — Frontend
+cd "E:\Projects\AI-Powered-Valet-Transparency-and-Vehicle-Security-Plateform\frontend"
+npm run dev
+
+Then browser:
+Frontend: http://localhost:5173
+Backend: http://127.0.0.1:5000
+Bas ye workflow abhi tere project ke liye sabse important hai.

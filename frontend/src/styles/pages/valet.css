@@ -1,0 +1,364 @@
+/* ============================================================================
+   VALET OPERATOR DASHBOARD
+   ----------------------------------------------------------------------------
+   A grid of rows an operator acts on from a phone in a yard. Priorities:
+   active vehicles, the pickup queue, alerts, then check-in. Rows must be
+   readable at arm's length and tappable with a glove on, so the targets are
+   generous and the alarming row is impossible to miss.
+   ============================================================================ */
+
+/* --------------------------------------------------------- the row grid ---
+   A CSS grid rather than a <table>: these rows collapse to stacked cards on a
+   phone, which a real table cannot do without losing its header. The role
+   attributes in the markup keep the semantics for assistive tech. */
+
+.valet-table {
+  display: grid;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.valet-table__row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.4fr) minmax(130px, 1.2fr) 70px 150px 160px minmax(180px, 1.5fr);
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-base);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.valet-table__row:last-child {
+  border-bottom: none;
+}
+
+.valet-table__row:not(.valet-table__row--head):hover {
+  background: var(--surface-muted);
+}
+
+.valet-table__row--head {
+  background: var(--surface-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-default);
+}
+
+/* The one row that has to be noticed without being read. A left edge rather
+   than a full wash, so the severity badges inside stay legible. */
+.valet-table__row--alert {
+  background: var(--danger-subtle);
+  box-shadow: inset 3px 0 0 var(--danger);
+}
+
+.valet-table__row--alert:hover {
+  background: var(--red-100);
+}
+
+.valet-table__vehicle {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.valet-table__vehicle strong {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.valet-table__muted {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valet-table__position {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: var(--font-numeric);
+  color: var(--text-secondary);
+}
+
+.valet-table__gps {
+  display: grid;
+  gap: 2px;
+  align-items: start;
+}
+
+.valet-table__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ------------------------------------------------------------- alerts ----- */
+
+.valet-alerts {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.valet-alerts__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+
+.valet-alerts__body {
+  flex: 1;
+  min-width: 220px;
+  display: grid;
+  gap: 2px;
+}
+
+.valet-alerts__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.valet-alerts__head strong {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+}
+
+.valet-alerts__reason {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-snug);
+}
+
+.valet-alerts__meta {
+  margin: 0;
+  font-size: var(--text-xs);
+}
+
+.valet-alerts__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  flex: none;
+  max-width: 100%;
+}
+
+.valet-alerts__actions .btn {
+  min-width: 104px;
+}
+
+@media (max-width: 639px) {
+  .valet-alerts__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* -------------------------------------------------------------- zones ----- */
+
+.valet-zones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.valet-zones__item {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+
+.valet-zones__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.valet-zones__head strong {
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-tight);
+}
+
+.valet-zones__head .muted {
+  font-size: var(--text-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valet-zones__bar {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--slate-200);
+  overflow: hidden;
+}
+
+.valet-zones__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  transition: width var(--duration-base) var(--ease-out);
+}
+
+/* A nearly full zone is the actionable one, so it is coloured. */
+.valet-zones__item:has(.badge--warning) .valet-zones__fill {
+  background: var(--warning);
+}
+
+.valet-zones__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-variant-numeric: var(--font-numeric);
+  color: var(--text-secondary);
+}
+
+/* -------------------------------------------------------- pickup upload --- */
+
+.pickup-upload {
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pickup-upload__row {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.pickup-upload__angles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pickup-upload__angle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.pickup-upload__angle:hover {
+  border-color: var(--primary);
+}
+
+.pickup-upload__angle input {
+  width: auto;
+  height: auto;
+}
+
+/* --------------------------------------------------------- dialog facts --- */
+
+/* The subject of a destructive action, named on the dialog itself. An operator
+   confirming a handover needs to see which car and which customer, not just
+   "are you sure?". */
+.dialog__fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-base);
+}
+
+.dialog__fact span {
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+}
+
+.dialog__fact strong {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  text-align: right;
+}
+
+.dialog__note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  line-height: var(--leading-relaxed);
+}
+
+/* ============================================================ responsive ==
+   A phone in a yard is the realistic case, so the row becomes a card. The
+   header row is hidden because a stacked card labels its own values. */
+
+@media (max-width: 1023px) {
+  .valet-table {
+    border: none;
+  }
+
+  .valet-table__row {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    margin-bottom: var(--space-2);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+  }
+
+  .valet-table__row--head {
+    display: none;
+  }
+
+  .valet-table__row--alert {
+    border-color: var(--danger-border);
+    background: var(--danger-subtle);
+  }
+
+  /* Plate and actions span the full width: the plate is the identity of the
+     card and the actions are what the operator came here to press. */
+  .valet-table__vehicle,
+  .valet-table__actions {
+    grid-column: 1 / -1;
+  }
+
+  .valet-table__actions {
+    justify-content: flex-start;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border-subtle);
+  }
+}
