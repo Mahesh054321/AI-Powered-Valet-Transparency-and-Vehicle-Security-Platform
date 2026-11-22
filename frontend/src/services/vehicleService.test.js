@@ -65,6 +65,24 @@ describe('vehicleService', () => {
     expect(apiPost.mock.calls[1][1].owner_id).toBe('owner-1')
   })
 
+  it('sends the selected tracking method and hardware device ID', async () => {
+    vi.mocked(apiPost).mockResolvedValue({ vehicle: {} })
+
+    await createVehicle({
+      plateNumber: 'UP85CA1236',
+      make: 'Tata',
+      ownerId: 'owner-1',
+      tracking_method: 'REAL_GPS',
+      gps_device_id: 'TRACKER-123',
+    })
+
+    expect(apiPost.mock.calls[0][1]).toMatchObject({
+      owner_id: 'owner-1',
+      tracking_method: 'REAL_GPS',
+      gps_device_id: 'TRACKER-123',
+    })
+  })
+
   it('passes filters through to the list endpoint', async () => {
     vi.mocked(apiGet).mockResolvedValue({ items: [], pagination: {} })
 
@@ -98,6 +116,20 @@ describe('vehicleService', () => {
     await updateVehicle('v-1', { notes: '' })
 
     expect(apiPatch.mock.calls[0][1]).toEqual({ notes: '' })
+  })
+
+  it('persists tracking settings when editing a vehicle', async () => {
+    vi.mocked(apiPatch).mockResolvedValue({ vehicle: {} })
+
+    await updateVehicle('v-1', {
+      tracking_method: 'MOBILE_GPS',
+      gps_device_id: '',
+    })
+
+    expect(apiPatch).toHaveBeenCalledWith('/v1/vehicles/v-1', {
+      tracking_method: 'MOBILE_GPS',
+      gps_device_id: null,
+    })
   })
 
   it('archives through DELETE and tolerates the empty 204 body', async () => {

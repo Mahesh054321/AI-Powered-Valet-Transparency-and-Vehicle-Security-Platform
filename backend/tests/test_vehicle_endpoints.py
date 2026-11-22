@@ -168,6 +168,25 @@ def test_staff_may_register_on_a_customers_behalf(client, pg_app):
     assert response.get_json()["data"]["vehicle"]["owner"]["id"] == str(customer.id)
 
 
+def test_vehicle_registration_preserves_the_selected_tracking_method(client, pg_app):
+    customer = make_user()
+    db.session.commit()
+
+    response = client.post(
+        BASE,
+        json={
+            "plate_number": "UP85CA2233",
+            "make": "Hyundai",
+            "tracking_method": "MOBILE_GPS",
+        },
+        headers=bearer(customer),
+    )
+
+    assert response.status_code == 201
+    vehicle = response.get_json()["data"]["vehicle"]
+    assert vehicle["tracking_method"] == "MOBILE_GPS"
+
+
 def test_staff_must_name_an_owner(client, pg_app):
     operator = make_user(Role.VALET_OPERATOR)
     db.session.commit()
@@ -193,6 +212,38 @@ def test_a_customer_sees_only_their_own_vehicles(client, pg_app):
 
     assert body["pagination"]["total_items"] == 1
     assert body["items"][0]["plate_number"] == "UP85CA4001"
+
+
+def test_an_operator_can_list_a_selected_customers_vehicles_for_check_in(client, pg_app):
+    operator = make_user(Role.VALET_OPERATOR)
+    customer, other = make_user(), make_user()
+    first = make_vehicle(customer.id, plate="UP85CA4101")
+    second = make_vehicle(customer.id, plate="UP85CA4102")
+    make_vehicle(other.id, plate="UP85CA4103")
+    db.session.commit()
+
+    response = client.get(
+        BASE,
+        query_string={"owner_id": str(customer.id), "page_size": 50},
+        headers=bearer(operator),
+    )
+
+    assert response.status_code == 200
+    body = response.get_json()["data"]
+    assert body["pagination"]["total_items"] == 2
+    assert {row["id"] for row in body["items"]} == {str(first.id), str(second.id)}
+
+
+def test_an_operator_without_an_owner_filter_sees_only_assigned_vehicles(client, pg_app):
+    operator = make_user(Role.VALET_OPERATOR)
+    customer = make_user()
+    make_vehicle(customer.id, plate="UP85CA4104")
+    db.session.commit()
+
+    response = client.get(BASE, headers=bearer(operator))
+
+    assert response.status_code == 200
+    assert response.get_json()["data"]["items"] == []
 
 
 def test_a_customer_cannot_read_someone_elses_vehicle(client, pg_app):
@@ -292,6 +343,27 @@ def test_a_customer_cannot_edit_someone_elses_vehicle(client, pg_app):
     assert response.status_code == 404
     db.session.refresh(foreign)
     assert foreign.color == "Silver"
+
+
+def test_a_manager_can_review_but_not_edit_or_archive_a_vehicle(client, pg_app):
+    customer = make_user()
+    manager = make_user(Role.VALET_MANAGER)
+    vehicle = make_vehicle(customer.id, plate="UP85CA5010")
+    db.session.commit()
+
+    detail = client.get(f"{BASE}/{vehicle.id}", headers=bearer(manager))
+    assert detail.status_code == 200
+
+    edited = client.patch(
+        f"{BASE}/{vehicle.id}", json={"color": "Blue"}, headers=bearer(manager)
+    )
+    archived = client.delete(f"{BASE}/{vehicle.id}", headers=bearer(manager))
+
+    assert edited.status_code == 403
+    assert archived.status_code == 403
+    db.session.refresh(vehicle)
+    assert vehicle.color == "Silver"
+    assert vehicle.status == VehicleStatus.REGISTERED.value
 
 
 def test_the_ownership_of_a_vehicle_cannot_be_reassigned(client, pg_app):

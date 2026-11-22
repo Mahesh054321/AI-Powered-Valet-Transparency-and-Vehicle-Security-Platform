@@ -71,7 +71,7 @@ def main() -> int:
                 ],
             )
     else:
-        app.run(host=args.host, port=args.port, debug=app.config.get("DEBUG", False))
+        app.run(host=args.host, port=args.port, debug=app.config.get("DEBUG", False), threaded=True)
 
     return 0
 

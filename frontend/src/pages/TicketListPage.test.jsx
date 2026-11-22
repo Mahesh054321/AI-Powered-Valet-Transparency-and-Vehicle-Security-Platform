@@ -10,8 +10,8 @@
  *   backend, and offering them here would ask the user to filter by a
  *   vocabulary they have never been shown. This is the "keep_map" decision made
  *   visible.
- * - **Changing the filter refetches; "All" sends no status at all**, rather than
- *   an empty string the backend would have to interpret.
+ * - **Active tickets are the default.** History is still available through
+ *   explicit status filters or the unfiltered "All tickets" view.
  * - **The row links to the ticket**, and absent vehicle or zone data renders an
  *   em dash rather than "undefined".
  * - **The ticket count is visible.** It is passed as a `Panel` subtitle with no
@@ -84,7 +84,7 @@ describe('TicketListPage', () => {
     expect(screen.getByRole('button', { name: /^ready for pickup$/i })).toBeInTheDocument()
     // The stored vocabulary must not leak into the filter.
     expect(screen.queryByRole('button', { name: /^issued$/i })).toBeNull()
-    expect(screen.queryByRole('button', { name: /^active$/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /^active$/i })).toBeInTheDocument()
   })
 
   it('shows the labelled status in the row, not the raw enum', async () => {
@@ -111,7 +111,10 @@ describe('TicketListPage', () => {
 
     await screen.findByRole('link', { name: 'TKT-0001' })
     expect(fetchTickets).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(fetchTickets).mock.calls[0][0]).toMatchObject({ status: undefined })
+    expect(vi.mocked(fetchTickets).mock.calls[0][0]).toMatchObject({
+      status: undefined,
+      active_only: true,
+    })
 
     await user.click(screen.getByRole('button', { name: /^ready for pickup$/i }))
 
@@ -121,26 +124,25 @@ describe('TicketListPage', () => {
     })
   })
 
-  it('returns to the unfiltered list without a wasted round trip', async () => {
+  it('allows the user to open all ticket history', async () => {
     const user = userEvent.setup()
     renderPage()
 
     await screen.findByRole('link', { name: 'TKT-0001' })
-    // The unfiltered request carries no status at all - `undefined`, not an
-    // empty string the backend would have to interpret.
-    expect(vi.mocked(fetchTickets).mock.calls[0][0]).toMatchObject({ status: undefined })
+    expect(vi.mocked(fetchTickets).mock.calls[0][0]).toMatchObject({ active_only: true })
 
     await user.click(screen.getByRole('button', { name: /^ready for pickup$/i }))
     await waitFor(() => expect(fetchTickets).toHaveBeenCalledTimes(2))
 
-    await user.click(screen.getByRole('button', { name: /^all$/i }))
+    await user.click(screen.getByRole('button', { name: /^all tickets$/i }))
 
-    // Back to ['tickets', { status: '' }], which is already cached and still
-    // fresh, so React Query serves it rather than refetching identical
-    // parameters. The rows are the point, not the request count.
-    await waitFor(() => expect(fetchTickets).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(fetchTickets).toHaveBeenCalledTimes(3))
+    expect(vi.mocked(fetchTickets).mock.calls[2][0]).toMatchObject({
+      status: undefined,
+      active_only: undefined,
+    })
     expect(await screen.findByRole('link', { name: 'TKT-0001' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^all$/i })).toHaveClass('btn--primary')
+    expect(screen.getByRole('button', { name: /^all tickets$/i })).toHaveClass('btn--primary')
   })
 
   it('marks the active filter so the current selection is visible', async () => {
@@ -148,11 +150,11 @@ describe('TicketListPage', () => {
     renderPage()
 
     await screen.findByRole('link', { name: 'TKT-0001' })
-    expect(screen.getByRole('button', { name: /^all$/i })).toHaveClass('btn--primary')
+    expect(screen.getByRole('button', { name: /^active$/i })).toHaveClass('btn--primary')
 
     await user.click(screen.getByRole('button', { name: /^completed$/i }))
     expect(screen.getByRole('button', { name: /^completed$/i })).toHaveClass('btn--primary')
-    expect(screen.getByRole('button', { name: /^all$/i })).toHaveClass('btn--ghost')
+    expect(screen.getByRole('button', { name: /^active$/i })).toHaveClass('btn--ghost')
   })
 
   it('renders an em dash for a ticket with no vehicle or zone', async () => {
@@ -172,7 +174,7 @@ describe('TicketListPage', () => {
 
     expect(await screen.findByText(/no tickets match this filter/i)).toBeInTheDocument()
     expect(
-      screen.getByText(/try a different status, or clear the filter/i),
+      screen.getByText(/try another status, or choose all tickets/i),
     ).toBeInTheDocument()
   })
 

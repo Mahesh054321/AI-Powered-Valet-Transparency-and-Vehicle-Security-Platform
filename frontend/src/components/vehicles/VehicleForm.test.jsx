@@ -22,7 +22,7 @@
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VehicleForm } from './VehicleForm'
 
@@ -77,6 +77,24 @@ describe('VehicleForm', () => {
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1))
     expect(vi.mocked(onSubmit).mock.calls[0][0]).toEqual(VALID)
+  })
+
+  it('submits the tracking method selected in the GPS setup', async () => {
+    const user = userEvent.setup()
+    const { onSubmit } = renderForm()
+
+    await fill(user, VALID)
+    await user.click(
+      screen.getByRole('radio', { name: /option b: mobile browser gps/i }),
+    )
+    await user.click(screen.getByRole('button', { name: /register vehicle/i }))
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ tracking_method: 'MOBILE_GPS' }),
+      ),
+    )
+    expect(screen.getByRole('radio', { name: /option b: mobile browser gps/i })).toBeChecked()
   })
 
   it('rejects an empty plate without calling the API', async () => {
@@ -172,7 +190,8 @@ describe('VehicleForm', () => {
     const user = userEvent.setup()
     const { onSubmit } = renderForm()
 
-    await fill(user, { ...VALID, notes: 'x'.repeat(501) })
+    await fill(user, VALID)
+    fireEvent.change(screen.getByLabelText(/^notes/i), { target: { value: 'x'.repeat(501) } })
     await user.click(screen.getByRole('button', { name: /register vehicle/i }))
 
     expect(

@@ -11,6 +11,7 @@
  * Current Location, Estimated Retrieval and Condition Status.
  */
 
+import { Link } from 'react-router-dom'
 import { Badge } from '../ui'
 import { formatTime } from '../../utils/format'
 import { RETRIEVAL_PROTOTYPE_NOTICE } from '../../utils/constants'
@@ -34,13 +35,15 @@ function DashCard({ title, section, badge, children, footer }) {
         {badge}
       </header>
 
-      {state === 'ok' ? (
-        children
-      ) : (
-        <p className="dash-card__empty">{emptyReason(section)}</p>
-      )}
+      <div className={`dash-card__body${state === 'ok' ? '' : ' dash-card__body--empty'}`}>
+        {state === 'ok' ? (
+          children
+        ) : (
+          <p className="dash-card__empty">{emptyReason(section)}</p>
+        )}
+      </div>
 
-      {footer}
+      {footer && <div className="dash-card__footer">{footer}</div>}
     </article>
   )
 }
@@ -205,7 +208,9 @@ export function EstimatedRetrievalCard({ retrieval }) {
   )
 }
 
-export function ConditionStatusCard({ condition }) {
+export function ConditionStatusCard({ condition, custodyId }) {
+  const targetCustodyId = custodyId || condition?.custody_session_id
+
   return (
     <DashCard
       title="Condition Status"
@@ -230,20 +235,33 @@ export function ConditionStatusCard({ condition }) {
         ) : null
       }
       footer={
-        hasData(condition) && condition.detector_disclaimer ? (
-          // Carried through verbatim from the backend: the detector is classical
-          // image differencing, not a trained classifier.
-          <p className="dash-card__notice">{condition.detector_disclaimer}</p>
+        hasData(condition) ? (
+          <div>
+            {targetCustodyId && (
+              <div style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                <Link
+                  to={`/inspections/${targetCustodyId}`}
+                  className="btn btn--sm btn--primary"
+                  style={{ display: 'block', textAlign: 'center' }}
+                >
+                  View Condition Report &amp; Visual Comparisons →
+                </Link>
+              </div>
+            )}
+            {condition.detector_disclaimer && (
+              <p className="dash-card__notice">{condition.detector_disclaimer}</p>
+            )}
+          </div>
         ) : null
       }
     >
-      <p className="dash-card__summary">{condition.summary}</p>
-      <Row label="Findings" value={condition.total_detections ?? 0} />
-      <Row label="Awaiting confirmation" value={condition.unverified_count ?? 0} />
-      <Row label="Confirmed" value={condition.confirmed_count ?? 0} />
+      <p className="dash-card__summary">{condition?.summary}</p>
+      <Row label="Findings" value={condition?.total_detections ?? 0} />
+      <Row label="Awaiting confirmation" value={condition?.unverified_count ?? 0} />
+      <Row label="Confirmed" value={condition?.confirmed_count ?? 0} />
       <Row
         label="Pickup inspection"
-        value={condition.pickup_completed ? 'Captured' : 'Not yet'}
+        value={condition?.pickup_completed ? 'Captured' : 'Not yet'}
       />
     </DashCard>
   )

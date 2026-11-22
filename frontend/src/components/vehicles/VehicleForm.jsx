@@ -14,17 +14,26 @@
 import { useState } from 'react'
 import { normaliseError } from '../../services/apiClient'
 import { ErrorNotice, Field } from '../ui'
+import { GpsSetupSelector } from './GpsSetupSelector'
 
 const EMPTY = { plateNumber: '', make: '', model: '', year: '', color: '', notes: '' }
 
-export function VehicleForm({ initialValues, submitLabel, onSubmit, onCancel }) {
+export function VehicleForm({ initialValues, submitLabel, onSubmit, onCancel, showGpsSetup = true }) {
   const [form, setForm] = useState({ ...EMPTY, ...initialValues })
   const [fieldErrors, setFieldErrors] = useState({})
   const [error, setError] = useState(null)
   const [pending, setPending] = useState(false)
 
+  // Tracking preference state
+  const [trackingMethod, setTrackingMethod] = useState(
+    initialValues?.tracking_method || initialValues?.trackingMethod || 'SIMULATED'
+  )
+  const [deviceId, setDeviceId] = useState(initialValues?.gps_device_id || initialValues?.gpsDeviceId || '')
+  const [provider, setProvider] = useState(initialValues?.gps_provider || 'generic_webhook')
+  const [deviceSecret, setDeviceSecret] = useState(initialValues?.device_secret || '')
+
   function update(field) {
-    return (event) => setForm({ ...form, [field]: event.target.value })
+    return (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   }
 
   function validate() {
@@ -40,6 +49,9 @@ export function VehicleForm({ initialValues, submitLabel, onSubmit, onCancel }) 
       errors.year = 'Enter a year between 1950 and 2100.'
     }
     if (form.notes.length > 500) errors.notes = 'Notes must be 500 characters or fewer.'
+    if (trackingMethod === 'REAL_GPS' && !deviceId.trim()) {
+      errors.deviceId = 'Tracker Device ID / IMEI is required for hardware tracking.'
+    }
     return errors
   }
 
@@ -52,7 +64,17 @@ export function VehicleForm({ initialValues, submitLabel, onSubmit, onCancel }) 
 
     setPending(true)
     try {
-      await onSubmit(form)
+      const payload = { ...form }
+      if (trackingMethod && trackingMethod !== 'SIMULATED') {
+        payload.tracking_method = trackingMethod
+        payload.gps_device_id = deviceId.trim()
+        payload.provider_name = provider
+        payload.device_secret = deviceSecret || undefined
+      } else if (initialValues?.tracking_method) {
+        payload.tracking_method = trackingMethod
+        payload.gps_device_id = ''
+      }
+      await onSubmit(payload)
     } catch (caught) {
       const apiError = caught?.apiError ?? normaliseError(caught)
       setError(apiError)
@@ -121,6 +143,22 @@ export function VehicleForm({ initialValues, submitLabel, onSubmit, onCancel }) 
           onChange={update('notes')}
         />
       </Field>
+
+      {showGpsSetup && (
+        <div style={{ marginTop: '1.25rem', marginBottom: '1.25rem' }}>
+          <GpsSetupSelector
+            value={trackingMethod}
+            onChange={setTrackingMethod}
+            deviceId={deviceId}
+            onDeviceIdChange={setDeviceId}
+            provider={provider}
+            onProviderChange={setProvider}
+            deviceSecret={deviceSecret}
+            onDeviceSecretChange={setDeviceSecret}
+            error={fieldErrors}
+          />
+        </div>
+      )}
 
       <ErrorNotice error={error} />
 

@@ -9,6 +9,7 @@
  */
 
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { Badge } from '../ui'
 import {
@@ -24,20 +25,65 @@ function formatWhen(iso) {
   return Number.isNaN(date.getTime()) ? iso : date.toLocaleString()
 }
 
+function evidenceLabel(key) {
+  const label = key.replace(/([A-Z])/g, ' $1').replace(/[_-]+/g, ' ').trim()
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
+function EvidenceValue({ value }) {
+  if (value == null) return <span className="muted">Not reported</span>
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+
+  if (Array.isArray(value)) {
+    return (
+      <ul className="alert-evidence__list">
+        {value.map((item, index) => (
+          <li key={index}><EvidenceValue value={item} /></li>
+        ))}
+      </ul>
+    )
+  }
+
+  if (typeof value === 'object') {
+    return (
+      <dl className="alert-evidence">
+        {Object.entries(value).map(([key, item]) => (
+          <div className="alert-evidence__row" key={key}>
+            <dt>{evidenceLabel(key)}</dt>
+            <dd><EvidenceValue value={item} /></dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
+
+  return String(value)
+}
+
 /**
  * @param {object} props
  * @param {object} props.alert             The alert as returned by the API.
  * @param {boolean} [props.canTriage]      True for managers and administrators.
  * @param {boolean} [props.busy]           Disable the buttons while a request runs.
  * @param {Function} [props.onAcknowledge]
+ * @param {Function} [props.onInvestigate]
  * @param {Function} [props.onResolve]     Called with `(alert, { dismiss })`.
+ * @param {Function} [props.onReopen]
  */
-export function AlertCard({ alert, canTriage = false, busy = false, onAcknowledge, onResolve }) {
+export function AlertCard({
+  alert,
+  canTriage = false,
+  busy = false,
+  onAcknowledge,
+  onInvestigate,
+  onResolve,
+  onReopen,
+}) {
   const [showEvidence, setShowEvidence] = useState(false)
   const [notes, setNotes] = useState('')
   const [editing, setEditing] = useState(false)
 
-  const isOpen = alert.status === 'OPEN' || alert.status === 'ACKNOWLEDGED' || alert.status === 'INVESTIGATING'
+  const isOpen = alert.status === 'OPEN' || alert.status === 'ACKNOWLEDGED' || alert.status === 'INVESTIGATING' || alert.status === 'REOPENED'
   const confidencePct = alert.confidence != null ? Math.round(Number(alert.confidence) * 100) : null
 
   return (
@@ -58,6 +104,29 @@ export function AlertCard({ alert, canTriage = false, busy = false, onAcknowledg
       </header>
 
       <p className="alert-card__reason">{alert.reason}</p>
+
+      {((alert.custody_session_id || alert.custody_id) || (alert.vehicle_id || alert.vehicle?.id)) && (
+        <div className="alert-card__links">
+          {(alert.custody_session_id || alert.custody_id) && (
+            <Link
+              to={`/tracking/${alert.custody_session_id || alert.custody_id}`}
+              className="btn btn--ghost btn--tiny"
+              title="View on Live Tracking Map"
+            >
+              View on Map
+            </Link>
+          )}
+          {(alert.vehicle_id || alert.vehicle?.id) && (
+            <Link
+              to={`/vehicles/${alert.vehicle_id || alert.vehicle?.id}`}
+              className="btn btn--ghost btn--tiny"
+              title="View Vehicle Profile"
+            >
+              View Vehicle
+            </Link>
+          )}
+        </div>
+      )}
 
       <dl className="alert-card__meta">
         {confidencePct != null && (
@@ -101,9 +170,9 @@ export function AlertCard({ alert, canTriage = false, busy = false, onAcknowledg
             {showEvidence ? 'Hide' : 'Show'} the inputs behind this
           </button>
           {showEvidence && (
-            <pre className="alert-card__evidence-body mono">
-              {JSON.stringify(alert.evidence, null, 2)}
-            </pre>
+            <div className="alert-card__evidence-body">
+              <EvidenceValue value={alert.evidence} />
+            </div>
           )}
         </div>
       )}
@@ -154,6 +223,17 @@ export function AlertCard({ alert, canTriage = false, busy = false, onAcknowledg
               >
                 Acknowledge
               </button>
+              {onInvestigate && alert.status !== 'INVESTIGATING' && (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--small"
+                  onClick={() => onInvestigate(alert)}
+                  disabled={busy}
+                  title="Mark this alert as currently undergoing staff investigation"
+                >
+                  Investigate
+                </button>
+              )}
               <button
                 type="button"
                 className="btn btn--small"
@@ -173,6 +253,20 @@ export function AlertCard({ alert, canTriage = false, busy = false, onAcknowledg
               </button>
             </>
           )}
+        </footer>
+      )}
+
+      {canTriage && !isOpen && onReopen && (
+        <footer className="alert-card__actions">
+          <button
+            type="button"
+            className="btn btn--ghost btn--small"
+            onClick={() => onReopen(alert)}
+            disabled={busy}
+            title="Reopen this resolved or dismissed alert"
+          >
+            Reopen alert
+          </button>
         </footer>
       )}
     </article>

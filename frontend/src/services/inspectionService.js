@@ -78,6 +78,33 @@ export function verifyDetection(detectionId, { status, notes }) {
   })
 }
 
+/** Annotate notes or severity on a candidate finding. Staff only. */
+export function annotateDetection(detectionId, { notes, severity }) {
+  return apiPatch(ENDPOINTS.inspectionAnnotate(detectionId), {
+    notes,
+    ...(severity ? { severity } : {}),
+  })
+}
+
+/** Submit a customer or operator dispute regarding inspection findings. */
+export function disputeInspection(custodyId, { reason, notes, disputedDetectionIds }) {
+  return apiPost(ENDPOINTS.inspectionDispute(custodyId), {
+    reason,
+    ...(notes ? { notes } : {}),
+    ...(disputedDetectionIds ? { disputed_detection_ids: disputedDetectionIds } : {}),
+  })
+}
+
+/** Resolve a dispute and close custody. Manager or administrator only. */
+export function resolveDispute(custodyId, { notes }) {
+  return apiPost(ENDPOINTS.inspectionResolveDispute(custodyId), { notes })
+}
+
+/** Re-run comparison pipeline between drop-off and pickup sets. Manager/admin only. */
+export function recompareInspection(custodyId) {
+  return apiPost(ENDPOINTS.inspectionRecompare(custodyId), {})
+}
+
 /** The synthetic demo catalogue, so the UI can build a scenario picker. */
 export function fetchDemoScenarios() {
   return apiGet(ENDPOINTS.inspectionDemoScenarios)
@@ -96,10 +123,14 @@ export function runDemoComparison(scenario) {
 }
 
 export default {
+  annotateDetection,
   captureDropOff,
   capturePickup,
+  disputeInspection,
   fetchConditionReport,
   fetchDemoScenarios,
+  recompareInspection,
+  resolveDispute,
   runDemoComparison,
   verifyDetection,
 }

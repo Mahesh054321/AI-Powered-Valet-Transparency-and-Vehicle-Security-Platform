@@ -1,17 +1,14 @@
 """Geofence endpoints.
 
-    GET   /geofences            authenticated - zones with the geometry the map needs
-    POST  /geofences            manager/admin - create a zone and its boundary
-    PATCH /geofences/<zone_id>  manager/admin - move or reconfigure a boundary
-
-Creating a geofence is a manager-level act. Moving a boundary changes the
-meaning of every future GPS fix, so it is not something an operator should be
-able to do in passing, and every change is audited as ``GEOFENCE_CONFIGURED``.
-
-The API takes ``centre + radius`` as specified in the brief and generates a
-circular ring into the stored polygon, so one point-in-polygon test serves both
-a generated circle and an irregular real-world yard. An explicit
-``geofence_polygon`` overrides the generated one.
+    GET    /geofences                   authenticated - list safe zones with geometry
+    POST   /geofences                   manager/admin/customer - create zone/safe boundary
+    POST   /geofences/preview           authenticated - preview boundary calculation
+    GET    /geofences/<zone_id>         authenticated - safe zone details
+    PUT    /geofences/<zone_id>         manager/admin/creator - update/replace safe zone
+    PATCH  /geofences/<zone_id>         manager/admin/creator - reconfigure boundary
+    DELETE /geofences/<zone_id>         manager/admin/creator - delete inactive zone
+    POST   /geofences/<zone_id>/activate    manager/admin/creator - activate safe zone
+    POST   /geofences/<zone_id>/deactivate  manager/admin/creator - deactivate safe zone
 
 Mounted at both ``/api/v1/geofences`` and ``/api/geofences``.
 """
@@ -45,12 +42,53 @@ def create_geofences_blueprint() -> Blueprint:
         """Create a parking zone and its geofence."""
         return created(geofence.create_geofence(json_payload(), current_user()))
 
+    @blueprint.post("/preview")
+    @require_authentication
+    def preview():
+        """Calculate and preview a safe zone boundary and effective area without saving."""
+        return ok(geofence.preview_geofence(json_payload(), current_user()))
+
+    @blueprint.get("/<zone_id>")
+    @require_authentication
+    def get_zone(zone_id: str):
+        """Fetch a specific safe zone / geofence details."""
+        validate_uuid(zone_id, field="zone_id")
+        return ok(geofence.get_geofence(zone_id, current_user()))
+
+    @blueprint.put("/<zone_id>")
+    @require_authentication
+    def replace_zone(zone_id: str):
+        """Update or reconfigure a safe zone boundary."""
+        validate_uuid(zone_id, field="zone_id")
+        return ok(geofence.update_geofence(zone_id, json_payload(), current_user()))
+
     @blueprint.patch("/<zone_id>")
     @require_authentication
     def update(zone_id: str):
         """Reconfigure an existing geofence."""
         validate_uuid(zone_id, field="zone_id")
         return ok(geofence.update_geofence(zone_id, json_payload(), current_user()))
+
+    @blueprint.delete("/<zone_id>")
+    @require_authentication
+    def delete_zone(zone_id: str):
+        """Delete an inactive safe zone."""
+        validate_uuid(zone_id, field="zone_id")
+        return ok(geofence.delete_geofence(zone_id, current_user()))
+
+    @blueprint.post("/<zone_id>/activate")
+    @require_authentication
+    def activate_zone(zone_id: str):
+        """Activate an inactive safe zone."""
+        validate_uuid(zone_id, field="zone_id")
+        return ok(geofence.activate_geofence(zone_id, current_user()))
+
+    @blueprint.post("/<zone_id>/deactivate")
+    @require_authentication
+    def deactivate_zone(zone_id: str):
+        """Deactivate an active safe zone without deleting it."""
+        validate_uuid(zone_id, field="zone_id")
+        return ok(geofence.deactivate_geofence(zone_id, current_user()))
 
     return blueprint
 

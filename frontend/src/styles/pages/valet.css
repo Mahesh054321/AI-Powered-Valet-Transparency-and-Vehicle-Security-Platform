@@ -155,9 +155,23 @@
 
 .valet-alerts__actions {
   display: flex;
-  gap: var(--space-1);
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
   flex-wrap: wrap;
   flex: none;
+  max-width: 100%;
+}
+
+.valet-alerts__actions .btn {
+  min-width: 104px;
+}
+
+@media (max-width: 639px) {
+  .valet-alerts__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 /* -------------------------------------------------------------- zones ----- */

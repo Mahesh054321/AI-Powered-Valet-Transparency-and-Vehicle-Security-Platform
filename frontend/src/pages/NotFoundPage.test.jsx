@@ -17,21 +17,19 @@ function renderPage() {
 }
 
 describe('NotFoundPage', () => {
-  it('states that the route does not exist', () => {
+  it('explains that the page could not be found in user-friendly language', () => {
     renderPage()
 
     expect(
       screen.getByRole('heading', { name: /404 — page not found/i }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/that route does not exist in this build/i)).toBeInTheDocument()
+    expect(screen.getByText(/page may have moved/i)).toBeInTheDocument()
   })
 
-  it('offers a way out to a route every role may see', () => {
+  it('offers a way back to the signed-in user’s dashboard', () => {
     renderPage()
 
-    // System status is public to any authenticated user; a dashboard link here
-    // would send a customer somewhere they are not allowed.
-    const link = screen.getByRole('link', { name: /back to system status/i })
-    expect(link).toHaveAttribute('href', '/status')
+    const link = screen.getByRole('link', { name: /go to your dashboard/i })
+    expect(link).toHaveAttribute('href', '/')
   })
 })

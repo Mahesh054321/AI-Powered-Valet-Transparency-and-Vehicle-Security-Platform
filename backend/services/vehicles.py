@@ -43,7 +43,7 @@ from models.vehicle import (
     Vehicle,
 )
 from services.audit import record_event
-from utils.exceptions import ConflictError, NotFoundError, ValidationError
+from utils.exceptions import AuthorizationError, ConflictError, NotFoundError, ValidationError
 from utils.security import AuthContext, Role
 from utils.validation import validate_plate_number, validate_text, validate_uuid
 
@@ -141,16 +141,33 @@ def list_vehicles(
     """
     clauses = []
 
-    # Scoping is decided by the *actor*, never by a request parameter. The
-    # previous shape applied `owner_id` when present and fell through to the
-    # actor's own id only when it was absent, so a customer could read another
-    # customer's fleet by passing `?owner_id=<someone else>` -- an IDOR. The
-    # filter is now intersected with the actor's scope rather than replacing it:
-    # staff may narrow to one owner, a customer may only ever see their own.
-    if not is_staff(actor):
+    # Customers are always restricted to their own vehicles. Staff may narrow
+    # their list to one customer; operators otherwise see only sessions assigned
+    # to them.
+    if actor.role == Role.CUSTOMER.value:
         clauses.append(Vehicle.owner_id == uuid.UUID(actor.user_id))
+    elif actor.role == Role.VALET_OPERATOR.value:
+        if owner_id is not None:
+            # The check-in wizard selects a customer before listing their cars.
+            # Allow that explicitly scoped lookup so registered vehicles can
+            # be checked in before they have an assigned custody session.
+            clauses.append(Vehicle.owner_id == owner_id)
+        else:
+            actor_id = uuid.UUID(actor.user_id)
+            assigned_session = select(CustodySession.id).where(
+                    CustodySession.vehicle_id == Vehicle.id,
+                    or_(
+                        CustodySession.assigned_valet_id == actor_id,
+                        CustodySession.received_by_id == actor_id,
+                    ),
+                ).exists()
+            clauses.append(assigned_session)
     elif owner_id is not None:
+        if actor.role not in (Role.VALET_MANAGER.value, Role.ADMIN.value):
+            raise AuthorizationError("You are not permitted to list vehicles.")
         clauses.append(Vehicle.owner_id == owner_id)
+    elif actor.role not in (Role.VALET_MANAGER.value, Role.ADMIN.value):
+        raise AuthorizationError("You are not permitted to list vehicles.")
 
     if status:
         clauses.append(Vehicle.status == status)
@@ -186,10 +203,31 @@ def get_vehicle(actor: AuthContext, vehicle_id: uuid.UUID | str) -> Vehicle:
     vehicle = db.session.get(Vehicle, validate_uuid(vehicle_id, field="vehicle_id"))
     if vehicle is None:
         raise missing
-    if not is_staff(actor) and vehicle.owner_id != uuid.UUID(actor.user_id):
+    if actor.role == Role.CUSTOMER.value and vehicle.owner_id != uuid.UUID(actor.user_id):
         # Deliberately the same 404 as "does not exist": telling a customer
         # that a plate belongs to someone else would leak information.
         raise missing
+    if actor.role == Role.VALET_OPERATOR.value:
+        actor_id = uuid.UUID(actor.user_id)
+        assigned = db.session.execute(
+            select(CustodySession.id)
+            .where(
+                CustodySession.vehicle_id == vehicle.id,
+                or_(
+                    CustodySession.assigned_valet_id == actor_id,
+                    CustodySession.received_by_id == actor_id,
+                ),
+            )
+            .limit(1)
+        ).first()
+        if assigned is None:
+            raise missing
+    elif actor.role not in (
+        Role.CUSTOMER.value,
+        Role.VALET_MANAGER.value,
+        Role.ADMIN.value,
+    ):
+        raise AuthorizationError("You are not permitted to view vehicles.")
     return vehicle
 
 
@@ -315,6 +353,11 @@ def create_vehicle(actor: AuthContext, payload: dict[str, Any], *, actor_user: U
 
     owner = _resolve_owner(actor, payload)
 
+    tracking_method = str(payload.get("tracking_method") or "SIMULATED").upper()
+    gps_device_id = payload.get("gps_device_id")
+    if gps_device_id:
+        gps_device_id = str(gps_device_id).strip()[:64]
+
     vehicle = Vehicle(
         owner_id=owner.id,
         plate_number=plate_number[:PLATE_MAX_LENGTH],
@@ -325,6 +368,8 @@ def create_vehicle(actor: AuthContext, payload: dict[str, Any], *, actor_user: U
         color=color,
         notes=notes,
         status=str(VehicleStatus.REGISTERED),
+        tracking_method=tracking_method,
+        gps_device_id=gps_device_id,
     )
     db.session.add(vehicle)
     try:
@@ -355,6 +400,11 @@ def update_vehicle(
 ):
     """Edit a vehicle's details. Ownership may not be reassigned."""
     vehicle = get_vehicle(actor, vehicle_id)
+    if actor.role not in (
+        Role.CUSTOMER.value,
+        Role.ADMIN.value,
+    ):
+        raise AuthorizationError("Only the vehicle owner or an administrator may edit it.")
 
     if not isinstance(payload, dict):
         raise ValidationError("Request body must be a JSON object.")
@@ -409,6 +459,14 @@ def update_vehicle(
             )
         changes["status"] = requested
 
+    if "tracking_method" in payload:
+        changes["tracking_method"] = str(payload["tracking_method"]).upper()
+
+    if "gps_device_id" in payload:
+        changes["gps_device_id"] = (
+            str(payload["gps_device_id"]).strip()[:64] if payload["gps_device_id"] else None
+        )
+
     if not changes:
         raise ValidationError("No editable fields were provided.")
 
@@ -446,6 +504,13 @@ def archive_vehicle(
     for that car, and archiving it would hide it from the people watching it.
     """
     vehicle = get_vehicle(actor, vehicle_id)
+    if actor.role not in (
+        Role.CUSTOMER.value,
+        Role.ADMIN.value,
+    ):
+        raise AuthorizationError(
+            "Only the vehicle owner or an administrator may archive it."
+        )
 
     open_session = db.session.execute(
         select(CustodySession.id).where(
@@ -460,8 +525,40 @@ def archive_vehicle(
             details={"custody_session_id": str(open_session[0])},
         )
 
+    from models.valet_ticket import ValetTicket
+    open_ticket = db.session.execute(
+        select(ValetTicket.id).where(
+            ValetTicket.vehicle_id == vehicle.id,
+            ValetTicket.status.in_(["CREATED", "ISSUED"]),
+        )
+    ).first()
+    if open_ticket is not None:
+        raise ConflictError(
+            "This vehicle has an active ticket. Complete or cancel the "
+            "ticket before archiving it.",
+            details={"ticket_id": str(open_ticket[0])},
+        )
+
     if vehicle.status == VehicleStatus.ARCHIVED.value:
         raise ConflictError("This vehicle is already archived.")
+
+    # Unlink any paired GPS device so the hardware can be reassigned
+    from models.gps_device import GpsDevice
+    linked_devices = db.session.execute(
+        select(GpsDevice).where(GpsDevice.vehicle_id == vehicle.id)
+    ).scalars().all()
+    for dev in linked_devices:
+        dev.vehicle_id = None
+        dev.connection_status = "NOT_CONFIGURED"
+    vehicle.gps_device_id = None
+
+    # Clear any zone assigned vehicle pointer
+    from models.parking_zone import ParkingZone
+    zones = db.session.execute(
+        select(ParkingZone).where(ParkingZone.vehicle_id == vehicle.id)
+    ).scalars().all()
+    for z in zones:
+        z.vehicle_id = None
 
     vehicle.status = str(VehicleStatus.ARCHIVED)
     _audit(
@@ -473,7 +570,11 @@ def archive_vehicle(
         actor_context=actor,
         new_values={"status": vehicle.status},
     )
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
     return vehicle
 
 

@@ -353,7 +353,9 @@ describe('ValetDashboardPage confirmations', () => {
   })
 
   it('confirms before marking a vehicle ready, naming the car and customer', async () => {
-    vi.mocked(fetchStaffDashboard).mockResolvedValue(dashboard())
+    const data = dashboard()
+    data.active_vehicles.items = [row({ custody_status: 'RETRIEVAL_IN_PROGRESS' })]
+    vi.mocked(fetchStaffDashboard).mockResolvedValue(data)
     vi.mocked(moveVehicle).mockResolvedValue({ custody_session: {} })
     renderWithProviders(<ValetDashboardPage />, {
       token: buildToken({ role: 'VALET_OPERATOR' }),
@@ -383,7 +385,9 @@ describe('ValetDashboardPage confirmations', () => {
   })
 
   it('cancelling the dialog sends nothing', async () => {
-    vi.mocked(fetchStaffDashboard).mockResolvedValue(dashboard())
+    const data = dashboard()
+    data.active_vehicles.items = [row({ custody_status: 'RETRIEVAL_IN_PROGRESS' })]
+    vi.mocked(fetchStaffDashboard).mockResolvedValue(data)
     renderWithProviders(<ValetDashboardPage />, {
       token: buildToken({ role: 'VALET_OPERATOR' }),
     })
@@ -402,6 +406,54 @@ describe('ValetDashboardPage confirmations', () => {
       expect(screen.queryByText('Mark this vehicle ready?')).not.toBeInTheDocument()
     )
     expect(moveVehicle).not.toHaveBeenCalled()
+  })
+
+  it('does not offer Mark ready for a disputed custody session', async () => {
+    const data = dashboard()
+    data.active_vehicles.items = [row({ custody_status: 'DISPUTED', display_status: 'ALERT' })]
+    vi.mocked(fetchStaffDashboard).mockResolvedValue(data)
+    renderWithProviders(<ValetDashboardPage />, {
+      token: buildToken({ role: 'VALET_OPERATOR' }),
+    })
+
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: /review dispute/i })).toHaveAttribute(
+        'href',
+        '/condition/custody-1',
+      )
+    )
+    expect(screen.queryByRole('button', { name: /mark ready/i })).not.toBeInTheDocument()
+  })
+
+  it('shows the API conflict message and refreshes after a stale transition', async () => {
+    const data = dashboard()
+    data.active_vehicles.items = [row({ custody_status: 'RETRIEVAL_IN_PROGRESS' })]
+    vi.mocked(fetchStaffDashboard).mockResolvedValue(data)
+    const failure = new Error('Request failed with status code 409')
+    failure.response = {
+      status: 409,
+      data: {
+        error: {
+          code: 'CONFLICT',
+          message: 'Cannot move a session from DISPUTED to READY_FOR_PICKUP.',
+        },
+      },
+      headers: {},
+    }
+    vi.mocked(moveVehicle).mockRejectedValue(failure)
+    renderWithProviders(<ValetDashboardPage />, {
+      token: buildToken({ role: 'VALET_OPERATOR' }),
+    })
+
+    fireEvent.click(await screen.findByRole('button', { name: /mark ready/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /^confirm$/i }))
+
+    expect(
+      await screen.findByText('Cannot move a session from DISPUTED to READY_FOR_PICKUP.'),
+    ).toBeInTheDocument()
+    await waitFor(() =>
+      expect(fetchStaffDashboard.mock.calls.length).toBeGreaterThan(1)
+    )
   })
 
   it('confirms a completed pickup and warns it cannot be undone here', async () => {

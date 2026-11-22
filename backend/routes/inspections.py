@@ -167,6 +167,75 @@ def create_inspections_blueprint() -> Blueprint:
         )
         return ok(result)
 
+    @blueprint.patch("/detections/<detection_id>/notes")
+    @require_authentication
+    def annotate(detection_id: str):
+        """Annotate notes or severity on a candidate finding. Staff only."""
+        actor = current_user()
+        payload = json_payload()
+
+        notes = payload.get("notes")
+        if notes is None:
+            raise ValidationError(
+                "'notes' is required.",
+                details={"field": "notes"},
+            )
+
+        result = inspections.annotate_detection(
+            actor,
+            detection_id=validate_uuid(detection_id, field="detection_id"),
+            notes=str(notes),
+            severity=payload.get("severity"),
+        )
+        return ok(result)
+
+    @blueprint.post("/<custody_id>/dispute")
+    @require_authentication
+    def dispute(custody_id: str):
+        """Submit a dispute regarding condition report findings."""
+        actor = current_user()
+        payload = json_payload()
+
+        reason = payload.get("reason")
+        if not reason:
+            raise ValidationError(
+                "'reason' is required.",
+                details={"field": "reason"},
+            )
+
+        result = inspections.dispute_inspection(
+            actor,
+            custody_id=validate_uuid(custody_id, field="custody_id"),
+            reason=str(reason),
+            notes=payload.get("notes"),
+            disputed_detection_ids=payload.get("disputed_detection_ids"),
+        )
+        return ok(result)
+
+    @blueprint.post("/<custody_id>/resolve-dispute")
+    @require_authentication
+    def resolve_dispute(custody_id: str):
+        """Resolve a dispute and complete custody. Manager or administrator only."""
+        actor = current_user()
+        payload = json_payload()
+        result = inspections.resolve_dispute(
+            actor,
+            custody_id=validate_uuid(custody_id, field="custody_id"),
+            notes=payload.get("notes"),
+        )
+        return ok(result)
+
+    @blueprint.post("/<custody_id>/recompare")
+    @require_authentication
+    def recompare(custody_id: str):
+        """Re-run the condition comparison pipeline between drop-off and pickup."""
+        actor = current_user()
+        result = inspections.recompare_inspection(
+            actor,
+            custody_id=validate_uuid(custody_id, field="custody_id"),
+        )
+        return ok(result)
+
     @blueprint.get("/<custody_id>")
     @require_authentication
     def report(custody_id: str):

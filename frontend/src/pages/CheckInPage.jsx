@@ -247,7 +247,17 @@ export function CheckInPage() {
                   submitLabel="Register and select"
                   onSubmit={async (form) => {
                     const result = await createVehicle({ ...form, ownerId: customerId })
-                    queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+                    const vehicleQueryKey = ['vehicles', { ownerId: customerId }]
+                    queryClient.setQueryData(vehicleQueryKey, (current) => ({
+                      ...current,
+                      items: [
+                        ...(current?.items ?? []).filter(
+                          (vehicle) => vehicle.id !== result.vehicle.id,
+                        ),
+                        result.vehicle,
+                      ],
+                    }))
+                    queryClient.invalidateQueries({ queryKey: vehicleQueryKey })
                     setVehicleId(result.vehicle.id)
                     setRegisteringVehicle(false)
                   }}
@@ -416,6 +426,16 @@ export function CheckInPage() {
               <dl className="data-list">
                 <DataRow label="Customer" value={selectedCustomer?.full_name} />
                 <DataRow label="Vehicle" value={selectedVehicle?.plate_number} mono />
+                <DataRow
+                  label="Tracking"
+                  value={
+                    selectedVehicle?.tracking_method === 'REAL_GPS'
+                      ? `Hardware (${selectedVehicle.gps_device_id || 'Device linked'})`
+                      : selectedVehicle?.tracking_method === 'MOBILE_GPS'
+                        ? 'Mobile Browser GPS'
+                        : 'Demo / Simulated'
+                  }
+                />
                 <DataRow label="Zone" value={selectedZone?.name} />
                 <DataRow label="Photos" value={Object.values(photos).filter((p) => p?.ref).length} />
               </dl>

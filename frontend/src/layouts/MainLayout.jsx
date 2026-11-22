@@ -167,13 +167,20 @@ export function MainLayout() {
             <div className="topbar__user">
               {user ? (
                 <>
-                  <div className="topbar__avatar" aria-hidden="true">
-                    {initials || '?'}
-                  </div>
-                  <div className="topbar__identity">
-                    <strong>{user.email ?? 'Signed in'}</strong>
-                    <span className="muted">{ROLE_LABELS[user.role] ?? user.role}</span>
-                  </div>
+                  <NavLink
+                    to="/profile"
+                    className="topbar__identity-link"
+                    title="View Account Profile & Preferences"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <div className="topbar__avatar" aria-hidden="true">
+                      {initials || '?'}
+                    </div>
+                    <div className="topbar__identity">
+                      <strong>{user.email ?? 'Signed in'}</strong>
+                      <span className="muted">{ROLE_LABELS[user.role] ?? user.role}</span>
+                    </div>
+                  </NavLink>
                   <button type="button" className="btn btn--ghost" onClick={handleSignOut}>
                     Sign out
                   </button>
@@ -192,7 +199,6 @@ export function MainLayout() {
 
           <footer className="footer">
             <span>AI-Powered Valet Transparency and Vehicle Security Platform</span>
-            <span className="muted">Academic MVP · React + Flask + PostgreSQL + OpenCV</span>
           </footer>
         </div>
       </div>
@@ -213,7 +219,10 @@ function buildMenu(role) {
     {
       id: 'platform',
       label: 'Platform',
-      links: [{ to: '/status', label: 'System Status', icon: '◉', end: true }],
+      links: [
+        { to: '/profile', label: 'My Account', icon: '👤' },
+        { to: '/status', label: 'System Status', icon: '◉', end: true },
+      ],
     },
   ]
 
@@ -237,7 +246,19 @@ function buildMenu(role) {
     })
   }
 
-  if (role === 'VALET_OPERATOR' || role === 'VALET_MANAGER' || role === 'ADMIN') {
+  if (role === 'VALET_OPERATOR') {
+    groups.push({
+      id: 'operations',
+      label: 'Operations',
+      links: [
+        { to: '/valet', label: 'Valet Dashboard', icon: '⚙' },
+        { to: '/checkin', label: 'Vehicle Check-in', icon: '📷' },
+        { to: '/alerts', label: 'Security Alerts', icon: '⚠' },
+      ],
+    })
+  }
+
+  if (role === 'VALET_MANAGER' || role === 'ADMIN') {
     groups.push({
       id: 'operations',
       label: 'Operations',
@@ -246,15 +267,12 @@ function buildMenu(role) {
         { to: '/checkin', label: 'Vehicle Check-in', icon: '📷' },
       ],
     })
-  }
-
-  if (role === 'VALET_MANAGER' || role === 'ADMIN') {
     groups.push({
       id: 'oversight',
       label: 'Oversight',
       links: [
         { to: '/manager', label: 'Manager Dashboard', icon: '📊' },
-        { to: '/reports', label: 'Reports', icon: '📈' },
+        { to: '/alerts', label: 'Security Alerts', icon: '⚠' },
         { to: '/audit', label: 'Audit Log', icon: '🗒' },
       ],
     })

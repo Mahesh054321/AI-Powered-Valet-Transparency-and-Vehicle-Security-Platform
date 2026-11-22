@@ -14,6 +14,7 @@ import { ConditionReportPage } from '../pages/ConditionReportPage'
 import { InspectionCapturePage } from '../pages/InspectionCapturePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { ProfilePage } from '../pages/ProfilePage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { SystemStatusPage } from '../pages/SystemStatusPage'
 import { TicketDetailPage } from '../pages/TicketDetailPage'
@@ -27,6 +28,7 @@ import { VehicleDetailPage } from '../pages/VehicleDetailPage'
 import { VehicleListPage } from '../pages/VehicleListPage'
 import { VehicleRegisterPage } from '../pages/VehicleRegisterPage'
 import { ROLES } from '../utils/constants'
+import { useAuth } from '../hooks/useAuth'
 import { RequireAuth } from './RequireAuth'
 import { RequireRole } from './RequireRole'
 
@@ -38,7 +40,6 @@ export const ROUTES = [
     icon: '◉',
     roles: null, // visible to every signed-in role
     element: <SystemStatusPage />,
-    phase: null,
   },
   {
     path: '/dashboard',
@@ -46,7 +47,6 @@ export const ROUTES = [
     icon: '▤',
     roles: [ROLES.CUSTOMER],
     element: <CustomerDashboardPage />,
-    phase: null,
   },
   {
     path: '/vehicles',
@@ -54,7 +54,6 @@ export const ROUTES = [
     icon: '🚗',
     roles: [ROLES.CUSTOMER],
     element: <VehicleListPage />,
-    phase: null,
   },
   {
     path: '/tickets',
@@ -62,7 +61,6 @@ export const ROUTES = [
     icon: '🎫',
     roles: null, // a valet needs to find the ticket they just issued
     element: <TicketListPage />,
-    phase: null,
   },
   {
     path: '/tracking',
@@ -74,7 +72,6 @@ export const ROUTES = [
     // alert about a vehicle they may have driven.
     roles: null,
     element: <TrackingPage />,
-    phase: null,
   },
   {
     path: '/valet',
@@ -82,7 +79,6 @@ export const ROUTES = [
     icon: '⚙',
     roles: [ROLES.VALET_OPERATOR, ROLES.VALET_MANAGER, ROLES.ADMIN],
     element: <ValetDashboardPage />,
-    phase: null,
   },
   {
     path: '/checkin',
@@ -90,7 +86,6 @@ export const ROUTES = [
     icon: '📷',
     roles: [ROLES.VALET_OPERATOR, ROLES.VALET_MANAGER, ROLES.ADMIN],
     element: <CheckInPage />,
-    phase: null,
   },
   {
     path: '/condition',
@@ -98,7 +93,6 @@ export const ROUTES = [
     icon: '🔍',
     roles: [ROLES.VALET_OPERATOR, ROLES.VALET_MANAGER, ROLES.ADMIN],
     element: <InspectionCapturePage />,
-    phase: null,
   },
   {
     path: '/alerts',
@@ -108,7 +102,6 @@ export const ROUTES = [
     // which ones. Gating the route would only hide the page, not the data.
     roles: null,
     element: <AlertsPage />,
-    phase: null,
   },
   {
     path: '/manager',
@@ -116,15 +109,6 @@ export const ROUTES = [
     icon: '📊',
     roles: [ROLES.VALET_MANAGER, ROLES.ADMIN],
     element: <ManagerDashboardPage />,
-    phase: null,
-  },
-  {
-    path: '/reports',
-    label: 'Reports',
-    icon: '📈',
-    roles: [ROLES.VALET_MANAGER, ROLES.ADMIN],
-    element: null,
-    phase: 'Phase 10',
   },
   {
     path: '/audit',
@@ -132,13 +116,20 @@ export const ROUTES = [
     icon: '🗒',
     roles: [ROLES.VALET_MANAGER, ROLES.ADMIN],
     element: <AuditLogPage />,
-    phase: 'Phase 12',
   },
 ]
 
 /** True when a route should appear in the menu for the given role. */
 export function isRouteVisibleTo(route, role) {
   return route.roles === null || (role != null && route.roles.includes(role))
+}
+
+function RoleHome() {
+  const { role } = useAuth()
+  if (role === ROLES.CUSTOMER) return <Navigate to="/dashboard" replace />
+  if (role === ROLES.VALET_OPERATOR) return <Navigate to="/valet" replace />
+  if (role === ROLES.VALET_MANAGER || role === ROLES.ADMIN) return <Navigate to="/manager" replace />
+  return <Navigate to="/status" replace />
 }
 
 export function AppRoutes() {
@@ -159,7 +150,10 @@ export function AppRoutes() {
           </RequireAuth>
         }
       >
-        <Route index element={<Navigate to="/status" replace />} />
+        <Route index element={<RoleHome />} />
+
+        {/* Profile / Account Settings */}
+        <Route path="/profile" element={<ProfilePage />} />
 
         {/* Detail routes are not menu entries, so they live outside the
             ROUTES table but still behind the same guards. */}
@@ -174,7 +168,14 @@ export function AppRoutes() {
         <Route
           path="/vehicles/:id"
           element={
-            <RequireRole roles={[ROLES.CUSTOMER]}>
+            <RequireRole
+              roles={[
+                ROLES.CUSTOMER,
+                ROLES.VALET_OPERATOR,
+                ROLES.VALET_MANAGER,
+                ROLES.ADMIN,
+              ]}
+            >
               <VehicleDetailPage />
             </RequireRole>
           }
@@ -183,11 +184,9 @@ export function AppRoutes() {
         {/* The report is readable by the customer who owns the vehicle as well
             as by staff, so it is not role-gated here; the backend decides. */}
         <Route path="/condition/:custodyId" element={<ConditionReportPage />} />
-        {/* Tracking a specific custody session. `/alerts` opens the same
-            dashboard, because security alerts are part of the tracking view
-            rather than a separate screen. */}
+        <Route path="/inspections/:custodyId" element={<ConditionReportPage />} />
+        {/* Tracking a specific custody session. */}
         <Route path="/tracking/:custodyId" element={<TrackingPage />} />
-        <Route path="/alerts" element={<TrackingPage />} />
 
         {ROUTES.filter((route) => route.path !== '/status').map((route) => (
           <Route
@@ -195,7 +194,7 @@ export function AppRoutes() {
             path={route.path}
             element={
               <RequireRole roles={route.roles}>
-                {route.element ?? <ComingSoon title={route.label} phase={route.phase} />}
+                {route.element}
               </RequireRole>
             }
           />
@@ -204,26 +203,6 @@ export function AppRoutes() {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
-  )
-}
-
-/**
- * Honest placeholder for a screen whose module has not been built yet.
- * It never renders fake data.
- */
-function ComingSoon({ title, phase }) {
-  return (
-    <section className="panel">
-      <header className="panel__header">
-        <h2>{title}</h2>
-        {phase && <span className="badge badge--muted">{phase}</span>}
-      </header>
-      <p className="muted">
-        This screen is on the roadmap but is not implemented yet. The platform is delivered
-        incrementally, module by module, so navigation only exposes screens that actually talk to
-        the API.
-      </p>
-    </section>
   )
 }
 

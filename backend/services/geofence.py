@@ -52,6 +52,7 @@ from models.enums import (
     MovementStatus,
     TelemetrySource,
     ZoneStatus,
+    ZoneType,
     validate_status,
 )
 from models.gps_event import GpsEvent
@@ -228,14 +229,14 @@ def _effective_radius(zone: ParkingZone) -> float:
 
 
 def _resolve_zone(
-    session: CustodySession, explicit_zone_id: uuid.UUID | str | None
+    session: CustodySession | None,
+    explicit_zone_id: uuid.UUID | str | None,
+    vehicle_id: uuid.UUID | None = None,
 ) -> ParkingZone | None:
     """The zone a fix should be judged against.
 
     Resolution is explicit: an override wins, otherwise the zone the custody
-    session was assigned. There is no "nearest zone" fallback, because guessing
-    which boundary a vehicle was supposed to stay inside would make the verdict
-    depend on something the reviewer cannot see.
+    session was assigned, followed by any active safe zone assigned to the vehicle.
     """
     if explicit_zone_id is not None:
         zone = db.session.get(ParkingZone, explicit_zone_id)
@@ -245,14 +246,33 @@ def _resolve_zone(
                 details={"zone_id": str(explicit_zone_id)},
             )
         return zone
-    return session.zone
+    if session and session.zone:
+        return session.zone
+    v_id = session.vehicle_id if session else vehicle_id
+    if v_id:
+        active_safe_zone = db.session.execute(
+            select(ParkingZone)
+            .where(
+                ParkingZone.vehicle_id == v_id,
+                ParkingZone.status == ZoneStatus.ACTIVE.value,
+            )
+            .order_by(ParkingZone.created_at.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+        if active_safe_zone:
+            return active_safe_zone
+    return None
 
 
 def _engine_config(zone: ParkingZone | None) -> engine.GeofenceConfig:
-    buffer_metres = float(zone.buffer_metres) if zone is not None else 25.0
+    buffer_metres = float(zone.buffer_metres) if (zone and zone.buffer_metres is not None) else 25.0
+    rules = (zone.rules or {}) if (zone and zone.rules) else {}
     return engine.GeofenceConfig(
         buffer_metres=buffer_metres,
-        zone_speed_limit_kmph=DEFAULT_ZONE_SPEED_LIMIT_KMPH,
+        zone_speed_limit_kmph=float(rules.get("speed_limit_kmph", DEFAULT_ZONE_SPEED_LIMIT_KMPH)),
+        consecutive_readings_required=int(rules.get("consecutive_readings_required", 2)),
+        max_uncertain_accuracy_metres=float(rules.get("max_uncertain_accuracy_metres", 35.0)),
+        parked_movement_distance_metres=float(rules.get("parked_movement_distance_metres", 15.0)),
     )
 
 
@@ -500,13 +520,55 @@ def _normalise_fix_payload(payload: dict[str, Any]) -> dict[str, Any]:
     consistent naming.
     """
     custody_id = payload.get("custody_session_id") or payload.get("custody_id")
+    vehicle_id_raw = payload.get("vehicle_id")
+
     if custody_id in (None, ""):
-        raise ValidationError(
-            "'custody_id' is required.",
-            details={"field": "custody_id", "missing_fields": ["custody_id"]},
-        )
+        if vehicle_id_raw:
+            from models.custody_session import CustodySession
+            from models.enums import CustodyStatus
+            v_uuid = validate_uuid(vehicle_id_raw, field="vehicle_id")
+            active_session = db.session.execute(
+                select(CustodySession)
+                .where(
+                    CustodySession.vehicle_id == v_uuid,
+                    CustodySession.status.in_([
+                        CustodyStatus.CHECKED_IN.value,
+                        CustodyStatus.PARKED.value,
+                        CustodyStatus.IN_TRANSIT.value,
+                        CustodyStatus.RETRIEVAL_REQUESTED.value,
+                        CustodyStatus.RETRIEVAL_IN_PROGRESS.value,
+                        CustodyStatus.READY_FOR_PICKUP.value,
+                    ]),
+                )
+                .order_by(CustodySession.created_at.desc())
+                .limit(1)
+            ).scalar_one_or_none()
+            if active_session:
+                custody_id = str(active_session.id)
+            else:
+                raise ValidationError(
+                    "'custody_id' is required or vehicle must have an active custody session.",
+                    details={"field": "custody_id", "missing_fields": ["custody_id"]},
+                )
+        else:
+            raise ValidationError(
+                "'custody_id' is required.",
+                details={"field": "custody_id", "missing_fields": ["custody_id"]},
+            )
+
+    sensor_data = dict(payload.get("sensor_data") or {})
+    sensor_keys = ("tamper_triggered", "ignition", "door_open", "shock_detected", "power_connected", "device_attached")
+    for k in sensor_keys:
+        if k in payload and k not in sensor_data:
+            sensor_data[k] = payload[k]
+
     return {
         "custody_session_id": validate_uuid(custody_id, field="custody_id"),
+        "vehicle_id": (
+            validate_uuid(vehicle_id_raw, field="vehicle_id")
+            if vehicle_id_raw
+            else None
+        ),
         "latitude": validate_latitude(payload.get("latitude")),
         "longitude": validate_longitude(payload.get("longitude")),
         "speed_kmph": _optional_float(
@@ -515,10 +577,14 @@ def _normalise_fix_payload(payload: dict[str, Any]) -> dict[str, Any]:
             minimum=0.0,
         ),
         "heading_degrees": _optional_float(
-            payload.get("heading_degrees"), field="heading_degrees", minimum=0.0
+            payload.get("heading_degrees", payload.get("heading")),
+            field="heading_degrees",
+            minimum=0.0,
         ),
         "accuracy_metres": _optional_float(
-            payload.get("accuracy_metres"), field="accuracy_metres", minimum=0.0
+            payload.get("accuracy_metres", payload.get("accuracy")),
+            field="accuracy_metres",
+            minimum=0.0,
         ),
         "recorded_at": _parse_timestamp(
             payload.get("recorded_at", payload.get("timestamp")), field="recorded_at"
@@ -533,6 +599,9 @@ def _normalise_fix_payload(payload: dict[str, Any]) -> dict[str, Any]:
             if payload.get("device_id")
             else None
         ),
+        "sensor_data": sensor_data,
+        "boundary_state": payload.get("boundary_state"),
+        "is_parked": bool(payload.get("is_parked")),
     }
 
 
@@ -581,12 +650,17 @@ def ingest_fix(
     commit: bool = True,
 ) -> dict[str, Any]:
     """Record one position fix, classify it, and raise any alerts it triggers."""
-    _require_role(actor, TELEMETRY_ROLES, action="record GPS telemetry")
     validate_status(source, TelemetrySource, field="source")
     normalised = _normalise_fix_payload(payload)
     session = _load_session(normalised["custody_session_id"])
 
-    zone = _resolve_zone(session, normalised["zone_id"])
+    # If submitting MOBILE_GPS, allow customer tracking their own car, or staff.
+    if source == TelemetrySource.MOBILE_GPS.value:
+        _require_tracking_access(actor, session)
+    else:
+        _require_role(actor, TELEMETRY_ROLES, action="record GPS telemetry")
+
+    zone = _resolve_zone(session, normalised["zone_id"], vehicle_id=session.vehicle_id)
     recorded_at = normalised["recorded_at"] or _now()
     now = _now()
     skew = (recorded_at - now).total_seconds()
@@ -615,9 +689,12 @@ def ingest_fix(
         zone_radius_metres=_effective_radius(zone) if zone is not None else None,
         speed_kmph=normalised["speed_kmph"],
         heading_degrees=normalised["heading_degrees"],
+        accuracy_metres=normalised["accuracy_metres"],
         recorded_at=recorded_at,
         prior_fixes=priors,
-        movement_expected=session.status in MOVEMENT_EXPECTED_STATUSES,
+        is_parked=bool(normalised.get("is_parked") or (normalised.get("sensor_data") and normalised["sensor_data"].get("is_parked"))),
+        movement_expected=(session.status in MOVEMENT_EXPECTED_STATUSES),
+        sensor_data=normalised["sensor_data"],
         config=config,
     )
 
@@ -640,6 +717,7 @@ def ingest_fix(
 
     event = GpsEvent(
         custody_session_id=session.id,
+        vehicle_id=session.vehicle_id,
         recorded_at=recorded_at,
         latitude=normalised["latitude"],
         longitude=normalised["longitude"],
@@ -650,8 +728,10 @@ def ingest_fix(
         device_id=device_id or normalised["device_id"],
         zone_id=zone.id if zone is not None else None,
         is_within_zone=verdict.is_within_zone,
+        boundary_state=verdict.boundary_state,
         distance_from_zone_metres=verdict.distance_from_boundary_metres,
         movement_status=verdict.status,
+        sensor_data=normalised["sensor_data"],
         ml_classification=opinion.classification if opinion is not None else None,
         ml_probability=opinion.probability if opinion is not None else None,
         ml_model_version=opinion.model_version if opinion is not None else None,
@@ -664,6 +744,36 @@ def ingest_fix(
     )
     if commit:
         db.session.commit()
+
+        # Real-time streaming publication to SSE clients
+        try:
+            from services.streaming import broadcaster
+            topic = str(session.id)
+            fix_repr = fix_dict(event)
+            stream_payload = {
+                "custody_session_id": str(session.id),
+                "vehicle_id": str(session.vehicle_id) if session.vehicle_id else None,
+                "fix": fix_repr,
+                "latest_fix": fix_repr,
+                "movement_status": verdict.status,
+                "boundary_state": verdict.boundary_state,
+                "freshness": fix_repr.get("freshness", "LIVE"),
+                "alerts_raised": [alert_dict(a) for a in alerts],
+                "last_updated_at": recorded_at.isoformat(),
+            }
+            broadcaster.publish(topic, "location", stream_payload)
+            if session.vehicle_id:
+                broadcaster.publish(str(session.vehicle_id), "location", stream_payload)
+
+            for alert in alerts:
+                alert_repr = alert_dict(alert)
+                broadcaster.publish(topic, "alert", alert_repr)
+                if session.vehicle_id:
+                    broadcaster.publish(str(session.vehicle_id), "alert", alert_repr)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Streaming broadcast failed: %s", exc)
+
+
 
     return {
         "gps_event": fix_dict(event),
@@ -860,9 +970,103 @@ def simulate_track(
 # ---------------------------------------------------------------------------
 # Serialisation
 # ---------------------------------------------------------------------------
+def _sensor_summary(sensor_data: dict | None) -> dict[str, Any]:
+    """Provide sensor telemetry summary with clear hardware diagnostics and missing sensor indications."""
+    specs = {
+        "ignition": {
+            "name": "Ignition Status",
+            "supported": bool(sensor_data and "ignition" in sensor_data),
+            "state": (
+                ("ON" if sensor_data.get("ignition") else "OFF")
+                if sensor_data and "ignition" in sensor_data
+                else "UNAVAILABLE"
+            ),
+            "value": sensor_data.get("ignition") if sensor_data else None,
+            "required_hardware": "Hardwired accessory wire or OBD-II CAN bus adapter",
+        },
+        "power": {
+            "name": "External Power & Backup Battery",
+            "supported": bool(sensor_data and "power_connected" in sensor_data),
+            "state": (
+                ("MAIN_POWER" if sensor_data.get("power_connected", True) else "BATTERY_DISCONNECT")
+                if sensor_data and "power_connected" in sensor_data
+                else "UNAVAILABLE"
+            ),
+            "value": sensor_data.get("power_connected") if sensor_data else None,
+            "required_hardware": "Physical tracker with internal backup battery and 12V lead",
+        },
+        "tamper": {
+            "name": "Enclosure Tamper Switch",
+            "supported": bool(sensor_data and "tamper_triggered" in sensor_data),
+            "state": (
+                ("TAMPER_ALERT" if sensor_data.get("tamper_triggered") else "SECURE")
+                if sensor_data and "tamper_triggered" in sensor_data
+                else "UNAVAILABLE"
+            ),
+            "value": sensor_data.get("tamper_triggered") if sensor_data else None,
+            "required_hardware": "Optical / microswitch enclosure tamper sensor",
+        },
+        "shock": {
+            "name": "Vibration & Shock Sensor",
+            "supported": bool(sensor_data and "shock_detected" in sensor_data),
+            "state": (
+                ("SHOCK_DETECTED" if sensor_data.get("shock_detected") else "NORMAL")
+                if sensor_data and "shock_detected" in sensor_data
+                else "UNAVAILABLE"
+            ),
+            "value": sensor_data.get("shock_detected") if sensor_data else None,
+            "required_hardware": "Built-in 3-axis accelerometer with shock interrupt",
+        },
+        "door": {
+            "name": "Door Contact Switch",
+            "supported": bool(sensor_data and "door_open" in sensor_data),
+            "state": (
+                ("DOOR_OPEN" if sensor_data.get("door_open") else "CLOSED")
+                if sensor_data and "door_open" in sensor_data
+                else "UNAVAILABLE"
+            ),
+            "value": sensor_data.get("door_open") if sensor_data else None,
+            "required_hardware": "Vehicle CAN bus integration or magnetic door switch",
+        },
+        "mount": {
+            "name": "Device Mount Attachment",
+            "supported": bool(sensor_data and "device_attached" in sensor_data),
+            "state": (
+                ("ATTACHED" if sensor_data.get("device_attached", True) else "REMOVED")
+                if sensor_data and "device_attached" in sensor_data
+                else "UNAVAILABLE"
+            ),
+            "value": sensor_data.get("device_attached") if sensor_data else None,
+            "required_hardware": "OBD-II port lock detector or magnetic base removal sensor",
+        },
+    }
+    has_any = bool(sensor_data and any(k in sensor_data for k in specs))
+    return {
+        "supported": has_any,
+        "diagnostics_status": "ACTIVE_TELEMETRY" if has_any else "UNAVAILABLE",
+        "diagnostic_message": (
+            "Hardware sensor telemetry active from onboard tracker."
+            if has_any
+            else "Hardware telemetry unavailable for this source. Physical GPS tracker required for physical tampering signals."
+        ),
+        "sensors": specs,
+        "tamper_triggered": bool(sensor_data and sensor_data.get("tamper_triggered")),
+        "power_connected": bool(sensor_data.get("power_connected", True)) if sensor_data else True,
+        "ignition": bool(sensor_data and sensor_data.get("ignition")),
+        "shock_detected": bool(sensor_data and sensor_data.get("shock_detected")),
+        "door_open": bool(sensor_data and sensor_data.get("door_open")),
+    }
+
+
 def fix_dict(event: GpsEvent, *, note: str | None = None) -> dict[str, Any]:
     payload = event.to_dict()
     payload["is_simulated"] = event.is_simulated
+    if event.recorded_at:
+        accuracy = float(event.accuracy_metres) if event.accuracy_metres is not None else None
+        payload["freshness"] = engine.classify_freshness(event.recorded_at, accuracy)
+    else:
+        payload["freshness"] = engine.FRESHNESS_OFFLINE
+    payload["boundary_state"] = event.boundary_state or ("INSIDE" if event.is_within_zone else "OUTSIDE")
     if note is not None:
         payload["note"] = note
     return payload
@@ -971,26 +1175,94 @@ def tracking_view(custody_id: uuid.UUID | str, actor: AuthContext) -> dict[str, 
         .all()
     )
 
+    phone_row = next((r for r in rows if r.source == TelemetrySource.MOBILE_GPS.value), None)
+    vehicle_row = next(
+        (
+            r
+            for r in rows
+            if r.source
+            in {
+                TelemetrySource.VEHICLE_GPS.value,
+                TelemetrySource.HARDWARE.value,
+                TelemetrySource.REAL_GPS.value,
+                TelemetrySource.SIMULATED.value,
+                TelemetrySource.MANUAL.value,
+                TelemetrySource.MOBILE_GPS.value,
+                TelemetrySource.CAR_GPS.value,
+            }
+        ),
+        None,
+    )
+
+    freshness = (
+        engine.classify_freshness(
+            latest.recorded_at,
+            float(latest.accuracy_metres) if latest.accuracy_metres is not None else None,
+        )
+        if latest
+        else engine.FRESHNESS_OFFLINE
+    )
+
+    sensor_summary = _sensor_summary(
+        vehicle_row.sensor_data
+        if vehicle_row and vehicle_row.sensor_data
+        else (latest.sensor_data if latest and latest.sensor_data else None)
+    )
+
     has_simulated = TelemetrySource.SIMULATED.value in sources
-    has_hardware = TelemetrySource.HARDWARE.value in sources
+    has_hardware = (
+        TelemetrySource.HARDWARE.value in sources
+        or TelemetrySource.VEHICLE_GPS.value in sources
+        or TelemetrySource.CAR_GPS.value in sources
+        or TelemetrySource.REAL_GPS.value in sources
+    )
+    vehicle_info = None
+    gps_device_info = None
+    tracking_method = "SIMULATED"
+    if session.vehicle:
+        from models.gps_device import GpsDevice
+
+        tracking_method = session.vehicle.tracking_method or "SIMULATED"
+        device = None
+        if session.vehicle.gps_device_id:
+            device = db.session.execute(
+                select(GpsDevice).where(GpsDevice.device_id == session.vehicle.gps_device_id)
+            ).scalar_one_or_none()
+        if device:
+            gps_device_info = {
+                "device_id": device.device_id,
+                "provider_name": device.provider_name,
+                "connection_status": device.connection_status,
+                "last_successful_update": (
+                    device.last_successful_update.isoformat()
+                    if device.last_successful_update
+                    else None
+                ),
+            }
+        vehicle_info = {
+            "id": str(session.vehicle.id),
+            "plate_number": session.vehicle.plate_number,
+            "make": session.vehicle.make,
+            "model": session.vehicle.model,
+            "color": session.vehicle.color,
+            "tracking_method": tracking_method,
+            "gps_device_id": session.vehicle.gps_device_id,
+        }
+
     return {
         "custody_session_id": str(session.id),
         "custody_status": session.status,
         "retrieval_active": session.status in RETRIEVAL_STATUSES,
         "movement_expected": session.status in MOVEMENT_EXPECTED_STATUSES,
-        "vehicle": (
-            {
-                "id": str(session.vehicle.id),
-                "plate_number": session.vehicle.plate_number,
-                "make": session.vehicle.make,
-                "model": session.vehicle.model,
-                "color": session.vehicle.color,
-            }
-            if session.vehicle
-            else None
-        ),
+        "vehicle": vehicle_info,
+        "tracking_method": tracking_method,
+        "gps_device": gps_device_info,
         "zone": zone_dict(zone) if zone else None,
         "latest_fix": fix_dict(latest) if latest else None,
+        "phone_fix": fix_dict(phone_row) if phone_row else None,
+        "vehicle_fix": fix_dict(vehicle_row) if vehicle_row else (fix_dict(latest) if latest else None),
+        "freshness": freshness,
+        "sensors": sensor_summary,
         "last_updated_at": latest.recorded_at.isoformat() if latest else None,
         "movement_status": latest.movement_status if latest else None,
         "fix_count": len(ordered),
@@ -1067,22 +1339,102 @@ def _validated_radius(value: Any, *, field: str = "radius") -> float:
     return radius
 
 
+def preview_geofence(payload: dict[str, Any], actor: AuthContext | None = None) -> dict[str, Any]:
+    """Calculate and preview a safe boundary geometry without saving it."""
+    zone_type = str(payload.get("zone_type") or ZoneType.CIRCLE.value).upper()
+    lat = validate_latitude(payload.get("latitude"))
+    lon = validate_longitude(payload.get("longitude"))
+
+    if zone_type == ZoneType.RECTANGLE.value:
+        length = _optional_float(payload.get("length_metres"), field="length_metres", minimum=1.0) or 100.0
+        width = _optional_float(payload.get("width_metres"), field="width_metres", minimum=1.0) or 50.0
+        orient = _optional_float(payload.get("orientation_degrees"), field="orientation_degrees") or 0.0
+        ring = engine.rectangular_ring(lat, lon, length, width, orient)
+        effective_radius = (length ** 2 + width ** 2) ** 0.5 / 2.0
+        area = length * width
+    elif zone_type == ZoneType.POLYGON.value and payload.get("geofence_polygon"):
+        ring = _validated_polygon(payload["geofence_polygon"])
+        effective_radius = max(
+            (engine.haversine_m(lat, lon, v[1], v[0]) for v in ring),
+            default=0.0,
+        )
+        area = 3.14159 * (effective_radius ** 2)
+    else:
+        radius = _validated_radius(payload.get("radius") or payload.get("radius_metres", 50.0))
+        ring = engine.circular_ring(lat, lon, radius)
+        effective_radius = radius
+        area = 3.14159 * (radius ** 2)
+
+    buffer_m = _optional_float(payload.get("buffer_metres"), field="buffer_metres", minimum=0.0) or 25.0
+    return {
+        "zone_type": zone_type,
+        "centre": {"latitude": round(lat, 6), "longitude": round(lon, 6)},
+        "effective_radius_metres": round(effective_radius, 1),
+        "estimated_area_sq_metres": round(area, 1),
+        "geofence_polygon": ring,
+        "buffer_metres": buffer_m,
+    }
+
+
 def create_geofence(payload: dict[str, Any], actor: AuthContext) -> dict[str, Any]:
     """Create a parking zone and its geofence.
 
-    Accepts the brief's ``centre + radius`` description and generates a circular
-    ring into ``geofence_polygon``, so the API matches the specification while
-    the stored shape stays a polygon and one point-in-polygon test serves both
-    this and an irregular real-world yard. An explicit ``geofence_polygon``
-    overrides the generated circle.
+    Accepts circular (centre + radius), rectangular (dimensions + orientation),
+    or arbitrary polygon definitions. Supports customer-defined vehicle safe zones
+    with multi-tenant isolation.
     """
-    _require_role(actor, GEOFENCE_ROLES, action="create a geofence")
+    vehicle = None
+    vehicle_id_raw = payload.get("vehicle_id")
+    if vehicle_id_raw:
+        from models.vehicle import Vehicle
+        v_id = validate_uuid(vehicle_id_raw, field="vehicle_id")
+        vehicle = db.session.get(Vehicle, v_id)
+        if vehicle is None:
+            raise NotFoundError("No vehicle was found with that id.", details={"vehicle_id": str(v_id)})
+        if actor.role == Role.CUSTOMER.value and str(vehicle.owner_id) != actor.user_id:
+            raise AuthorizationError("Customers may only create safe zones for their own vehicles.")
+    else:
+        _require_role(actor, GEOFENCE_ROLES, action="create a geofence")
 
     code = validate_text(payload.get("code"), field="code", max_length=32).upper()
     name = validate_text(payload.get("name"), field="name", max_length=80)
     latitude = validate_latitude(payload.get("latitude"))
     longitude = validate_longitude(payload.get("longitude"))
-    radius = _validated_radius(payload.get("radius"))
+
+    zone_type = str(payload.get("zone_type") or ZoneType.POLYGON.value).upper()
+    if zone_type not in [item.value for item in ZoneType]:
+        zone_type = ZoneType.POLYGON.value
+
+    length_metres = None
+    width_metres = None
+    orientation_degrees = None
+    radius = None
+
+    if zone_type == ZoneType.RECTANGLE.value:
+        length_metres = _optional_float(payload.get("length_metres"), field="length_metres", minimum=1.0) or 100.0
+        width_metres = _optional_float(payload.get("width_metres"), field="width_metres", minimum=1.0) or 50.0
+        orientation_degrees = _optional_float(payload.get("orientation_degrees"), field="orientation_degrees") or 0.0
+        ring = (
+            _validated_polygon(payload["geofence_polygon"])
+            if payload.get("geofence_polygon")
+            else engine.rectangular_ring(latitude, longitude, length_metres, width_metres, orientation_degrees)
+        )
+        radius = (length_metres ** 2 + width_metres ** 2) ** 0.5 / 2.0
+    elif zone_type == ZoneType.CIRCLE.value:
+        radius = _validated_radius(payload.get("radius") or payload.get("radius_metres", 50.0))
+        ring = (
+            _validated_polygon(payload["geofence_polygon"])
+            if payload.get("geofence_polygon")
+            else engine.circular_ring(latitude, longitude, radius)
+        )
+    else:
+        # POLYGON
+        if payload.get("geofence_polygon"):
+            ring = _validated_polygon(payload["geofence_polygon"])
+            radius = _optional_float(payload.get("radius"), field="radius", minimum=0.0)
+        else:
+            radius = _validated_radius(payload.get("radius"))
+            ring = engine.circular_ring(latitude, longitude, radius)
 
     existing = db.session.execute(
         select(ParkingZone).where(func.upper(ParkingZone.code) == code)
@@ -1093,11 +1445,6 @@ def create_geofence(payload: dict[str, Any], actor: AuthContext) -> dict[str, An
             details={"field": "code", "code": code},
         )
 
-    ring = (
-        _validated_polygon(payload["geofence_polygon"])
-        if payload.get("geofence_polygon")
-        else engine.circular_ring(latitude, longitude, radius)
-    )
     buffer_metres = _optional_float(
         payload.get("buffer_metres"), field="buffer_metres", minimum=0.0
     )
@@ -1114,6 +1461,13 @@ def create_geofence(payload: dict[str, Any], actor: AuthContext) -> dict[str, An
             details={"field": "capacity", "received": capacity_value},
         )
 
+    custody_session_id = (
+        validate_uuid(payload["custody_session_id"], field="custody_session_id")
+        if payload.get("custody_session_id")
+        else None
+    )
+    rules = payload.get("rules") if isinstance(payload.get("rules"), dict) else {}
+
     zone = ParkingZone(
         code=code,
         name=name,
@@ -1122,11 +1476,19 @@ def create_geofence(payload: dict[str, Any], actor: AuthContext) -> dict[str, An
             if payload.get("description")
             else None
         ),
+        zone_type=zone_type,
         geofence_polygon=ring,
         centre_latitude=latitude,
         centre_longitude=longitude,
         radius_metres=radius,
+        length_metres=length_metres,
+        width_metres=width_metres,
+        orientation_degrees=orientation_degrees,
         buffer_metres=buffer_metres if buffer_metres is not None else 25.0,
+        vehicle_id=vehicle.id if vehicle else None,
+        custody_session_id=custody_session_id,
+        rules=rules,
+        created_by_id=uuid.UUID(actor.user_id),
         capacity=capacity_value,
         current_occupancy=0,
         status=ZoneStatus.ACTIVE.value,
@@ -1135,13 +1497,13 @@ def create_geofence(payload: dict[str, Any], actor: AuthContext) -> dict[str, An
     db.session.flush()
 
     _audit(
-        action="GEOFENCE_CONFIGURED",
+        action=AuditAction.SAFE_ZONE_CREATED.value if vehicle else "GEOFENCE_CONFIGURED",
         outcome=AuditOutcome.SUCCESS.value,
         entity_type="parking_zones",
         entity_id=zone.id,
         description=(
-            f"Created geofence '{zone.code}' at ({latitude}, {longitude}) with a "
-            f"{radius:.0f} m radius and a {zone.buffer_metres} m tolerance."
+            f"Created {zone_type} geofence '{zone.code}' at ({latitude}, {longitude}) with a "
+            f"{(radius or 0):.0f} m radius and a {zone.buffer_metres} m tolerance."
         ),
         actor=actor,
         new_values={
@@ -1167,12 +1529,19 @@ def update_geofence(
     a boundary retroactively changes what every future fix means, which is a
     security-relevant act rather than housekeeping.
     """
-    _require_role(actor, GEOFENCE_ROLES, action="modify a geofence")
     zone = db.session.get(ParkingZone, validate_uuid(zone_id, field="zone_id"))
     if zone is None:
         raise NotFoundError(
             "No parking zone was found with that id.", details={"zone_id": str(zone_id)}
         )
+
+    if actor.role == Role.CUSTOMER.value:
+        if zone.created_by_id != uuid.UUID(actor.user_id) and not (
+            zone.vehicle and str(zone.vehicle.owner_id) == actor.user_id
+        ):
+            raise AuthorizationError("Customers may only modify their own safe zones.")
+    else:
+        _require_role(actor, GEOFENCE_ROLES, action="modify a geofence")
 
     changed: dict[str, Any] = {}
     if payload.get("name"):
@@ -1193,9 +1562,34 @@ def update_geofence(
             str(payload["status"]).upper(), ZoneStatus, field="status"
         )
         changed["status"] = zone.status
+    if "rules" in payload and isinstance(payload["rules"], dict):
+        zone.rules = payload["rules"]
+        changed["rules"] = zone.rules
+    if "vehicle_id" in payload:
+        zone.vehicle_id = (
+            validate_uuid(payload["vehicle_id"], field="vehicle_id")
+            if payload["vehicle_id"]
+            else None
+        )
+        changed["vehicle_id"] = str(zone.vehicle_id) if zone.vehicle_id else None
 
     geometry_changed = False
-    if payload.get("latitude") is not None or payload.get("longitude") is not None:
+    new_type = str(payload.get("zone_type") or zone.zone_type or ZoneType.POLYGON.value).upper()
+    zone.zone_type = new_type
+
+    if new_type == ZoneType.RECTANGLE.value and (payload.get("length_metres") or payload.get("width_metres") or payload.get("orientation_degrees") or payload.get("latitude")):
+        zone.length_metres = _optional_float(payload.get("length_metres", zone.length_metres), field="length_metres", minimum=1.0) or 100.0
+        zone.width_metres = _optional_float(payload.get("width_metres", zone.width_metres), field="width_metres", minimum=1.0) or 50.0
+        zone.orientation_degrees = _optional_float(payload.get("orientation_degrees", zone.orientation_degrees), field="orientation_degrees") or 0.0
+        lat = validate_latitude(payload.get("latitude", zone.centre_latitude)) if (payload.get("latitude") is not None or zone.centre_latitude is not None) else None
+        lon = validate_longitude(payload.get("longitude", zone.centre_longitude)) if (payload.get("longitude") is not None or zone.centre_longitude is not None) else None
+        if lat is not None and lon is not None:
+            zone.centre_latitude = lat
+            zone.centre_longitude = lon
+            zone.radius_metres = (zone.length_metres ** 2 + zone.width_metres ** 2) ** 0.5 / 2.0
+            zone.geofence_polygon = engine.rectangular_ring(lat, lon, zone.length_metres, zone.width_metres, zone.orientation_degrees)
+            geometry_changed = True
+    elif payload.get("latitude") is not None or payload.get("longitude") is not None:
         latitude = validate_latitude(
             payload.get("latitude", zone.centre_latitude), field="latitude"
         )
@@ -1257,6 +1651,93 @@ def update_geofence(
             actor=actor,
             new_values=changed,
         )
+    db.session.commit()
+    return zone_dict(zone)
+
+
+def get_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str, Any]:
+    """Retrieve details for a single parking zone or safe zone."""
+    zone = db.session.get(ParkingZone, validate_uuid(zone_id, field="zone_id"))
+    if zone is None:
+        raise NotFoundError("No parking zone was found with that id.", details={"zone_id": str(zone_id)})
+    return zone_dict(zone)
+
+
+def delete_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str, Any]:
+    """Deactivate or remove a safe zone."""
+    zone = db.session.get(ParkingZone, validate_uuid(zone_id, field="zone_id"))
+    if zone is None:
+        raise NotFoundError("No parking zone was found with that id.", details={"zone_id": str(zone_id)})
+
+    if actor.role == Role.CUSTOMER.value:
+        if zone.created_by_id != uuid.UUID(actor.user_id) and not (
+            zone.vehicle and str(zone.vehicle.owner_id) == actor.user_id
+        ):
+            raise AuthorizationError("Customers may only delete their own safe zones.")
+    else:
+        _require_role(actor, GEOFENCE_ROLES, action="delete a geofence")
+
+    zone.status = ZoneStatus.DEACTIVATED.value
+    _audit(
+        action=AuditAction.SAFE_ZONE_DELETED.value,
+        outcome=AuditOutcome.SUCCESS.value,
+        entity_type="parking_zones",
+        entity_id=zone.id,
+        description=f"Deactivated safe zone '{zone.code}'.",
+        actor=actor,
+    )
+    db.session.commit()
+    return {"message": f"Safe zone '{zone.code}' deactivated successfully.", "zone_id": str(zone.id)}
+
+
+def activate_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str, Any]:
+    """Set a deactivated safe zone back to ACTIVE."""
+    zone = db.session.get(ParkingZone, validate_uuid(zone_id, field="zone_id"))
+    if zone is None:
+        raise NotFoundError("No parking zone was found with that id.", details={"zone_id": str(zone_id)})
+    if actor.role == Role.CUSTOMER.value:
+        if zone.created_by_id != uuid.UUID(actor.user_id) and not (
+            zone.vehicle and str(zone.vehicle.owner_id) == actor.user_id
+        ):
+            raise AuthorizationError("Customers may only activate their own safe zones.")
+    else:
+        _require_role(actor, GEOFENCE_ROLES, action="activate a geofence")
+
+    zone.status = ZoneStatus.ACTIVE.value
+    _audit(
+        action=AuditAction.SAFE_ZONE_UPDATED.value,
+        outcome=AuditOutcome.SUCCESS.value,
+        entity_type="parking_zones",
+        entity_id=zone.id,
+        description=f"Activated safe zone '{zone.code}'.",
+        actor=actor,
+    )
+    db.session.commit()
+    return zone_dict(zone)
+
+
+def deactivate_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str, Any]:
+    """Set an active safe zone to DEACTIVATED."""
+    zone = db.session.get(ParkingZone, validate_uuid(zone_id, field="zone_id"))
+    if zone is None:
+        raise NotFoundError("No parking zone was found with that id.", details={"zone_id": str(zone_id)})
+    if actor.role == Role.CUSTOMER.value:
+        if zone.created_by_id != uuid.UUID(actor.user_id) and not (
+            zone.vehicle and str(zone.vehicle.owner_id) == actor.user_id
+        ):
+            raise AuthorizationError("Customers may only deactivate their own safe zones.")
+    else:
+        _require_role(actor, GEOFENCE_ROLES, action="deactivate a geofence")
+
+    zone.status = ZoneStatus.DEACTIVATED.value
+    _audit(
+        action=AuditAction.SAFE_ZONE_UPDATED.value,
+        outcome=AuditOutcome.SUCCESS.value,
+        entity_type="parking_zones",
+        entity_id=zone.id,
+        description=f"Deactivated safe zone '{zone.code}'.",
+        actor=actor,
+    )
     db.session.commit()
     return zone_dict(zone)
 
@@ -1390,6 +1871,57 @@ def acknowledge_alert(alert_id: uuid.UUID | str, actor: AuthContext) -> dict[str
     return alert_dict(alert)
 
 
+def investigate_alert(
+    alert_id: uuid.UUID | str, actor: AuthContext, *, notes: str | None = None
+) -> dict[str, Any]:
+    """Mark an alert as currently under investigation."""
+    _require_role(actor, ALERT_TRIAGE_ROLES, action="investigate a security alert")
+    alert = _load_alert(alert_id)
+    now = _now()
+    _require_acknowledgeable(alert, now)
+    if alert.status in (AlertStatus.RESOLVED.value, AlertStatus.DISMISSED.value):
+        raise ConflictError(
+            f"This alert is already {alert.status.lower()} and cannot be investigated.",
+            details={"alert_id": str(alert.id), "status": alert.status},
+        )
+    alert.status = AlertStatus.INVESTIGATING.value
+    if notes:
+        alert.resolution_notes = (alert.resolution_notes or "") + f" [Investigation Note]: {notes}"
+    _audit(
+        action=AuditAction.SECURITY_ALERT_INVESTIGATING.value,
+        outcome=AuditOutcome.SUCCESS.value,
+        entity_type="security_alerts",
+        entity_id=alert.id,
+        description=f"Investigating {alert.alert_type} ({alert.severity}).",
+        actor=actor,
+    )
+    db.session.commit()
+    return alert_dict(alert)
+
+
+def reopen_alert(
+    alert_id: uuid.UUID | str, actor: AuthContext, *, reason: str | None = None
+) -> dict[str, Any]:
+    """Reopen a previously resolved or dismissed alert."""
+    _require_role(actor, ALERT_TRIAGE_ROLES, action="reopen a security alert")
+    alert = _load_alert(alert_id)
+    alert.status = AlertStatus.REOPENED.value
+    alert.resolved_at = None
+    alert.resolved_by_id = None
+    if reason:
+        alert.resolution_notes = (alert.resolution_notes or "") + f" [Reopened]: {reason}"
+    _audit(
+        action=AuditAction.SECURITY_ALERT_REOPENED.value,
+        outcome=AuditOutcome.SUCCESS.value,
+        entity_type="security_alerts",
+        entity_id=alert.id,
+        description=f"Reopened {alert.alert_type} ({alert.severity}).",
+        actor=actor,
+    )
+    db.session.commit()
+    return alert_dict(alert)
+
+
 def resolve_alert(
     alert_id: uuid.UUID | str,
     actor: AuthContext,
@@ -1457,15 +1989,22 @@ __all__ = [
     "MOVEMENT_EXPECTED_STATUSES",
     "RETRIEVAL_STATUSES",
     "TELEMETRY_ROLES",
+    "activate_geofence",
     "acknowledge_alert",
     "alert_dict",
     "create_geofence",
+    "deactivate_geofence",
+    "delete_geofence",
     "fix_dict",
+    "get_geofence",
     "ingest_batch",
     "ingest_fix",
+    "investigate_alert",
     "list_alerts",
     "list_fixes",
     "list_geofences",
+    "preview_geofence",
+    "reopen_alert",
     "resolve_alert",
     "simulate_track",
     "simulator_scenarios",

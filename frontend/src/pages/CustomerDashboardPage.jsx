@@ -182,7 +182,7 @@ export function CustomerDashboardPage() {
             <VehicleStatusCard vehicle={data.vehicle} custody={data.custody} />
             <SecurityStatusCard security={data.security} />
             <CurrentLocationCard location={data.location} zone={data.zone} />
-            <ConditionStatusCard condition={data.condition} />
+            <ConditionStatusCard condition={data.condition} custodyId={data.custody_session_id} />
             <EstimatedRetrievalCard retrieval={data.retrieval} />
           </div>
 

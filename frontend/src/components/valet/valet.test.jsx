@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { SectionShell } from './SectionShell'
 import { IncomingTable, VehicleTable } from './VehicleTable'
 import { AlertList, InspectionTable, QueueList, ZoneStrip } from './Sections'
@@ -212,6 +213,20 @@ describe('AlertList', () => {
     // refuses them in front of a customer.
     render(<AlertList alerts={[alert]} canTriage={false} />)
 
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('offers a location map link to an alert without exposing triage controls', () => {
+    render(
+      <MemoryRouter>
+        <AlertList alerts={[{ ...alert, custody_session_id: 'custody-1' }]} canTriage={false} />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: 'View location' })).toHaveAttribute(
+      'href',
+      '/tracking/custody-1',
+    )
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 

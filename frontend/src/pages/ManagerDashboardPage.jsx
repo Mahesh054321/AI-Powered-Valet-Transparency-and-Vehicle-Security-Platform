@@ -42,6 +42,7 @@ import {
   AlertsTable,
   DamageTable,
   FilterBar,
+  PendingDisputesTable,
   RecentTicketsTable,
 } from '../components/manager/Tables'
 import {
@@ -54,10 +55,13 @@ import {
 /** The metric cards, in the order a manager reads them: volume first, then
  *  what is outstanding, then how long things took. */
 const METRIC_ORDER = [
+  'total_registered_vehicles',
+  'current_vehicles_in_custody',
   'vehicles_today',
   'active_sessions',
   'completed_sessions',
   'pending_pickups',
+  'geofence_breaches',
   'open_alerts',
   'potential_damage',
   'avg_retrieval_minutes',
@@ -230,6 +234,14 @@ export function ManagerDashboardPage() {
         actions={<Badge tone="badge--muted">{tables.security_alerts?.length ?? 0} rows</Badge>}
       >
         <AlertsTable rows={tables.security_alerts} />
+      </Panel>
+
+      <Panel
+        title="Pending custody disputes"
+        subtitle="Oldest first; managers review each report before completing custody"
+        actions={<Badge tone="badge--warning">{tables.pending_disputes?.length ?? 0} shown</Badge>}
+      >
+        <PendingDisputesTable rows={tables.pending_disputes} />
       </Panel>
 
       {/* ------------------------------ CHARTS ----------------------------- */}

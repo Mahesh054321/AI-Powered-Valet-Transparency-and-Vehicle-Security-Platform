@@ -8,6 +8,7 @@
  */
 
 import { Badge } from '../ui'
+import { Link } from 'react-router-dom'
 import { relativeTime } from '../../services/staffDashboardService'
 
 const SEVERITY_TONE = {
@@ -47,9 +48,18 @@ export function AlertList({ alerts, canTriage, onAcknowledge, onResolve }) {
             </p>
           </div>
 
-          {canTriage && (
+          {(canTriage || alert.custody_session_id || alert.custody_id) && (
             <div className="valet-alerts__actions">
-              {alert.status === 'OPEN' && (
+              {(alert.custody_session_id || alert.custody_id) && (
+                <Link
+                  className="btn btn--sm btn--ghost"
+                  to={`/tracking/${alert.custody_session_id || alert.custody_id}`}
+                  title="View this vehicle on the tracking map"
+                >
+                  View location
+                </Link>
+              )}
+              {canTriage && alert.status === 'OPEN' && (
                 <button
                   type="button"
                   className="btn btn--sm btn--ghost"
@@ -58,13 +68,15 @@ export function AlertList({ alerts, canTriage, onAcknowledge, onResolve }) {
                   Acknowledge
                 </button>
               )}
-              <button
-                type="button"
-                className="btn btn--sm btn--ghost"
-                onClick={() => onResolve(alert)}
-              >
-                Resolve
-              </button>
+              {canTriage && (
+                <button
+                  type="button"
+                  className="btn btn--sm btn--ghost"
+                  onClick={() => onResolve(alert)}
+                >
+                  Resolve
+                </button>
+              )}
             </div>
           )}
         </li>

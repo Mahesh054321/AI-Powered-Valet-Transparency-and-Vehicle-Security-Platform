@@ -11,6 +11,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import Boolean, CheckConstraint, DateTime, Index, String, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -65,6 +66,11 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     deactivated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     notes: Mapped[str | None] = mapped_column(String(500))
+    notification_preferences: Mapped[dict | None] = mapped_column(
+        JSONB,
+        nullable=True,
+        server_default='{"email_enabled": true, "sms_enabled": false, "min_severity": "LOW"}',
+    )
 
     # -- relationships ------------------------------------------------------
     vehicles: Mapped[list[Vehicle]] = relationship(  # noqa: F821
@@ -107,6 +113,11 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             "full_name": self.full_name,
             "is_active": self.is_active,
             "is_staff": self.is_staff,
+            "notification_preferences": self.notification_preferences or {
+                "email_enabled": True,
+                "sms_enabled": False,
+                "min_severity": "LOW",
+            },
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

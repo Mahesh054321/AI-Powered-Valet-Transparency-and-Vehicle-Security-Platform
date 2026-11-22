@@ -45,15 +45,20 @@ def create_tickets_blueprint() -> Blueprint:
         """Tickets the caller may see, newest first.
 
         ``?status=`` filters on the projected status, because that is the
-        vocabulary the client was given.
+        vocabulary the client was given. ``?active_only=true`` excludes
+        terminal tickets and archived vehicles.
         """
         actor = current_user()
         params = parse_pagination()
         status = request.args.get("status")
+        active_only = (
+            str(request.args.get("active_only", "")).lower() in {"1", "true", "yes"}
+        )
 
         items, total = ticket_service.list_tickets(
             actor,
             status=status.strip() if status else None,
+            active_only=active_only,
             page=params.page,
             page_size=params.page_size,
         )
@@ -160,6 +165,15 @@ def create_custody_blueprint() -> Blueprint:
         here - use ``POST /tickets/<id>/complete``.
         """
         body = require_fields(json_payload(), "status")
+        session = ticket_service.get_custody_session(current_user(), session_id)
+        target = str(body["status"] or "").strip().upper()
+        if session.status == target:
+            return ok(
+                {
+                    "custody_session": session.to_dict(),
+                    "message": f"Custody session is already {session.status}.",
+                }
+            )
         session = ticket_service.update_custody_status(
             current_user(), session_id, body["status"]
         )

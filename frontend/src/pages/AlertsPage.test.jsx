@@ -31,6 +31,7 @@ vi.mock('../services/alertService', async (original) => {
     markAlertRead: vi.fn(),
     markAllAlertsRead: vi.fn(),
     resolveAlert: vi.fn(),
+    deleteAlert: vi.fn(),
   }
 })
 
@@ -40,6 +41,7 @@ import {
   markAlertRead,
   markAllAlertsRead,
   resolveAlert,
+  deleteAlert,
 } from '../services/alertService'
 
 const OPEN_ALERT = {
@@ -65,6 +67,19 @@ const READ_RESOLVED_ALERT = {
   is_read: true,
   created_at: new Date(Date.now() - 3_600_000).toISOString(),
   vehicle: { plate_number: 'UP85CD5678' },
+}
+
+const SECOND_OPEN_ALERT = {
+  ...OPEN_ALERT,
+  alert_id: 'a-3',
+  type: 'SUSPICIOUS_MOVEMENT',
+  message: 'Unexpected movement detected in the yard',
+}
+
+const SECOND_RESOLVED_ALERT = {
+  ...READ_RESOLVED_ALERT,
+  alert_id: 'a-4',
+  message: 'Resolved overspeed alert',
 }
 
 function stubFeed(alerts = [OPEN_ALERT, READ_RESOLVED_ALERT], { canResolve = true, unread = 1 } = {}) {
@@ -271,6 +286,34 @@ describe('AlertsPage: resolve authority', () => {
     expect(screen.getByRole('button', { name: /^resolve$/i })).toBeInTheDocument()
   })
 
+  it('offers delete only for resolved alerts and confirms before deleting', async () => {
+    stubFeed([OPEN_ALERT, READ_RESOLVED_ALERT], { canResolve: true })
+    vi.mocked(deleteAlert).mockResolvedValue({ deleted: true })
+    const user = userEvent.setup()
+    renderPage()
+
+    await screen.findByText(/vehicle is moving away from the yard/i)
+    const table = screen.getByRole('table')
+    const rows = within(table).getAllByRole('row')
+    expect(within(rows[1]).queryByRole('button', { name: /^delete$/i })).toBeNull()
+    await user.click(within(rows[2]).getByRole('button', { name: /^delete$/i }))
+
+    const dialog = await screen.findByRole('alertdialog', { name: /delete resolved alert/i })
+    expect(within(dialog).getByText(/new damage detected at pickup/i)).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: /delete alert/i }))
+
+    await waitFor(() => expect(deleteAlert).toHaveBeenCalledWith('a-2'))
+    expect(await screen.findByText(/alert deleted/i)).toBeInTheDocument()
+  })
+
+  it('does not show delete when the backend withholds the manager capability', async () => {
+    stubFeed([READ_RESOLVED_ALERT], { canResolve: false })
+    renderPage('VALET_OPERATOR')
+
+    await screen.findByText(/new damage detected at pickup/i)
+    expect(screen.queryByRole('button', { name: /^delete$/i })).toBeNull()
+  })
+
   it('hides Resolve when the backend withholds the capability', async () => {
     // The token still says VALET_MANAGER; the capability flag is what counts.
     stubFeed([OPEN_ALERT], { canResolve: false })
@@ -301,6 +344,106 @@ describe('AlertsPage: resolve authority', () => {
     // Both are scoped: the plate also appears in the table row behind it.
     expect(within(dialog).getByText(/UP85CA1234/)).toBeInTheDocument()
     expect(within(dialog).getByText(/geofence breach/i)).toBeInTheDocument()
+  })
+
+  it('resolves multiple selected open alerts and keeps failed items selected', async () => {
+    stubFeed([OPEN_ALERT, SECOND_OPEN_ALERT], { unread: 2 })
+    vi.mocked(resolveAlert).mockImplementation((alertId) =>
+      alertId === OPEN_ALERT.alert_id
+        ? Promise.resolve({ status: 'RESOLVED' })
+        : Promise.reject(
+            Object.assign(new Error('Conflict'), {
+              response: {
+                status: 409,
+                data: {
+                  error: {
+                    code: 'CONFLICT',
+                    message: 'Alert changed before it could be resolved.',
+                  },
+                },
+              },
+            }),
+          ),
+    )
+    const user = userEvent.setup()
+    renderPage()
+
+    await screen.findByText(/vehicle is moving away from the yard/i)
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /select alert for bulk action: vehicle is moving away/i,
+      }),
+    )
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /select alert for bulk action: unexpected movement/i,
+      }),
+    )
+    await user.click(screen.getByRole('button', { name: /resolve selected \(2\)/i }))
+
+    const dialog = await screen.findByRole('alertdialog', {
+      name: /resolve selected alerts/i,
+    })
+    await user.type(
+      within(dialog).getByLabelText(/resolution note/i),
+      'Reviewed by the manager.',
+    )
+    await user.click(
+      within(dialog).getByRole('button', { name: /resolve selected alerts/i }),
+    )
+
+    expect(await screen.findByText(/resolved 1 of 2 selected alerts/i)).toBeInTheDocument()
+    expect(await screen.findByText(/alert changed before it could be resolved/i)).toBeInTheDocument()
+    expect(resolveAlert).toHaveBeenCalledTimes(2)
+    expect(resolveAlert).toHaveBeenCalledWith(OPEN_ALERT.alert_id, {
+      notes: 'Reviewed by the manager.',
+      dismiss: false,
+    })
+    expect(
+      screen.getByRole('checkbox', {
+        name: /select alert for bulk action: unexpected movement/i,
+      }),
+    ).toBeChecked()
+    expect(
+      screen.getByRole('checkbox', {
+        name: /select alert for bulk action: vehicle is moving away/i,
+      }),
+    ).not.toBeChecked()
+  })
+
+  it('confirms and deletes multiple selected resolved alerts', async () => {
+    stubFeed([READ_RESOLVED_ALERT, SECOND_RESOLVED_ALERT], { unread: 0 })
+    vi.mocked(deleteAlert).mockResolvedValue({ deleted: true })
+    const user = userEvent.setup()
+    renderPage()
+
+    await screen.findByText(/new damage detected at pickup/i)
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /select alert for bulk action: new damage detected/i,
+      }),
+    )
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /select alert for bulk action: resolved overspeed/i,
+      }),
+    )
+    await user.click(screen.getByRole('button', { name: /delete selected \(2\)/i }))
+
+    const dialog = await screen.findByRole('alertdialog', {
+      name: /delete selected resolved alerts/i,
+    })
+    expect(dialog.textContent).toMatch(
+      /permanently delete\s+2 selected resolved alert\(s\)/i,
+    )
+    await user.click(
+      within(dialog).getByRole('button', { name: /delete selected alerts/i }),
+    )
+
+    expect(await screen.findByText(/deleted 2 of 2 selected alerts/i)).toBeInTheDocument()
+    expect(deleteAlert).toHaveBeenCalledTimes(2)
+    expect(deleteAlert).toHaveBeenCalledWith(READ_RESOLVED_ALERT.alert_id)
+    expect(deleteAlert).toHaveBeenCalledWith(SECOND_RESOLVED_ALERT.alert_id)
   })
 
   it('sends the resolution note and reports the outcome', async () => {
@@ -367,7 +510,19 @@ describe('AlertsPage: resolve authority', () => {
 
   it('reports a refusal rather than pretending the alert closed', async () => {
     stubFeed([OPEN_ALERT], { canResolve: true })
-    vi.mocked(resolveAlert).mockRejectedValue(new Error('Manager role required.'))
+    const failure = new Error('Request failed with status code 409')
+    failure.response = {
+      status: 409,
+      data: {
+        error: {
+          code: 'CONFLICT',
+          message: 'This alert is already resolved.',
+        },
+        meta: { request_id: 'resolve-request-123' },
+      },
+      headers: {},
+    }
+    vi.mocked(resolveAlert).mockRejectedValue(failure)
     const user = userEvent.setup()
     renderPage()
 
@@ -377,7 +532,38 @@ describe('AlertsPage: resolve authority', () => {
     await user.click(within(dialog).getByRole('button', { name: /^resolve$/i }))
 
     expect(await screen.findByText(/could not close the alert/i)).toBeInTheDocument()
-    expect(await screen.findByText(/manager role required/i)).toBeInTheDocument()
+    expect(await screen.findByText(/this alert is already resolved/i)).toBeInTheDocument()
+    expect(await screen.findByText(/request id: resolve-request-123/i)).toBeInTheDocument()
+    await waitFor(() => expect(fetchAlerts.mock.calls.length).toBeGreaterThan(1))
+  })
+
+  it('shows the server request id when deleting an alert fails', async () => {
+    stubFeed([READ_RESOLVED_ALERT], { canResolve: true })
+    vi.mocked(deleteAlert).mockRejectedValue(
+      Object.assign(new Error('database failure'), {
+        response: {
+          status: 500,
+          data: {
+            error: {
+              code: 'DATABASE_ERROR',
+              message: 'A database error occurred. The event has been logged.',
+            },
+            meta: { request_id: 'delete-request-456' },
+          },
+          headers: {},
+        },
+      }),
+    )
+    const user = userEvent.setup()
+    renderPage()
+
+    await screen.findByText(/new damage detected at pickup/i)
+    await user.click(screen.getByRole('button', { name: /^delete$/i }))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByRole('button', { name: /delete alert/i }))
+
+    expect(await screen.findByText(/could not delete the alert/i)).toBeInTheDocument()
+    expect(await screen.findByText(/request id: delete-request-456/i)).toBeInTheDocument()
   })
 
   it('cancelling the dialog closes it without calling the API', async () => {

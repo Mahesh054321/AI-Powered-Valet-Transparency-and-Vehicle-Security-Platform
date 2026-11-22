@@ -118,6 +118,15 @@ describe('VehicleDetailPage', () => {
     expect(screen.getByText('Roof rack fitted.')).toBeInTheDocument()
   })
 
+  it('allows an operational manager to open a vehicle URL read-only', async () => {
+    renderPage('VALET_MANAGER')
+
+    expect(await screen.findByRole('heading', { name: 'UP 78 AB 1234' })).toBeInTheDocument()
+    expect(screen.getByText('TKT-0001')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^edit$/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /archive vehicle/i })).toBeNull()
+  })
+
   it('offers archive for a registered vehicle', async () => {
     renderPage()
 

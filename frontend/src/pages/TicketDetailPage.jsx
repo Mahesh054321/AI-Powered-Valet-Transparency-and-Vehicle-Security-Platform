@@ -208,6 +208,22 @@ export function TicketDetailPage() {
         </Panel>
       )}
 
+      {session && (
+        <Panel
+          title="Vehicle condition inspection"
+          subtitle="Before/after comparison and damage assessment"
+        >
+          <div className="btn-row" style={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <p className="muted" style={{ margin: 0 }}>
+              Review drop-off baseline photos, return pickup photos, OpenCV difference heatmaps, and verified findings.
+            </p>
+            <Link to={`/inspections/${session.id}`} className="btn btn--primary">
+              View Vehicle Condition Report →
+            </Link>
+          </div>
+        </Panel>
+      )}
+
       {isStaff && open && session && nextStates.length > 0 && (
         <Panel title="Move the custody session" subtitle="Valet actions">
           <div className="btn-row">

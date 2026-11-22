@@ -7,22 +7,15 @@
  * `{ status, code, message, details }` shape.
  *
  * **Provenance is a first-class value here.** The backend stamps every fix with
- * `SIMULATED`, `HARDWARE` or `MANUAL` and this module never overrides it. A
- * component that renders telemetry should read `is_simulated` off the fix it is
- * drawing rather than trusting a page-level flag, because a single session can
- * legitimately contain both.
+ * `SIMULATED`, `MOBILE_GPS`, `REAL_GPS` or `MANUAL` and this module never
+ * overrides it.
  */
 
-import { apiGet, apiPatch, apiPost } from './apiClient'
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from './apiClient'
 import { ENDPOINTS } from './endpoints'
 
 /**
  * The live tracking view for one custody session.
- *
- * A single call returns everything the dashboard needs - vehicle, zone,
- * geofence polygon, latest fix, movement status, status counts, alerts and the
- * provenance flags - so the map is never briefly drawn from a half-loaded
- * combination of responses.
  */
 export function fetchTracking(custodyId) {
   return apiGet(ENDPOINTS.gpsTracking(custodyId))
@@ -30,10 +23,6 @@ export function fetchTracking(custodyId) {
 
 /**
  * Raw telemetry for a session, newest first.
- *
- * `status` filters to one verdict (`NORMAL`/`WARNING`/`SUSPICIOUS`/`BREACH`),
- * which is how the dashboard shows "just the fixes that needed attention"
- * without pulling the whole track.
  */
 export function fetchFixes(custodyId, { page = 1, pageSize = 100, status } = {}) {
   const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) })
@@ -43,14 +32,23 @@ export function fetchFixes(custodyId, { page = 1, pageSize = 100, status } = {})
 
 /**
  * Record position fixes.
- *
- * Pass a single fix object, or `{ fixes: [...] }` for a batch. A batch must
- * carry a timestamp on every fix: without one the server would stamp them
- * microseconds apart, and the movement rules divide displacement by that
- * interval, so the whole upload would read as physically impossible speed.
  */
 export function postGpsEvents(payload) {
   return apiPost(ENDPOINTS.gpsEvents, payload)
+}
+
+/**
+ * Ingest GPS telemetry from an authorized mobile browser (MOBILE_GPS).
+ */
+export function postMobileGps(payload) {
+  return apiPost(ENDPOINTS.gpsMobile, payload)
+}
+
+/**
+ * Record staff-entered vehicle telemetry and sensor observations (MANUAL).
+ */
+export function postVehicleGps(payload) {
+  return apiPost(ENDPOINTS.gpsVehicle, payload)
 }
 
 /** The zones and their geofence geometry, for the map and the zone picker. */
@@ -59,22 +57,46 @@ export function fetchGeofences(status) {
   return apiGet(`${ENDPOINTS.geofences}${suffix}`)
 }
 
+/** Fetch details for one safe zone. */
+export function fetchGeofence(zoneId) {
+  return apiGet(ENDPOINTS.geofence(zoneId))
+}
+
+/** Calculate boundary coordinates, effective radius and area without persisting. */
+export function previewGeofence(payload) {
+  return apiPost(ENDPOINTS.geofencePreview, payload)
+}
+
 /**
- * Create a parking zone and its geofence.
- *
- * `latitude`/`longitude`/`radius` describe a circle, which the backend renders
- * into a polygon ring so the map has something to draw and one point-in-polygon
- * test serves both shapes. Pass `geofence_polygon` (a list of
- * `[longitude, latitude]` pairs, GeoJSON order) to describe an irregular
- * boundary instead.
+ * Create a parking zone or customer safe zone.
  */
 export function createGeofence(payload) {
   return apiPost(ENDPOINTS.geofences, payload)
 }
 
-/** Reconfigure a geofence. Moving a boundary is audited as a security-relevant act. */
+/** Reconfigure a geofence. */
 export function updateGeofence(zoneId, payload) {
   return apiPatch(ENDPOINTS.geofence(zoneId), payload)
+}
+
+/** Replace a geofence definition. */
+export function replaceGeofence(zoneId, payload) {
+  return apiPut(ENDPOINTS.geofence(zoneId), payload)
+}
+
+/** Deactivate / delete a safe zone. */
+export function deleteGeofence(zoneId) {
+  return apiDelete(ENDPOINTS.geofence(zoneId))
+}
+
+/** Activate an inactive safe zone. */
+export function activateGeofence(zoneId) {
+  return apiPost(ENDPOINTS.geofenceActivate(zoneId), {})
+}
+
+/** Deactivate an active safe zone without deleting history. */
+export function deactivateGeofence(zoneId) {
+  return apiPost(ENDPOINTS.geofenceDeactivate(zoneId), {})
 }
 
 /** Security alerts, newest first, optionally filtered by session/status/severity. */
@@ -88,23 +110,30 @@ export function fetchAlerts({ custodySessionId, status, severity, page = 1, page
 
 /**
  * Record that a manager has seen an alert.
- *
- * This does not close it - acknowledgement and resolution are separate acts,
- * because "someone is aware" and "this is dealt with" are different claims.
  */
 export function acknowledgeAlert(alertId) {
   return apiPost(ENDPOINTS.alertAcknowledge(alertId), {})
 }
 
 /**
+ * Mark an alert as being investigated by staff.
+ */
+export function investigateAlert(alertId, { notes } = {}) {
+  return apiPost(ENDPOINTS.alertInvestigate(alertId), { notes: notes ?? null })
+}
+
+/**
  * Close an alert.
- *
- * `dismiss: true` records it as a false positive rather than resolved. The two
- * are kept apart on purpose: a dismissal is feedback about the detector, and a
- * reviewer needs to be able to count those separately.
  */
 export function resolveAlert(alertId, { notes, dismiss = false } = {}) {
   return apiPost(ENDPOINTS.alertResolve(alertId), { notes: notes ?? null, dismiss })
+}
+
+/**
+ * Reopen a resolved or dismissed alert.
+ */
+export function reopenAlert(alertId, { reason } = {}) {
+  return apiPost(ENDPOINTS.alertReopen(alertId), { reason: reason ?? null })
 }
 
 /** The tracks the development simulator can generate. */
@@ -114,11 +143,6 @@ export function fetchSimulatorScenarios() {
 
 /**
  * Generate a simulated track and ingest it as `SIMULATED` telemetry.
- *
- * Every generated fix passes through the real classification path, so the
- * verdicts are computed rather than scripted - this is a demonstration of the
- * engine, not a mock of its output. The response carries an explicit warning
- * string that the UI is expected to show.
  */
 export function simulateTrack(custodyId, { scenario, seed, zoneId } = {}) {
   return apiPost(ENDPOINTS.gpsSimulate, {

@@ -1,7 +1,6 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { Badge, DataRow, ErrorNotice, Panel, Spinner } from '../components/ui'
-import { APP_CONFIG } from '../config/appConfig'
 import { useHealthStatus } from '../hooks/useHealthStatus'
 import { formatUptime } from '../utils/format'
 
@@ -25,19 +24,18 @@ export function SystemStatusPage() {
         <div>
           <h1>System Status</h1>
           <p className="muted">
-            Live probe of the Flask REST API and its PostgreSQL connection. Auto-refreshes every 15
-            seconds.
+            Check service availability and connections. Updates automatically every 15 seconds.
           </p>
         </div>
         <Badge tone={health?.status === 'up' ? 'up' : 'down'}>
-          API {health?.status ?? 'unreachable'}
+          Service {health?.status ?? 'unavailable'}
         </Badge>
       </header>
 
       {backendError && <ErrorNotice error={backendError} onRetry={refresh} />}
 
       <div className="grid grid--2">
-        <Panel title="API service" subtitle="GET /api/health">
+        <Panel title="Application service" subtitle="Availability and uptime">
           {isInitialising && !health ? (
             <Spinner label="Contacting API…" />
           ) : (
@@ -46,24 +44,21 @@ export function SystemStatusPage() {
                 label="Status"
                 value={<Badge tone={health?.status}>{health?.status ?? 'n/a'}</Badge>}
               />
-              <DataRow label="Service" value={health?.service} mono />
-              <DataRow label="API version" value={health?.api_version} mono />
-              <DataRow label="Environment" value={health?.environment} mono />
               <DataRow label="Uptime" value={formatUptime(health?.uptime_seconds)} />
               <DataRow label="Server time" value={formatTime(health?.server_time)} mono />
             </dl>
           )}
         </Panel>
 
-        <Panel title="Dependencies" subtitle="GET /api/readyz">
+        <Panel title="Connected services" subtitle="Health of the services the platform depends on">
           {isInitialising && !readiness ? (
             <Spinner label="Probing dependencies…" />
           ) : queries.readiness.isError ? (
             <div className="notice notice--error" role="alert">
-              <strong>Backend unreachable</strong>
+              <strong>Service temporarily unavailable</strong>
               <p>
-                Start the Flask API (<code>python utils/scripts/run_api.py</code> in{' '}
-                <code>backend/</code>) and this panel will recover on the next poll.
+                We could not check the connected services. Please try again in a moment. If the
+                problem continues, contact your administrator.
               </p>
               <button type="button" className="btn btn--ghost" onClick={refresh}>
                 Retry now
@@ -76,12 +71,11 @@ export function SystemStatusPage() {
                 value={<Badge tone={readiness?.status}>{readiness?.status ?? 'n/a'}</Badge>}
               />
               <DataRow
-                label="PostgreSQL"
+                label="Database"
                 value={<Badge tone={database?.status}>{database?.status ?? 'unknown'}</Badge>}
               />
-              <DataRow label="Server version" value={database?.server_version} mono />
               <DataRow
-                label="Round-trip latency"
+                label="Response time"
                 value={database?.latency_ms != null ? `${database.latency_ms} ms` : undefined}
                 mono
               />
@@ -98,27 +92,6 @@ export function SystemStatusPage() {
         </Panel>
       </div>
 
-      <Panel title="How this page proves the integration" tone="panel--info">
-        <ol className="prose-list">
-          <li>
-            The browser calls <code>/api/health</code> — a relative URL, so Vite proxies it to
-            Flask and no CORS configuration is needed in development.
-          </li>
-          <li>
-            Flask answers with the standard envelope <code>{'{ success, data, meta }'}</code>; the
-            axios interceptor unwraps it.
-          </li>
-          <li>
-            <code>/api/readyz</code> executes a real <code>SELECT 1</code> against PostgreSQL and
-            reports latency, so a stopped database is visible here immediately.
-          </li>
-          <li>
-            Map tiles for the tracking screens come from OpenStreetMap via Leaflet — no paid API
-            key required. Current tile host:{' '}
-            <code>{APP_CONFIG.mapTileUrl.split('/').slice(0, 3).join('/')}</code>.
-          </li>
-        </ol>
-      </Panel>
     </div>
   )
 }

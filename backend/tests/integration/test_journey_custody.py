@@ -198,6 +198,12 @@ class TestTheJourney:
 
         moved = yard["client"].patch(
             f"{SESSIONS}/{session_id}",
+            json={"status": CustodyStatus.RETRIEVAL_IN_PROGRESS.value},
+            headers=yard["as_operator"],
+        )
+        assert moved.status_code == 200, moved.get_json()
+        moved = yard["client"].patch(
+            f"{SESSIONS}/{session_id}",
             json={"status": CustodyStatus.READY_FOR_PICKUP.value},
             headers=yard["as_operator"],
         )
@@ -225,6 +231,11 @@ class TestTheJourney:
         session_id = checked_in["custody_session"]["id"]
         yard["client"].post(
             RETRIEVAL, json={"custody_session_id": session_id}, headers=yard["as_customer"]
+        )
+        yard["client"].patch(
+            f"{SESSIONS}/{session_id}",
+            json={"status": CustodyStatus.RETRIEVAL_IN_PROGRESS.value},
+            headers=yard["as_operator"],
         )
         yard["client"].patch(
             f"{SESSIONS}/{session_id}",
@@ -346,6 +357,17 @@ class TestTheJourneyGuards:
         ticket = _issue(yard)
         checked_in = _check_in(yard, ticket["id"])
         session_id = checked_in["custody_session"]["id"]
+        requested = yard["client"].post(
+            RETRIEVAL,
+            json={"custody_session_id": session_id},
+            headers=yard["as_customer"],
+        )
+        assert requested.status_code == 201, requested.get_json()
+        yard["client"].patch(
+            f"{SESSIONS}/{session_id}",
+            json={"status": CustodyStatus.RETRIEVAL_IN_PROGRESS.value},
+            headers=yard["as_operator"],
+        )
         yard["client"].patch(
             f"{SESSIONS}/{session_id}",
             json={"status": CustodyStatus.READY_FOR_PICKUP.value},

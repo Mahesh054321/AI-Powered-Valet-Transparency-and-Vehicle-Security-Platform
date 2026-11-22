@@ -5,9 +5,9 @@ export function NotFoundPage() {
   return (
     <div className="page">
       <Panel title="404 — page not found">
-        <p className="muted">That route does not exist in this build.</p>
-        <Link className="btn" to="/status">
-          Back to system status
+        <p className="muted">The page may have moved, or the address may be incorrect.</p>
+        <Link className="btn" to="/">
+          Go to your dashboard
         </Link>
       </Panel>
     </div>

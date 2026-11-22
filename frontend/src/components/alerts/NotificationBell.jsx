@@ -15,9 +15,9 @@
  * itself, so clearing your own badge cannot clear a colleague's queue.
  */
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Badge } from '../ui'
 import { useToast } from '../../context/ToastContext'
 import {
@@ -34,8 +34,33 @@ const POLL_MS = 15_000
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false)
+  const bellRef = useRef(null)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+
+  // Click outside and Escape key listener to cleanly dismiss notifications
+  useEffect(() => {
+    if (!open) return undefined
+
+    function handleClickOutside(event) {
+      if (bellRef.current && !bellRef.current.contains(event.target)) {
+        setOpen(false)
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
 
   const summary = useQuery({
     queryKey: ['alert-summary'],
@@ -82,8 +107,14 @@ export function NotificationBell() {
   const unread = summary.data?.unread ?? 0
   const alerts = feed.data?.alerts ?? []
 
+  const handleAlertClick = (alert) => {
+    markOne.mutate(alert.alert_id)
+    setOpen(false)
+    navigate(`/alerts?id=${alert.alert_id}`)
+  }
+
   return (
-    <div className="bell">
+    <div className="bell" ref={bellRef}>
       <button
         type="button"
         className="bell__button"
@@ -103,14 +134,24 @@ export function NotificationBell() {
         <div className="bell__panel" role="dialog" aria-label="Notifications">
           <header className="bell__head">
             <strong>Notifications</strong>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={() => markAll.mutate()}
-              disabled={markAll.isPending || unread === 0}
-            >
-              Mark all read
-            </button>
+            <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => markAll.mutate()}
+                disabled={markAll.isPending || unread === 0}
+              >
+                Mark all read
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm btn--icon"
+                onClick={() => setOpen(false)}
+                aria-label="Close notifications"
+              >
+                ✕
+              </button>
+            </div>
           </header>
 
           {feed.isPending ? (
@@ -119,29 +160,66 @@ export function NotificationBell() {
             <p className="bell__empty">Nothing unread.</p>
           ) : (
             <ul className="bell__list">
-              {alerts.map((alert) => (
-                <li className="bell__item" key={alert.alert_id}>
-                  <button
-                    type="button"
-                    className="bell__item-button"
-                    onClick={() => markOne.mutate(alert.alert_id)}
-                    // Disabled while the mutation is in flight rather than
-                    // optimistically clearing: a count that drops and then
-                    // comes back is more confusing than a brief delay.
-                    disabled={markOne.isPending}
-                  >
-                    <span className="bell__item-top">
-                      <Badge tone={severityTone(alert.severity)}>{alert.severity}</Badge>
-                      <span className="bell__item-type">{alertTypeLabel(alert.type)}</span>
-                      <span className="bell__item-time">{relativeTime(alert.created_at)}</span>
-                    </span>
-                    <span className="bell__item-message">{alert.message}</span>
-                    {alert.vehicle?.plate_number && (
-                      <span className="bell__item-vehicle">{alert.vehicle.plate_number}</span>
-                    )}
-                  </button>
-                </li>
-              ))}
+              {alerts.map((alert) => {
+                const custodyId = alert.custody_session_id || alert.custody_id
+                const vehicleId = alert.vehicle_id || alert.vehicle?.id
+                return (
+                  <li className="bell__item" key={alert.alert_id}>
+                    <div
+                      className="bell__item-button"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleAlertClick(alert)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleAlertClick(alert)
+                        }
+                      }}
+                    >
+                      <span className="bell__item-top">
+                        <Badge tone={severityTone(alert.severity)}>{alert.severity}</Badge>
+                        <span className="bell__item-type">{alertTypeLabel(alert.type)}</span>
+                        <span className="bell__item-time">{relativeTime(alert.created_at)}</span>
+                      </span>
+                      <span className="bell__item-message">{alert.message}</span>
+                      {alert.vehicle?.plate_number && (
+                        <span className="bell__item-vehicle">{alert.vehicle.plate_number}</span>
+                      )}
+                      <div
+                        className="bell__item-actions"
+                        style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {custodyId && (
+                          <Link
+                            to={`/tracking/${custodyId}`}
+                            className="btn btn--ghost btn--xs"
+                            onClick={() => {
+                              markOne.mutate(alert.alert_id)
+                              setOpen(false)
+                            }}
+                          >
+                            View on Map
+                          </Link>
+                        )}
+                        {vehicleId && (
+                          <Link
+                            to={`/vehicles/${vehicleId}`}
+                            className="btn btn--ghost btn--xs"
+                            onClick={() => {
+                              markOne.mutate(alert.alert_id)
+                              setOpen(false)
+                            }}
+                          >
+                            View Vehicle
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           )}
 

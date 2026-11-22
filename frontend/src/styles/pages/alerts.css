@@ -56,7 +56,7 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  z-index: var(--z-dropdown);
+  z-index: 1200;
   width: min(380px, calc(100vw - 2 * var(--space-4)));
   max-height: min(480px, 70vh);
   display: grid;
@@ -64,7 +64,7 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
 
@@ -178,6 +178,27 @@
   text-transform: lowercase;
 }
 
+.alert-bulk-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--primary-border);
+  border-radius: var(--radius-md);
+  background: var(--primary-subtle);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.alert-bulk-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 /* A narrow phone has no room for a 380px popover beside the topbar, so it
    becomes a full-width sheet below it. */
 @media (max-width: 639px) {
@@ -191,5 +212,144 @@
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     border-left: none;
     border-right: none;
+  }
+}
+
+/* Alert feed: give the message and actions enough room instead of dividing the
+   available width into seven identical columns. */
+.alert-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.alert-table {
+  min-width: 1010px;
+}
+
+.alert-table .mgr-table__row {
+  grid-template-columns:
+    minmax(4.5rem, 0.65fr)
+    minmax(8rem, 1.1fr)
+    minmax(14rem, 2.4fr)
+    minmax(7rem, 0.9fr)
+    minmax(5rem, 0.7fr)
+    minmax(6rem, 0.8fr)
+    minmax(12rem, 1.8fr);
+}
+
+.alert-table--selectable {
+  min-width: 1050px;
+}
+
+.alert-table--selectable .mgr-table__row {
+  grid-template-columns:
+    minmax(2.5rem, 0.25fr)
+    minmax(4.5rem, 0.65fr)
+    minmax(8rem, 1.1fr)
+    minmax(14rem, 2.4fr)
+    minmax(7rem, 0.9fr)
+    minmax(5rem, 0.7fr)
+    minmax(6rem, 0.8fr)
+    minmax(12rem, 1.8fr);
+}
+
+.alert-table .mgr-table__row--selected {
+  background: var(--primary-subtle);
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.alert-table input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.alert-table input[type='checkbox']:disabled {
+  cursor: not-allowed;
+}
+
+.alert-table .mgr-table__row > [role='cell'],
+.alert-table .mgr-table__row > [role='columnheader'] {
+  min-width: 0;
+}
+
+.alert-table__message {
+  overflow-wrap: anywhere;
+  line-height: var(--leading-snug);
+}
+
+.alert-table__message .mgr-table__muted {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.alert-table .badge {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.alert-table .alert-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.alert-table .alert-actions > .btn {
+  min-width: 0;
+  min-height: 36px;
+  height: auto;
+  padding: var(--space-2);
+  white-space: normal;
+  text-align: center;
+}
+
+@media (max-width: 1199px) {
+  .alert-table {
+    min-width: 0;
+    overflow: visible;
+    border: none;
+  }
+
+  .alert-table .mgr-table__row {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    margin-bottom: var(--space-2);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+  }
+
+  .alert-table .mgr-table__row--head {
+    display: none;
+  }
+
+  .alert-table .mgr-table__row > [role='cell']::before {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--text-tertiary);
+    content: attr(data-label);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .alert-table .alert-table__message,
+  .alert-table .alert-actions {
+    grid-column: 1 / -1;
+  }
+
+  .alert-table .alert-actions {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  }
+
+  .alert-bulk-actions {
+    align-items: flex-start;
   }
 }

@@ -689,6 +689,45 @@ def test_listing_filters_on_the_projected_status(client, pg_app):
     assert created["items"][0]["vehicle"]["plate_number"] == unstarted.plate_number
 
 
+def test_active_ticket_listing_excludes_completed_and_archived_vehicles(client, pg_app):
+    operator = make_user(Role.VALET_OPERATOR)
+    customer = make_user()
+    active_vehicle = make_vehicle(customer.id)
+    completed_vehicle = make_vehicle(customer.id)
+    archived_vehicle = make_vehicle(customer.id)
+    zone = make_zone()
+    db.session.commit()
+
+    headers = bearer(operator)
+    active_ticket = _issue(client, headers, active_vehicle.id).get_json()["data"]["ticket"]
+
+    completed_ticket = _issue(client, headers, completed_vehicle.id).get_json()["data"]["ticket"]
+    _check_in(client, headers, completed_ticket["id"], zone.id)
+    completed = client.post(
+        f"{TICKETS}/{completed_ticket['id']}/complete", json={}, headers=headers
+    )
+    assert completed.status_code == 200, completed.get_json()
+
+    archived_ticket = _issue(client, headers, archived_vehicle.id).get_json()["data"]["ticket"]
+    archived_vehicle.status = VehicleStatus.ARCHIVED.value
+    db.session.commit()
+
+    customer_headers = bearer(customer)
+    active = client.get(
+        f"{TICKETS}?active_only=true", headers=customer_headers
+    ).get_json()["data"]
+    assert active["pagination"]["total_items"] == 1
+    assert active["items"][0]["id"] == active_ticket["id"]
+
+    history = client.get(TICKETS, headers=customer_headers).get_json()["data"]
+    assert history["pagination"]["total_items"] == 3
+    assert {item["id"] for item in history["items"]} == {
+        active_ticket["id"],
+        completed_ticket["id"],
+        archived_ticket["id"],
+    }
+
+
 def test_an_unknown_status_filter_is_a_422(client, pg_app):
     operator = make_user(Role.VALET_OPERATOR)
     db.session.commit()

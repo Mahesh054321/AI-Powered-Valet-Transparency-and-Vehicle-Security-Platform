@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../hooks/useAuth'
 import {
   archiveVehicle,
   fetchVehicle,
@@ -25,6 +26,7 @@ import { formatDateTime } from '../utils/format'
 
 export function VehicleDetailPage() {
   const { id } = useParams()
+  const { role } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState(false)
@@ -40,6 +42,8 @@ export function VehicleDetailPage() {
   })
 
   const toast = useToast()
+  const canEdit = role === 'CUSTOMER'
+  const canArchive = ['CUSTOMER', 'ADMIN'].includes(role)
 
 
   const archive = useMutation({
@@ -47,7 +51,7 @@ export function VehicleDetailPage() {
     onSuccess: () => {
       toast.success('Vehicle archived', 'It no longer appears in your active list.')
       queryClient.invalidateQueries({ queryKey: ['vehicles'] })
-      navigate('/vehicles', { replace: true })
+      navigate(role === 'CUSTOMER' ? '/vehicles' : '/manager', { replace: true })
     },
     onError: (error) => toast.error('Could not archive the vehicle', normaliseError(error).message),
   })
@@ -83,13 +87,16 @@ export function VehicleDetailPage() {
           </p>
         </div>
         <div className="btn-row">
-          {!editing && (
+          {!editing && canEdit && (
             <button type="button" className="btn" onClick={() => setEditing(true)}>
               Edit
             </button>
           )}
-          <Link className="btn btn--ghost" to="/vehicles">
-            Back to list
+          <Link
+            className="btn btn--ghost"
+            to={role === 'CUSTOMER' ? '/vehicles' : role === 'VALET_OPERATOR' ? '/valet' : '/manager'}
+          >
+            Back to dashboard
           </Link>
         </div>
       </header>
@@ -104,6 +111,8 @@ export function VehicleDetailPage() {
               year: vehicle.year ? String(vehicle.year) : '',
               color: vehicle.color ?? '',
               notes: vehicle.notes ?? '',
+              tracking_method: vehicle.tracking_method ?? 'SIMULATED',
+              gps_device_id: vehicle.gps_device_id ?? '',
             }}
             submitLabel="Save changes"
             onSubmit={(form) => edit.mutateAsync(form)}
@@ -122,6 +131,8 @@ export function VehicleDetailPage() {
             <DataRow label="Model" value={vehicle.model} />
             <DataRow label="Year" value={vehicle.year} />
             <DataRow label="Colour" value={vehicle.color} />
+            <DataRow label="Tracking method" value={vehicle.tracking_method === 'REAL_GPS' ? 'Hardware Tracker (Real GPS)' : vehicle.tracking_method === 'MOBILE_GPS' ? 'Mobile Browser GPS' : 'Demo / Simulated'} />
+            {vehicle.gps_device_id && <DataRow label="GPS Device ID" value={vehicle.gps_device_id} mono />}
             <DataRow label="Notes" value={vehicle.notes} />
             <DataRow label="Registered" value={formatDateTime(vehicle.created_at)} />
           </dl>
@@ -133,7 +144,7 @@ export function VehicleDetailPage() {
             </div>
           )}
 
-          {vehicle.status !== 'ARCHIVED' && (
+          {canArchive && vehicle.status !== 'ARCHIVED' && (
             <div className="btn-row">
               <button
                 type="button"

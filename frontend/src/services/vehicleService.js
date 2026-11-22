@@ -36,7 +36,21 @@ export function fetchVehicleSessions(id) {
  * a customer's behalf during check-in. The backend rejects a customer naming
  * anybody else as the owner.
  */
-export function createVehicle({ plateNumber, make, model, year, color, notes, ownerId }) {
+export function createVehicle({
+  plateNumber,
+  make,
+  model,
+  year,
+  color,
+  notes,
+  ownerId,
+  tracking_method,
+  gps_device_id,
+  trackingMethod,
+  gpsDeviceId,
+}) {
+  const tracking = tracking_method ?? trackingMethod
+  const deviceId = gps_device_id ?? gpsDeviceId
   return apiPost(ENDPOINTS.vehicles, {
     plate_number: plateNumber,
     make,
@@ -45,6 +59,8 @@ export function createVehicle({ plateNumber, make, model, year, color, notes, ow
     ...(color ? { color } : {}),
     ...(notes ? { notes } : {}),
     ...(ownerId ? { owner_id: ownerId } : {}),
+    ...(tracking ? { tracking_method: tracking } : {}),
+    ...(deviceId?.trim() ? { gps_device_id: deviceId.trim() } : {}),
   })
 }
 
@@ -57,6 +73,10 @@ export function updateVehicle(id, changes) {
   if (changes.year !== undefined) payload.year = changes.year ? Number(changes.year) : null
   if (changes.color !== undefined) payload.color = changes.color
   if (changes.notes !== undefined) payload.notes = changes.notes
+  if (changes.tracking_method !== undefined) payload.tracking_method = changes.tracking_method
+  if (changes.gps_device_id !== undefined) {
+    payload.gps_device_id = changes.gps_device_id.trim() || null
+  }
 
   return apiPatch(ENDPOINTS.vehicle(id), payload)
 }

@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router-dom'
 import { ConditionReportPage } from './ConditionReportPage'
-import { fetchConditionReport, verifyDetection } from '../services/inspectionService'
+import { fetchConditionReport, resolveDispute, verifyDetection } from '../services/inspectionService'
 import { renderWithProviders, buildToken } from '../test/utils'
 
 vi.mock('../services/inspectionService', () => ({
   fetchConditionReport: vi.fn(),
+  resolveDispute: vi.fn(),
   verifyDetection: vi.fn(),
 }))
 
@@ -15,6 +17,7 @@ const CUSTODY_ID = 'custody-1'
 function report(overrides = {}) {
   return {
     custody_session_id: CUSTODY_ID,
+    custody_status: 'PARKED',
     ticket_code: 'VT-202609-ABC123',
     vehicle: { plate_number: 'UP85CA1234', make: 'Tata', model: 'Nexon', color: 'Silver', year: 2021 },
     comparison_ready: true,
@@ -82,6 +85,7 @@ function renderReport(role = 'VALET_MANAGER') {
 describe('ConditionReportPage', () => {
   beforeEach(() => {
     vi.mocked(fetchConditionReport).mockReset()
+    vi.mocked(resolveDispute).mockReset()
     vi.mocked(verifyDetection).mockReset()
   })
 
@@ -126,6 +130,40 @@ describe('ConditionReportPage', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /confirm damage/i })).toBeTruthy(),
     )
+  })
+
+  it('lets only a manager resolve a dispute and complete its custody session', async () => {
+    vi.mocked(fetchConditionReport).mockResolvedValue(report({ custody_status: 'DISPUTED' }))
+    vi.mocked(resolveDispute).mockResolvedValue({ message: 'Dispute resolved and custody session completed.' })
+    const user = userEvent.setup()
+    renderReport('VALET_MANAGER')
+
+    await user.click(await screen.findByRole('button', { name: /resolve dispute & complete custody/i }))
+    const dialog = await screen.findByRole('alertdialog', { name: /resolve dispute and complete custody/i })
+    await user.type(screen.getByLabelText(/resolution note/i), 'Reviewed with the customer.')
+    await user.click(within(dialog).getByRole('button', { name: /resolve and complete/i }))
+
+    await waitFor(() => expect(resolveDispute).toHaveBeenCalledWith(CUSTODY_ID, {
+      notes: 'Reviewed with the customer.',
+    }))
+    expect(await screen.findByText(/dispute resolved and custody completed/i)).toBeInTheDocument()
+  })
+
+  it('does not let an operator resolve a dispute', async () => {
+    vi.mocked(fetchConditionReport).mockResolvedValue(report({ custody_status: 'DISPUTED' }))
+    renderReport('VALET_OPERATOR')
+
+    await waitFor(() => expect(screen.getByText('UP85CA1234')).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: /resolve dispute & complete custody/i })).toBeNull()
+  })
+
+  it('does not offer filing a dispute after custody is complete', async () => {
+    vi.mocked(fetchConditionReport).mockResolvedValue(report({ custody_status: 'CHECKED_OUT' }))
+    renderReport('CUSTOMER')
+
+    await waitFor(() => expect(screen.getByText('UP85CA1234')).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: /file condition dispute/i })).toBeNull()
+    expect(screen.getByText(/a new dispute cannot be filed from this report/i)).toBeInTheDocument()
   })
 
   it('withholds verification controls from an operator', async () => {

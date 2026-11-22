@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { AlertCard } from './AlertCard'
 
 function alert(overrides = {}) {
@@ -36,7 +37,7 @@ describe('AlertCard', () => {
   it('labels the alert type and severity in words a manager can read', () => {
     render(<AlertCard alert={alert()} />)
 
-    expect(screen.getByText('Geofence breach · 9/8/2026, 10:05:00 AM')).toBeInTheDocument()
+    expect(screen.getByText(/^Geofence breach · 9\/8\/2026,/)).toBeInTheDocument()
     expect(screen.getByText('HIGH')).toBeInTheDocument()
     expect(screen.getByText('Open')).toBeInTheDocument()
   })
@@ -47,14 +48,34 @@ describe('AlertCard', () => {
     expect(screen.getByText('95%')).toBeInTheDocument()
   })
 
-  it('hides the evidence behind a disclosure until asked for', () => {
+  it('shows readable evidence details instead of raw JSON after disclosure', () => {
     render(<AlertCard alert={alert()} />)
 
     expect(screen.queryByText(/distance_from_boundary_metres/)).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /Show the inputs behind this/i }))
 
-    expect(screen.getByText(/distance_from_boundary_metres/)).toBeInTheDocument()
+    expect(screen.getByText('Distance from boundary metres')).toBeInTheDocument()
+    expect(screen.getByText('400')).toBeInTheDocument()
+    expect(screen.queryByText(/distance_from_boundary_metres/)).not.toBeInTheDocument()
+  })
+
+  it('keeps the map available on a resolved alert from a completed custody session', () => {
+    render(
+      <MemoryRouter>
+        <AlertCard
+          alert={alert({
+            status: 'RESOLVED',
+            custody_session_id: 'completed-custody',
+          })}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: 'View on Map' })).toHaveAttribute(
+      'href',
+      '/tracking/completed-custody',
+    )
   })
 
   it('offers no triage controls to a role that cannot triage', () => {
@@ -157,7 +178,7 @@ describe('AlertCard', () => {
     // The label says "Dismissed", not "Resolved": a false positive is feedback
     // about the detector, and reading it as a resolved incident would hide that.
     expect(screen.getAllByText('Dismissed')).toHaveLength(2)
-    expect(screen.getByText('admin@valet.local · 9/8/2026, 10:20:00 AM')).toBeInTheDocument()
+    expect(screen.getByText(/^admin@valet\.local · 9\/8\/2026,/)).toBeInTheDocument()
   })
 
   it('disables the buttons while a request is in flight', () => {

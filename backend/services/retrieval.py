@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -63,6 +64,7 @@ from models.enums import CustodyStatus, PredictionStatus, VehicleStatus
 from models.parking_zone import ParkingZone
 from models.retrieval_prediction import RetrievalPrediction as RetrievalPredictionRow
 from models.user import User
+from models.valet_ticket import ValetTicket
 from models.vehicle import Vehicle
 from services import tickets as ticket_service
 from services.audit import record_event
@@ -435,6 +437,46 @@ def _dispatch_wording(delay_minutes: int) -> str:
     return f"In {delay_minutes} minutes"
 
 
+def resolve_custody_session(identifier: str | uuid.UUID | None) -> CustodySession | None:
+    """Resolve a custody session from a custody ID, ticket ID, or ticket code."""
+    if not identifier:
+        return None
+    raw_str = str(identifier).strip()
+
+    # 1. Try direct CustodySession ID
+    try:
+        session_uuid = uuid.UUID(raw_str)
+        custody = db.session.get(CustodySession, session_uuid)
+        if custody is not None:
+            return custody
+    except (ValueError, TypeError):
+        pass
+
+    # 2. Try ValetTicket UUID or ticket_code
+    ticket = None
+    try:
+        ticket = db.session.get(ValetTicket, uuid.UUID(raw_str))
+    except (ValueError, TypeError):
+        pass
+
+    if ticket is None:
+        ticket = db.session.execute(
+            select(ValetTicket).where(ValetTicket.ticket_code == raw_str)
+        ).scalars().first()
+
+    if ticket is not None:
+        custody = db.session.execute(
+            select(CustodySession)
+            .where(CustodySession.ticket_id == ticket.id)
+            .order_by(CustodySession.dropped_off_at.desc())
+            .limit(1)
+        ).scalars().first()
+        if custody is not None:
+            return custody
+
+    return None
+
+
 def predict_for_custody(
     custody_session_id: str,
     *,
@@ -449,7 +491,7 @@ def predict_for_custody(
     rather than deleted: the customer may have asked twice, and the first answer
     is part of the record of what they were told.
     """
-    custody = db.session.get(CustodySession, custody_session_id)
+    custody = resolve_custody_session(custody_session_id)
     if custody is None:
         raise NotFoundError(
             "No custody session with that id.",
@@ -595,7 +637,7 @@ def prediction_recency_order(model: type[RetrievalPredictionRow]) -> tuple:
 
 def latest_prediction(custody_session_id: str) -> dict[str, Any]:
     """The most recent stored estimate for a custody session, with its inputs."""
-    custody = db.session.get(CustodySession, custody_session_id)
+    custody = resolve_custody_session(custody_session_id)
     if custody is None:
         raise NotFoundError(
             "No custody session with that id.",
@@ -616,14 +658,23 @@ def latest_prediction(custody_session_id: str) -> dict[str, Any]:
         raise NotFoundError(
             "No retrieval prediction has been generated for this custody session "
             "yet. Request one with POST /api/retrieval/predict.",
-            details={"custody_session_id": custody.id},
+            details={"custody_session_id": str(custody.id)},
         )
 
     snapshot = row.inputs_snapshot or {}
     delay = int(snapshot.get("dispatch_delay_minutes", 0) or 0)
+    dispatch_label = _dispatch_wording(delay)
     return {
         **row.to_dict(),
-        "dispatch_label": _dispatch_wording(delay),
+        "estimated_minutes": row.predicted_wait_minutes,
+        "estimated_retrieval_time": (
+            row.predicted_ready_at.isoformat() if row.predicted_ready_at else None
+        ),
+        "recommended_dispatch_time": (
+            row.dispatch_after.isoformat() if row.dispatch_after else None
+        ),
+        "recommended_dispatch": dispatch_label,
+        "dispatch_label": dispatch_label,
         "dispatch_delay_minutes": delay,
         "fetch_minutes": snapshot.get("fetch_minutes"),
         "trained_on_synthetic_data": True,
@@ -780,13 +831,56 @@ def request_vehicle(
     pickups. The estimate is reported as unavailable with the reason, and the
     request stands.
     """
-    # Ownership and existence are decided by the tickets service, which already
-    # answers 404 for someone else's session rather than confirming it exists.
+    # Lock the session so simultaneous clicks/retries cannot create two request
+    # audit events or race the state transition.
     session = ticket_service.get_custody_session(actor, custody_session_id)
+    session = db.session.execute(
+        select(CustodySession)
+        .where(CustodySession.id == session.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).scalar_one()
+
+    active_retrieval_states = {
+        CustodyStatus.RETRIEVAL_REQUESTED.value,
+        CustodyStatus.RETRIEVAL_IN_PROGRESS.value,
+        CustodyStatus.READY_FOR_PICKUP.value,
+    }
+    if (
+        session.status in active_retrieval_states
+        and session.retrieval_requested_at is not None
+    ):
+        try:
+            estimate = latest_prediction(str(session.id))
+        except NotFoundError:
+            estimate = None
+        return {
+            "custody_session_id": str(session.id),
+            "custody_status": session.status,
+            "previous_status": session.status,
+            "requested_at": session.retrieval_requested_at.isoformat(),
+            "estimate": estimate,
+            "estimate_available": estimate is not None,
+            "estimate_error": (
+                None
+                if estimate is not None
+                else "The request is active; no estimate has been recorded yet."
+            ),
+            "already_requested": True,
+            "valet_notification": {
+                "delivery": "polled",
+                "queued": session.status == CustodyStatus.RETRIEVAL_REQUESTED.value,
+                "note": (
+                    "The valet dashboard reads this queue on a short poll. There is "
+                    "no websocket channel, so the request appears there within one "
+                    "poll interval rather than instantly."
+                ),
+            },
+        }
 
     previous_status = session.status
     session = ticket_service.update_custody_status(
-        actor, session.id, CustodyStatus.RETRIEVAL_REQUESTED.value
+        actor, session.id, CustodyStatus.RETRIEVAL_REQUESTED.value, commit=False
     )
 
     record_event(
@@ -832,6 +926,7 @@ def request_vehicle(
         "estimate": estimate,
         "estimate_available": estimate is not None,
         "estimate_error": estimate_error,
+        "already_requested": False,
         # What "notify" actually means here, stated rather than implied.
         "valet_notification": {
             "delivery": "polled",

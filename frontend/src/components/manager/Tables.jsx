@@ -9,6 +9,7 @@
 
 import { Badge } from '../ui'
 import { statusLabel } from '../../services/managerService'
+import { Link } from 'react-router-dom'
 
 const SEVERITY_TONE = {
   LOW: 'badge--muted',
@@ -239,6 +240,41 @@ export function DamageTable({ rows }) {
         ))
       ) : (
         <EmptyRow columns={6} message="No damage findings in the selected range." />
+      )}
+    </div>
+  )
+}
+
+/** Disputed custody sessions awaiting a manager decision. */
+export function PendingDisputesTable({ rows }) {
+  return (
+    <div className="mgr-table mgr-table--5" role="table">
+      <div className="mgr-table__row mgr-table__row--head" role="row">
+        <span role="columnheader">Ticket</span>
+        <span role="columnheader">Vehicle</span>
+        <span role="columnheader">Customer</span>
+        <span role="columnheader">Status</span>
+        <span role="columnheader">Action</span>
+      </div>
+
+      {rows?.length ? (
+        rows.map((row) => (
+          <div className="mgr-table__row" role="row" key={row.custody_session_id}>
+            <span role="cell" className="mono">{row.ticket_code ?? '—'}</span>
+            <span role="cell">{row.vehicle?.plate_number ?? '—'}</span>
+            <span role="cell">{row.customer?.name ?? '—'}</span>
+            <span role="cell">
+              <Badge tone="badge--warning">Disputed</Badge>
+            </span>
+            <span role="cell">
+              <Link className="btn btn--ghost btn--sm" to={`/condition/${row.custody_session_id}`}>
+                Review dispute
+              </Link>
+            </span>
+          </div>
+        ))
+      ) : (
+        <EmptyRow columns={5} message="No custody disputes are awaiting review." />
       )}
     </div>
   )

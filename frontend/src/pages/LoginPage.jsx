@@ -130,8 +130,7 @@ export function LoginPage() {
               New here? <Link to="/register">Create a customer account</Link>.
             </p>
             <p className="muted auth-page__note">
-              Passwords are stored as PBKDF2-SHA256 hashes and are never sent back to the browser.
-              Sign-in issues a short-lived JWT that the server can revoke on sign-out.
+              Your password is securely protected. Signing out ends your session.
             </p>
           </Panel>
 

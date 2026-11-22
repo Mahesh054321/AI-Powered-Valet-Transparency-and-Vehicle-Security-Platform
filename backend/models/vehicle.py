@@ -68,6 +68,18 @@ class Vehicle(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     status: Mapped[str] = status_column(VehicleStatus, VehicleStatus.REGISTERED)
     notes: Mapped[str | None] = mapped_column(String(500))
+    tracking_method: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        default="SIMULATED",
+        server_default="SIMULATED",
+        comment="REAL_GPS | MOBILE_GPS | SIMULATED | NOT_CONFIGURED",
+    )
+    gps_device_id: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+        comment="Registered GPS tracker device identifier.",
+    )
 
     # -- relationships ------------------------------------------------------
     owner: Mapped[User] = relationship("User", back_populates="vehicles")  # noqa: F821
@@ -76,6 +88,9 @@ class Vehicle(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     tickets: Mapped[list[ValetTicket]] = relationship(  # noqa: F821
         "ValetTicket", back_populates="vehicle", passive_deletes=True
+    )
+    gps_devices: Mapped[list[GpsDevice]] = relationship(  # noqa: F821
+        "GpsDevice", back_populates="vehicle", passive_deletes=True
     )
 
     # -- helpers ------------------------------------------------------------
@@ -102,6 +117,8 @@ class Vehicle(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             "color": self.color,
             "vin": self.vin,
             "status": self.status,
+            "tracking_method": self.tracking_method,
+            "gps_device_id": self.gps_device_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

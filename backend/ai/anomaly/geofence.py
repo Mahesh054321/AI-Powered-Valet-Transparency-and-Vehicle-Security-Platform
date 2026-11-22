@@ -47,6 +47,32 @@ ALERT_UNUSUAL_SPEED = "UNUSUAL_SPEED"
 ALERT_ROUTE_DEVIATION = "ROUTE_DEVIATION"
 ALERT_ABNORMAL_MOVEMENT = "ABNORMAL_MOVEMENT"
 ALERT_TELEMETRY_LOSS = "TELEMETRY_LOSS"
+ALERT_CONFIRMED_EXIT = "CONFIRMED_EXIT"
+ALERT_RETURN_TO_ZONE = "RETURN_TO_ZONE"
+ALERT_UNEXPECTED_PARKED_MOVEMENT = "UNEXPECTED_PARKED_MOVEMENT"
+ALERT_FREQUENT_CROSSINGS = "FREQUENT_CROSSINGS"
+ALERT_IMPLAUSIBLE_MOVEMENT = "IMPLAUSIBLE_MOVEMENT"
+ALERT_LOCATION_UNCERTAIN = "LOCATION_UNCERTAIN"
+ALERT_DEVICE_TAMPER_ALARM = "DEVICE_TAMPER_ALARM"
+ALERT_IGNITION_ALERT = "IGNITION_ALERT"
+ALERT_DOOR_OPEN_ALERT = "DOOR_OPEN_ALERT"
+ALERT_VIBRATION_SHOCK_ALERT = "VIBRATION_SHOCK_ALERT"
+ALERT_POWER_DISCONNECT = "POWER_DISCONNECT"
+ALERT_DEVICE_REMOVED = "DEVICE_REMOVED"
+
+# -- boundary state vocabulary ----------------------------------------------
+BOUNDARY_INSIDE = "INSIDE"
+BOUNDARY_NEAR_BOUNDARY = "NEAR_BOUNDARY"
+BOUNDARY_OUTSIDE = "OUTSIDE"
+BOUNDARY_UNCERTAIN = "UNCERTAIN"
+BOUNDARY_STATES = (BOUNDARY_INSIDE, BOUNDARY_NEAR_BOUNDARY, BOUNDARY_OUTSIDE, BOUNDARY_UNCERTAIN)
+
+# -- telemetry freshness vocabulary -----------------------------------------
+FRESHNESS_LIVE = "LIVE"
+FRESHNESS_STALE = "STALE"
+FRESHNESS_OFFLINE = "OFFLINE"
+FRESHNESS_UNCERTAIN = "LOCATION_UNCERTAIN"
+FRESHNESS_STATES = (FRESHNESS_LIVE, FRESHNESS_STALE, FRESHNESS_OFFLINE, FRESHNESS_UNCERTAIN)
 
 SEVERITY_LOW = "LOW"
 SEVERITY_MEDIUM = "MEDIUM"
@@ -172,6 +198,79 @@ def circular_ring(
     ]
 
 
+def rectangular_ring(
+    latitude: float,
+    longitude: float,
+    length_metres: float,
+    width_metres: float,
+    orientation_degrees: float = 0.0,
+) -> list[list[float]]:
+    """Define a rectangular boundary from centre, length, width, and orientation.
+
+    Uses planar projection in local metres for high precision at yard scale.
+    Generates a closed [longitude, latitude] ring (5 points, with the first
+    repeated at the end) in GeoJSON order.
+    """
+    if length_metres <= 0:
+        raise ValueError(f"length_metres must be positive; got {length_metres}")
+    if width_metres <= 0:
+        raise ValueError(f"width_metres must be positive; got {width_metres}")
+
+    theta = math.radians(float(orientation_degrees) % 360.0)
+    dx_f, dy_f = math.sin(theta), math.cos(theta)
+    dx_r, dy_r = math.cos(theta), -math.sin(theta)
+    hl = float(length_metres) / 2.0
+    hw = float(width_metres) / 2.0
+
+    corners_m = (
+        (+hl * dx_f + hw * dx_r, +hl * dy_f + hw * dy_r),
+        (-hl * dx_f + hw * dx_r, -hl * dy_f + hw * dy_r),
+        (-hl * dx_f - hw * dx_r, -hl * dy_f - hw * dy_r),
+        (+hl * dx_f - hw * dx_r, +hl * dy_f - hw * dy_r),
+    )
+
+    lat_scale = 180.0 / (math.pi * EARTH_RADIUS_METRES)
+    cos_lat = math.cos(math.radians(latitude))
+    lon_scale = 180.0 / (math.pi * EARTH_RADIUS_METRES * (cos_lat if abs(cos_lat) > 1e-6 else 1e-6))
+
+    ring = [
+        [
+            round(longitude + dx * lon_scale, 7),
+            round(latitude + dy * lat_scale, 7),
+        ]
+        for dx, dy in corners_m
+    ]
+    ring.append(ring[0])  # Close ring
+    return ring
+
+
+def classify_freshness(
+    recorded_at: datetime | None,
+    accuracy_metres: float | None = None,
+    now: datetime | None = None,
+    max_uncertain_accuracy_metres: float = 35.0,
+    stale_threshold_seconds: float = 300.0,
+    offline_threshold_seconds: float = 900.0,
+) -> str:
+    """Classify fixes as LIVE (5 min), STALE (5-15 min), OFFLINE, or uncertain."""
+    if accuracy_metres is not None and accuracy_metres > max_uncertain_accuracy_metres:
+        return FRESHNESS_UNCERTAIN
+    if recorded_at is None:
+        return FRESHNESS_OFFLINE
+    if now is None:
+        from datetime import timezone
+        now = datetime.now(timezone.utc)
+    if recorded_at.tzinfo is None:
+        from datetime import timezone
+        recorded_at = recorded_at.replace(tzinfo=timezone.utc)
+    gap = (now - recorded_at).total_seconds()
+    if gap <= stale_threshold_seconds:
+        return FRESHNESS_LIVE
+    if gap <= offline_threshold_seconds:
+        return FRESHNESS_STALE
+    return FRESHNESS_OFFLINE
+
+
 def _project(
     latitude: float, longitude: float, origin_latitude: float, origin_longitude: float
 ) -> tuple[float, float]:
@@ -258,6 +357,16 @@ class GeofenceConfig:
     stationary_speed_kmph: float = 5.0
     #: Longer than this between fixes and telemetry has been lost.
     telemetry_gap_seconds: float = 300.0
+    #: Consecutive readings outside buffer required to confirm exit.
+    consecutive_readings_required: int = 2
+    #: Threshold above which GPS fix accuracy is considered uncertain.
+    max_uncertain_accuracy_metres: float = 35.0
+    #: Maximum displacement while parked before alerting.
+    parked_movement_distance_metres: float = 15.0
+    #: Maximum boundary crossings before frequent crossings alert fires.
+    max_crossings_count: int = 3
+    #: Window for boundary crossings analysis in minutes.
+    crossings_window_minutes: float = 10.0
 
 
 DEFAULT_CONFIG = GeofenceConfig()
@@ -298,6 +407,7 @@ class MovementVerdict:
     is_within_zone: bool
     findings: tuple[Finding, ...] = ()
     evidence: dict = field(default_factory=dict)
+    boundary_state: str = BOUNDARY_INSIDE
 
     @property
     def reasons(self) -> list[str]:
@@ -342,6 +452,11 @@ def evaluate_fix(
     speed_kmph: float | None = None,
     heading_degrees: float | None = None,
     recorded_at: datetime | None = None,
+    accuracy_metres: float | None = None,
+    sensor_data: dict | None = None,
+    is_parked: bool = False,
+    consecutive_outside_count: int = 0,
+    prior_was_outside: bool = False,
     prior_fixes: tuple[PriorFix, ...] = (),
     movement_expected: bool = False,
     config: GeofenceConfig = DEFAULT_CONFIG,
@@ -360,7 +475,19 @@ def evaluate_fix(
     inside = bool(has_zone and distance is not None and distance <= 0.0)
     buffer_metres = max(0.0, config.buffer_metres)
 
-    # -- rule 1: zone membership -------------------------------------------
+    # Determine boundary state
+    if not has_zone:
+        boundary_state = BOUNDARY_UNCERTAIN
+    elif accuracy_metres is not None and accuracy_metres > config.max_uncertain_accuracy_metres:
+        boundary_state = BOUNDARY_UNCERTAIN
+    elif distance is not None and distance <= 0.0:
+        boundary_state = BOUNDARY_INSIDE
+    elif distance is not None and distance <= buffer_metres:
+        boundary_state = BOUNDARY_NEAR_BOUNDARY
+    else:
+        boundary_state = BOUNDARY_OUTSIDE
+
+    # -- rule 1: zone membership & boundary containment -------------------
     if not has_zone:
         # No zone to evaluate against is not a benign fix; it means the fix
         # could not be judged. Say so rather than defaulting to NORMAL.
@@ -374,24 +501,61 @@ def evaluate_fix(
                 status=WARNING,
             )
         )
-    elif distance is not None and distance > buffer_metres:
-        if distance > config.breach_margin_metres:
-            status, severity = BREACH, SEVERITY_HIGH
-        else:
-            status, severity = SUSPICIOUS, SEVERITY_MEDIUM
+    elif boundary_state == BOUNDARY_UNCERTAIN and distance is not None and distance > 0:
+        # A single inaccurate GPS reading must not automatically be treated as theft
         findings.append(
             Finding(
-                alert_type=ALERT_GEOFENCE_BREACH,
-                severity=severity,
-                title="Vehicle outside its assigned parking zone",
+                alert_type=ALERT_LOCATION_UNCERTAIN,
+                severity=SEVERITY_LOW,
+                title="Location reading uncertain",
                 reason=(
-                    f"Position is {distance:.0f} m beyond the zone boundary, outside the "
-                    f"{buffer_metres:.0f} m GPS tolerance."
+                    f"Position is {distance:.0f} m outside the boundary, but accuracy radius "
+                    f"(±{accuracy_metres:.0f} m) exceeds tolerance. Location is uncertain."
                 ),
-                confidence=0.95,
-                status=status,
+                confidence=0.4,
+                status=WARNING,
             )
         )
+    elif distance is not None and distance > buffer_metres:
+        # Outside boundary buffer
+        if consecutive_outside_count + 1 >= config.consecutive_readings_required:
+            if distance > config.breach_margin_metres:
+                status, severity = BREACH, SEVERITY_HIGH
+            else:
+                status, severity = SUSPICIOUS, SEVERITY_MEDIUM
+            findings.append(
+                Finding(
+                    alert_type=ALERT_GEOFENCE_BREACH,
+                    severity=severity,
+                    title="Vehicle outside its assigned parking zone",
+                    reason=(
+                        f"Position is {distance:.0f} m beyond the zone boundary, outside the "
+                        f"{buffer_metres:.0f} m GPS tolerance across "
+                        f"{consecutive_outside_count + 1} confirmed readings."
+                    ),
+                    confidence=0.98,
+                    status=status,
+                )
+            )
+        else:
+            # Single reading outside: potential exit pending confirmation to avoid false alarm
+            if distance > config.breach_margin_metres:
+                status, severity = BREACH, SEVERITY_HIGH
+            else:
+                status, severity = SUSPICIOUS, SEVERITY_MEDIUM
+            findings.append(
+                Finding(
+                    alert_type=ALERT_GEOFENCE_BREACH,
+                    severity=severity,
+                    title="Vehicle outside its assigned parking zone",
+                    reason=(
+                        f"Position is {distance:.0f} m beyond the zone boundary, outside the "
+                        f"{buffer_metres:.0f} m GPS tolerance."
+                    ),
+                    confidence=0.95,
+                    status=status,
+                )
+            )
     elif distance is not None and distance > 0.0:
         findings.append(
             Finding(
@@ -404,6 +568,17 @@ def evaluate_fix(
                 ),
                 confidence=0.6,
                 status=WARNING,
+            )
+        )
+    elif boundary_state == BOUNDARY_INSIDE and prior_was_outside:
+        findings.append(
+            Finding(
+                alert_type=ALERT_RETURN_TO_ZONE,
+                severity=SEVERITY_LOW,
+                title="Vehicle returned to safe zone",
+                reason="Vehicle has returned inside the authorized safe zone boundary.",
+                confidence=0.95,
+                status=NORMAL,
             )
         )
 
@@ -600,8 +775,133 @@ def evaluate_fix(
                             f"Outside the geofence and travelling {off_course:.0f} degrees off "
                             f"the bearing back to the zone."
                         ),
-                    confidence=0.85,
+                        confidence=0.85,
+                        status=BREACH,
+                    )
+                )
+
+        # 3g: unexpected movement while the vehicle is supposed to be parked
+        if is_parked and not movement_expected:
+            if moving_now:
+                findings.append(
+                    Finding(
+                        alert_type=ALERT_UNEXPECTED_PARKED_MOVEMENT,
+                        severity=SEVERITY_HIGH,
+                        title="Unexpected movement while vehicle is parked",
+                        reason=(
+                            f"Vehicle is moving at {speed_kmph:.0f} km/h while custody status is PARKED."
+                        ),
+                        confidence=0.95,
+                        status=SUSPICIOUS,
+                    )
+                )
+            elif step_m > config.parked_movement_distance_metres:
+                findings.append(
+                    Finding(
+                        alert_type=ALERT_UNEXPECTED_PARKED_MOVEMENT,
+                        severity=SEVERITY_HIGH,
+                        title="Unexpected parked-vehicle displacement",
+                        reason=(
+                            f"Vehicle shifted position by {step_m:.0f} m while custody status is PARKED."
+                        ),
+                        confidence=0.9,
+                        status=SUSPICIOUS,
+                    )
+                )
+
+        # 3h: repeated boundary crossings
+        if has_zone and len(prior_fixes) >= 3:
+            pts = list(prior_fixes) + [PriorFix(latitude, longitude, recorded_at, speed_kmph)]
+            crossings = 0
+            prev_outside = None
+            for fix_item in pts:
+                d = _zone_distance(fix_item.latitude, fix_item.longitude, zone_ring, zone_centre, zone_radius_metres)
+                if d is not None:
+                    out = d > buffer_metres
+                    if prev_outside is not None and out != prev_outside:
+                        crossings += 1
+                    prev_outside = out
+            if crossings >= config.max_crossings_count:
+                findings.append(
+                    Finding(
+                        alert_type=ALERT_FREQUENT_CROSSINGS,
+                        severity=SEVERITY_MEDIUM,
+                        title="Repeated boundary crossings detected",
+                        reason=(
+                            f"Vehicle crossed the zone boundary {crossings} times across recent fixes, "
+                            f"indicating erratic boundary proximity or hovering."
+                        ),
+                        confidence=0.85,
+                        status=SUSPICIOUS,
+                    )
+                )
+
+    # -- rule 4: hardware tamper & sensor signals ---------------------------
+    if sensor_data:
+        if sensor_data.get("tamper_triggered"):
+            findings.append(
+                Finding(
+                    alert_type=ALERT_DEVICE_TAMPER_ALARM,
+                    severity=SEVERITY_CRITICAL,
+                    title="GPS tracker tamper alarm triggered",
+                    reason="Physical casing tamper switch or optical sensor triggered on tracking device.",
+                    confidence=1.0,
                     status=BREACH,
+                )
+            )
+        if sensor_data.get("ignition") and is_parked and not movement_expected:
+            findings.append(
+                Finding(
+                    alert_type=ALERT_IGNITION_ALERT,
+                    severity=SEVERITY_HIGH,
+                    title="Unexpected ignition status change",
+                    reason="Engine ignition switched ON while vehicle is designated as PARKED.",
+                    confidence=0.95,
+                    status=SUSPICIOUS,
+                )
+            )
+        if sensor_data.get("shock_detected"):
+            findings.append(
+                Finding(
+                    alert_type=ALERT_VIBRATION_SHOCK_ALERT,
+                    severity=SEVERITY_HIGH,
+                    title="Vibration or shock alert",
+                    reason="High-g impact or disturbance detected by accelerometer (possible towing, jacking or collision).",
+                    confidence=0.9,
+                    status=SUSPICIOUS,
+                )
+            )
+        if sensor_data.get("power_connected") is False:
+            findings.append(
+                Finding(
+                    alert_type=ALERT_POWER_DISCONNECT,
+                    severity=SEVERITY_HIGH,
+                    title="Tracker power-loss event",
+                    reason="External power disconnected from vehicle tracking unit; running on backup battery.",
+                    confidence=0.95,
+                    status=SUSPICIOUS,
+                )
+            )
+        if sensor_data.get("device_attached") is False:
+            findings.append(
+                Finding(
+                    alert_type=ALERT_DEVICE_REMOVED,
+                    severity=SEVERITY_CRITICAL,
+                    title="Vehicle tracking device removed",
+                    reason="Tracker unplugged from diagnostic port or dismounted from vehicle.",
+                    confidence=1.0,
+                    status=BREACH,
+                )
+            )
+        if sensor_data.get("door_open") and is_parked and not movement_expected:
+            findings.append(
+                Finding(
+                    alert_type=ALERT_DOOR_OPEN_ALERT,
+                    severity=SEVERITY_MEDIUM,
+                    title="Vehicle door open event",
+                    reason="Vehicle door sensor opened unexpectedly while parked in custody.",
+                    confidence=0.9,
+                    status=WARNING,
                 )
             )
 
@@ -612,12 +912,16 @@ def evaluate_fix(
     )
 
     evidence: dict = {
+        "boundary_state": boundary_state,
         "distance_from_boundary_metres": (
             round(distance, 2) if distance is not None else None
         ),
         "buffer_metres": buffer_metres,
         "breach_margin_metres": config.breach_margin_metres,
         "speed_kmph": speed_kmph,
+        "accuracy_metres": accuracy_metres,
+        "sensor_data": sensor_data,
+        "consecutive_outside_count": consecutive_outside_count,
         "zone_speed_limit_kmph": config.zone_speed_limit_kmph,
         "speed_limit_applies": in_yard,
         "movement_expected": movement_expected,
@@ -639,37 +943,62 @@ def evaluate_fix(
         is_within_zone=inside,
         findings=tuple(findings),
         evidence=evidence,
+        boundary_state=boundary_state,
     )
 
 
 __all__ = [
     "ALERT_ABNORMAL_MOVEMENT",
+    "ALERT_CONFIRMED_EXIT",
+    "ALERT_DEVICE_REMOVED",
+    "ALERT_DEVICE_TAMPER_ALARM",
+    "ALERT_DOOR_OPEN_ALERT",
+    "ALERT_FREQUENT_CROSSINGS",
     "ALERT_GEOFENCE_BREACH",
+    "ALERT_IGNITION_ALERT",
+    "ALERT_IMPLAUSIBLE_MOVEMENT",
+    "ALERT_LOCATION_UNCERTAIN",
+    "ALERT_POWER_DISCONNECT",
+    "ALERT_RETURN_TO_ZONE",
     "ALERT_ROUTE_DEVIATION",
     "ALERT_TELEMETRY_LOSS",
+    "ALERT_UNEXPECTED_PARKED_MOVEMENT",
     "ALERT_UNUSUAL_SPEED",
+    "ALERT_VIBRATION_SHOCK_ALERT",
+    "BOUNDARY_INSIDE",
+    "BOUNDARY_NEAR_BOUNDARY",
+    "BOUNDARY_OUTSIDE",
+    "BOUNDARY_STATES",
+    "BOUNDARY_UNCERTAIN",
     "BREACH",
     "CIRCLE_RING_POINTS",
     "DEFAULT_CONFIG",
     "EARTH_RADIUS_METRES",
+    "FRESHNESS_LIVE",
+    "FRESHNESS_OFFLINE",
+    "FRESHNESS_STALE",
+    "FRESHNESS_STATES",
+    "FRESHNESS_UNCERTAIN",
+    "Finding",
+    "GeofenceConfig",
     "MOVEMENT_STATUSES",
+    "MovementVerdict",
     "NORMAL",
+    "PriorFix",
     "SEVERITY_CRITICAL",
     "SEVERITY_HIGH",
     "SEVERITY_LOW",
     "SEVERITY_MEDIUM",
     "SUSPICIOUS",
     "WARNING",
-    "Finding",
-    "GeofenceConfig",
-    "MovementVerdict",
-    "PriorFix",
     "angle_between_degrees",
     "bearing_degrees",
     "circular_ring",
+    "classify_freshness",
     "destination_point",
     "evaluate_fix",
     "haversine_m",
     "point_in_polygon",
+    "rectangular_ring",
     "signed_distance_to_boundary_m",
 ]

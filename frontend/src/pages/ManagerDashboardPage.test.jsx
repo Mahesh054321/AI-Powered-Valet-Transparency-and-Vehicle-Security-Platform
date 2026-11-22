@@ -108,6 +108,9 @@ function payload(overrides = {}) {
       damage_cases: [
         { id: 'd1', damage_type: 'SCRATCH', region: 'FRONT_BUMPER', severity: 'MINOR', confidence: 0.81, verification_status: 'UNVERIFIED', vehicle: { plate_number: 'UP85CA1234' }, captured_at: '2026-08-20T10:00:00Z' },
       ],
+      pending_disputes: [
+        { custody_session_id: 'c-disputed', ticket_code: 'VT-000002', vehicle: { plate_number: 'UP85CA9876' }, customer: { name: 'Ravi Kumar' } },
+      ],
     },
     ...overrides,
   }
@@ -317,13 +320,18 @@ describe('ManagerDashboardPage', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('renders all four tables', async () => {
+  it('renders the manager tables, including the pending dispute queue', async () => {
     vi.mocked(fetchManagerDashboard).mockResolvedValue(payload())
     renderWithProviders(<ManagerDashboardPage />, { token: buildToken({ role: 'VALET_MANAGER' }) })
 
     await waitFor(() => expect(screen.getByText('Recent tickets')).toBeInTheDocument())
     expect(screen.getByText('Active vehicles')).toBeInTheDocument()
     expect(screen.getByText('Damage cases')).toBeInTheDocument()
+    expect(screen.getByText('Pending custody disputes')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /review dispute/i })).toHaveAttribute(
+      'href',
+      '/condition/c-disputed',
+    )
     expect(screen.getAllByText('UP85CA1234').length).toBeGreaterThan(0)
   })
 

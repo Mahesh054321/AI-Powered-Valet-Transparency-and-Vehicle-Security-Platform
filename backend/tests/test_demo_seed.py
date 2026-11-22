@@ -85,8 +85,12 @@ def test_every_seeded_gps_fix_is_labelled_simulated(seeded):
     unlabelled = _scalar(seeded, "SELECT count(*) FROM gps_events WHERE source <> 'SIMULATED'")
     assert unlabelled == 0, f"{unlabelled} GPS fix(es) not labelled SIMULATED"
 
-    hardware = _scalar(seeded, "SELECT count(*) FROM gps_events WHERE source = 'HARDWARE'")
-    assert hardware == 0, f"{hardware} GPS fix(es) falsely claim HARDWARE provenance"
+    hardware = _scalar(
+        seeded,
+        "SELECT count(*) FROM gps_events "
+        "WHERE source IN ('HARDWARE', 'VEHICLE_GPS', 'CAR_GPS', 'REAL_GPS')",
+    )
+    assert hardware == 0, f"{hardware} GPS fix(es) falsely claim real hardware provenance"
 
 
 def test_seeded_telemetry_device_ids_admit_they_are_simulated(seeded):
@@ -175,12 +179,12 @@ def test_verify_detects_unlabelled_telemetry(seeded):
     with seeded.app_context():
         target = db.session.execute(text("SELECT id FROM gps_events LIMIT 1")).scalar_one()
         db.session.execute(
-            text("UPDATE gps_events SET source = 'HARDWARE' WHERE id = :id"), {"id": target}
+            text("UPDATE gps_events SET source = 'REAL_GPS' WHERE id = :id"), {"id": target}
         )
         db.session.commit()
     try:
         _counts, problems = verify(seeded)
-        assert any("HARDWARE" in problem for problem in problems), (
+        assert any("hardware provenance" in problem for problem in problems), (
             f"verification missed a mislabelled fix; problems were {problems}"
         )
     finally:

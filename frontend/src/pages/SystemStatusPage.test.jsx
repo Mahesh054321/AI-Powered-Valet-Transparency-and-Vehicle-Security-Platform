@@ -40,16 +40,16 @@ describe('SystemStatusPage', () => {
     vi.mocked(apiGet).mockReset()
   })
 
-  it('renders live API and database data from the backend', async () => {
+  it('renders service availability and database data from the backend', async () => {
     vi.mocked(apiGet).mockImplementation(async (path) =>
       path.endsWith('/health') ? HEALTH : READY,
     )
 
     renderWithProviders(<SystemStatusPage />)
 
-    expect(await screen.findByText('valet-transparency-api')).toBeInTheDocument()
+    expect(await screen.findByText('Application service')).toBeInTheDocument()
     await waitFor(() => {
-      expect(screen.getByText('17.11')).toBeInTheDocument()
+      expect(screen.getByText('Database')).toBeInTheDocument()
       expect(screen.getByText('12.4 ms')).toBeInTheDocument()
     })
     expect(screen.getAllByText('ready').length).toBeGreaterThan(0)
@@ -61,7 +61,7 @@ describe('SystemStatusPage', () => {
 
     renderWithProviders(<SystemStatusPage />)
 
-    expect(await screen.findByText('Backend unreachable')).toBeInTheDocument()
+    expect(await screen.findByText('Service temporarily unavailable')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: /retry/i }).length).toBeGreaterThan(0)
   })
 

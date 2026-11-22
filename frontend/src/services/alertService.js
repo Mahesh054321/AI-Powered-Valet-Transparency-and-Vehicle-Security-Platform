@@ -16,7 +16,7 @@
  * cannot clear it from someone else's queue.
  */
 
-import { apiGet, apiPost } from './apiClient'
+import { apiDelete, apiGet, apiPost } from './apiClient'
 import { ENDPOINTS } from './endpoints'
 
 /** Build the query string from the current filter state. */
@@ -65,6 +65,11 @@ export function resolveAlert(alertId, { notes = '', dismiss = false } = {}) {
   // row does not record a note that was never written.
   if (notes && notes.trim()) body.notes = notes.trim()
   return apiPost(`${ENDPOINTS.alertFeed}/${alertId}/resolve`, body)
+}
+
+/** Delete an alert after it has been resolved. The backend enforces authority and status. */
+export function deleteAlert(alertId) {
+  return apiDelete(`${ENDPOINTS.alertFeed}/${alertId}`)
 }
 
 /** The five categories, for filter controls. */

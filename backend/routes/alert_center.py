@@ -6,6 +6,7 @@
     POST /alerts/<id>/read           mark it read for the calling user
     POST /alerts/read-all            mark everything visible as read
     POST /alerts/<id>/resolve        close it (manager/admin)
+    DELETE /alerts/<id>              delete a resolved alert (manager/admin)
     GET  /alerts/summary             unread counts for the notification badge
 
 **Two different questions are kept apart here.** ``status`` is the alert's
@@ -24,6 +25,7 @@ from flask import Blueprint, request
 from services.alerts import (
     alert_dict,
     create_alert,
+    delete_resolved_alert,
     get_alert,
     is_manager,
     list_alerts,
@@ -161,6 +163,13 @@ def create_alert_center_blueprint() -> Blueprint:
     @require_authentication
     def detail(alert_id: str):
         return ok(get_alert(current_user(), alert_id))
+
+    @blueprint.delete("/<alert_id>")
+    @blueprint.delete("/<alert_id>/")
+    @require_authentication
+    def delete(alert_id: str):
+        """Permanently delete an alert after it has been resolved."""
+        return ok(delete_resolved_alert(current_user(), alert_id))
 
     @blueprint.post("/read-all")
     @blueprint.post("/read-all/")

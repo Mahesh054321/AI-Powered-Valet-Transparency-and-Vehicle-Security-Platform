@@ -164,7 +164,7 @@ export function AuditLogPage() {
         <div>
           <h1>Audit trail</h1>
           <p className="audit__lede">
-            Every significant event in the platform, recorded append-only.
+            A dated record of important actions across the platform.
           </p>
         </div>
         <div className="audit__mode-switch" role="group" aria-label="View">
@@ -185,15 +185,14 @@ export function AuditLogPage() {
         </div>
       </header>
 
-      <AlertBanner tone="info" title="This log cannot be edited">
-        {data?.mutability_note ||
-          'The audit trail is append-only. There is no update or delete endpoint, and the ' +
-            'database rejects both at the trigger level.'}
+      <AlertBanner tone="info" title="Audit records are permanent">
+        Entries cannot be changed or deleted, keeping a reliable record of account and vehicle
+        activity.
       </AlertBanner>
 
       {mode === 'log' && (
         <>
-          <Panel title="Filters" subtitle="Narrow the log. Every filter is applied server-side.">
+          <Panel title="Filters" subtitle="Narrow entries by action, account, outcome, or date.">
             <div className="audit__filters">
               <Field label="Action">
                 <select value={filters.action} onChange={setFilter('action')}>
@@ -228,21 +227,21 @@ export function AuditLogPage() {
                 </select>
               </Field>
 
-              <Field label="Actor id" hint="Everything one user did.">
+              <Field label="User ID" hint="Use the ID shown in an audit entry.">
                 <input
                   type="text"
                   value={filters.actor_id}
                   onChange={setFilter('actor_id')}
-                  placeholder="uuid"
+                  placeholder="Paste user ID"
                 />
               </Field>
 
-              <Field label="Custody session id">
+              <Field label="Custody session ID" hint="Find it on the ticket or tracking page.">
                 <input
                   type="text"
                   value={filters.custody_session_id}
                   onChange={setFilter('custody_session_id')}
-                  placeholder="uuid"
+                  placeholder="Paste session ID"
                 />
               </Field>
 
@@ -254,7 +253,10 @@ export function AuditLogPage() {
                 <input type="date" value={filters.date_to} onChange={setFilter('date_to')} />
               </Field>
 
-              <Field label="Lifecycle events only" hint="The fourteen custody events.">
+              <Field
+                label="Custody events only"
+                hint="Limit results to key actions during a vehicle’s stay."
+              >
                 <input
                   type="checkbox"
                   checked={filters.lifecycle_only}
@@ -316,15 +318,15 @@ export function AuditLogPage() {
       {mode === 'timeline' && (
         <Panel
           title="Custody timeline"
-          subtitle="One custody, oldest first, with the lifecycle gaps marked."
+          subtitle="Follow important events from check-in through pickup."
         >
           <div className="audit__timeline-picker">
-            <Field label="Custody session id" hint="Found on the ticket or the operator screen.">
+            <Field label="Custody session ID" hint="Find it on the ticket or tracking page.">
               <input
                 type="text"
                 value={custodyId}
                 onChange={(event) => setCustodyId(event.target.value)}
-                placeholder="uuid"
+                placeholder="Paste session ID"
               />
             </Field>
             <button
@@ -337,7 +339,7 @@ export function AuditLogPage() {
           </div>
 
           {!timelineId && (
-            <p className="audit__empty">Enter a custody session id to load its timeline.</p>
+            <p className="audit__empty">Enter a custody session ID to load its timeline.</p>
           )}
 
           {timelineId && (

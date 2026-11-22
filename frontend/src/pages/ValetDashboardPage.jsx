@@ -43,6 +43,7 @@ import {
   resolveAlert,
 } from '../services/staffDashboardService'
 import { capturePickup } from '../services/inspectionService'
+import { normaliseError } from '../services/apiClient'
 
 /** How often the screen re-reads. Short enough to feel prompt, long enough
  *  that a row does not reorder while an operator is reading it. */
@@ -73,6 +74,15 @@ export function ValetDashboardPage() {
   /** Every mutation refreshes the whole snapshot: one action can move a row
    *  between sections, free a zone slot and clear a badge at once. */
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['staff-dashboard'] })
+  const reportMutationError = (title, error) => {
+    setPending(null)
+    setNotice({
+      tone: 'warning',
+      title,
+      body: normaliseError(error).message,
+    })
+    refresh()
+  }
 
   const move = useMutation({
     mutationFn: ({ custodyId, status }) => moveVehicle(custodyId, status),
@@ -85,6 +95,7 @@ export function ValetDashboardPage() {
       })
       refresh()
     },
+    onError: (error) => reportMutationError('Could not update custody status', error),
   })
 
   const complete = useMutation({
@@ -99,6 +110,7 @@ export function ValetDashboardPage() {
       })
       refresh()
     },
+    onError: (error) => reportMutationError('Could not complete pickup', error),
   })
 
   const uploadPickup = useMutation({
@@ -115,6 +127,7 @@ export function ValetDashboardPage() {
       })
       refresh()
     },
+    onError: (error) => reportMutationError('Could not capture pickup photos', error),
   })
 
   const acknowledge = useMutation({
@@ -128,6 +141,7 @@ export function ValetDashboardPage() {
       })
       refresh()
     },
+    onError: (error) => reportMutationError('Could not acknowledge alert', error),
   })
 
   const resolve = useMutation({
@@ -141,12 +155,11 @@ export function ValetDashboardPage() {
       })
       refresh()
     },
+    onError: (error) => reportMutationError('Could not resolve alert', error),
   })
 
   const busy = move.isPending || complete.isPending || uploadPickup.isPending ||
     acknowledge.isPending || resolve.isPending
-  const mutationError =
-    move.error || complete.error || uploadPickup.error || acknowledge.error || resolve.error
 
   const confirm = () => {
     if (!pending) return
@@ -240,7 +253,7 @@ export function ValetDashboardPage() {
             Move
           </button>
         )}
-        {status !== 'READY_FOR_PICKUP' && (
+        {status === 'RETRIEVAL_IN_PROGRESS' && (
           <button
             type="button"
             className="btn btn--sm"
@@ -258,6 +271,11 @@ export function ValetDashboardPage() {
           >
             Mark ready
           </button>
+        )}
+        {status === 'DISPUTED' && (
+          <Link className="btn btn--sm btn--ghost" to={`/condition/${row.custody_session_id}`}>
+            Review dispute
+          </Link>
         )}
       </>
     )
@@ -321,8 +339,6 @@ export function ValetDashboardPage() {
           here within one refresh.
         </p>
       </AlertBanner>
-
-      {mutationError && <ErrorNotice error={mutationError} />}
 
       {/* ------------------------- ACTIVE VEHICLES ------------------------ */}
       <SectionShell

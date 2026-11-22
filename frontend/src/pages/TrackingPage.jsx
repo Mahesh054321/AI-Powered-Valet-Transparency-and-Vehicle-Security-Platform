@@ -1,30 +1,22 @@
 /**
- * Live vehicle tracking and security dashboard.
+ * Live vehicle tracking, smart geofencing and security dashboard.
  *
  * Shows where a vehicle in custody is, the geofence it is supposed to stay
  * inside, how the engine classified its latest fix, and every alert raised
  * during the custody window.
  *
- * Three things are deliberately unavoidable on this screen:
- *
- *  1. **The simulated-telemetry banner.** Development data must not be
- *     mistakable for hardware data, so the banner is rendered from the
- *     response's own provenance flags rather than a build-time setting, and
- *     each fix in the log repeats its source.
- *  2. **The verdict's reasoning.** `NORMAL` is not shown as "all clear" - the
- *     reasons the engine gave are listed, so a reader can see what was checked.
- *  3. **Who may act.** Triage controls appear only for managers and
- *     administrators. A valet operator can watch; they cannot close an alert
- *     about a vehicle they may have been driving.
+ * Real-time SSE live updates, real GPS sources (Mobile Browser GPS vs Vehicle Tracker),
+ * hardware sensor telemetry, and user-defined Safe Zone Builder.
  */
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useToast } from '../context/ToastContext'
 
 import { AlertCard } from '../components/tracking/AlertCard'
 import { MlVerdictCard } from '../components/tracking/MlVerdictCard'
+import { SafeZoneBuilder } from '../components/tracking/SafeZoneBuilder'
 import { SecurityModelPanel } from '../components/tracking/SecurityModelPanel'
 import { TrackingMap } from '../components/tracking/TrackingMap'
 import { Badge, DataRow, EmptyState, ErrorNotice, Panel, Spinner } from '../components/ui'
@@ -34,12 +26,16 @@ import {
   fetchAlerts,
   fetchSimulatorScenarios,
   fetchTracking,
+  investigateAlert,
+  reopenAlert,
   resolveAlert,
   simulateTrack,
 } from '../services/geofenceService'
 import { fetchModelInfo } from '../services/securityMlService'
 import { fetchTickets } from '../services/ticketService'
 import { useAuth, useHasRole } from '../hooks/useAuth'
+import { useLiveGpsStream } from '../hooks/useLiveGpsStream'
+import { useMobileGeolocation } from '../hooks/useMobileGeolocation'
 import {
   MOVEMENT_STATUS,
   MOVEMENT_STATUS_LABELS,
@@ -55,6 +51,28 @@ const TRIAGE_ROLES = [ROLES.VALET_MANAGER, ROLES.ADMIN]
 
 /** The dashboard is a live view; poll rather than require a manual refresh. */
 const REFRESH_MS = 10_000
+
+function gpsStatusLabel(view, latest) {
+  const freshness = view?.freshness
+  const state = {
+    LIVE: 'Connected',
+    STALE: 'Stale',
+    OFFLINE: 'Offline',
+    LOCATION_UNCERTAIN: 'Error — location accuracy is uncertain',
+  }[freshness] ?? 'Offline'
+
+  if (view?.gps_device?.connection_status === 'ERROR') return 'Error'
+  if (!latest) {
+    if (view?.tracking_method === 'NOT_CONFIGURED') return 'Not configured'
+    if (view?.gps_device?.connection_status === 'PENDING_VERIFICATION') {
+      return 'Pending verification'
+    }
+    return 'Offline'
+  }
+  if (latest.source === 'SIMULATED') return `Simulated demo data · ${state.toLowerCase()}`
+  if (latest.source === 'MANUAL') return 'Manual reading'
+  return state
+}
 
 function SimulatedBanner({ view }) {
   if (!view?.has_simulated_telemetry) return null
@@ -96,7 +114,11 @@ function SessionPicker() {
   const sessions = useMemo(() => {
     const items = data?.items ?? data ?? []
     return (Array.isArray(items) ? items : [])
-      .filter((ticket) => ticket.custody_session)
+      .filter(
+        (ticket) =>
+          ticket.custody_session?.id &&
+          ticket.custody_session.status !== 'CHECKED_OUT',
+      )
       .map((ticket) => ({
         custodyId: ticket.custody_session.id,
         ticketCode: ticket.ticket_code,
@@ -122,19 +144,130 @@ function SessionPicker() {
 
   return (
     <Panel title="Choose a vehicle to track">
-      <ul className="picker-list">
+      <ul className="picker-list tracking-session-list">
         {sessions.map((session) => (
-          <li key={session.custodyId}>
-            <a className="picker-list__link" href={`/tracking/${session.custodyId}`}>
+          <li className="tracking-session-list__item" key={session.custodyId}>
+            <Link className="picker-list__link" to={`/tracking/${session.custodyId}`}>
               <strong>{session.plate ?? 'Vehicle'}</strong>
               <span className="muted">
                 {session.ticketCode} · {session.status}
                 {session.droppedOffAt ? ` · dropped off ${formatDateTime(session.droppedOffAt)}` : ''}
               </span>
-            </a>
+            </Link>
           </li>
         ))}
       </ul>
+    </Panel>
+  )
+}
+
+function MobileTrackingPanel({ custodyId, onNewFix, onPositionChange }) {
+  const toast = useToast()
+  const {
+    isSupported,
+    isTracking,
+    permissionState,
+    currentPosition,
+    accuracyMetres,
+    lastTransmittedAt,
+    lastError,
+    startTracking,
+    stopTracking,
+    disclosure,
+  } = useMobileGeolocation(custodyId, {
+    onFixSuccess: (result) => {
+      onNewFix?.(result)
+    },
+    onPositionChange,
+    onFixError: (err) => {
+      toast.error('Mobile GPS upload failed', err.message)
+    },
+  })
+
+  if (!isSupported) {
+    return (
+      <Panel title="Mobile Browser Tracking" subtitle="Location sensor unavailable">
+        <p className="muted">Geolocation is not supported in this browser.</p>
+      </Panel>
+    )
+  }
+
+  return (
+    <Panel
+      title="Mobile GPS Tracking"
+      subtitle="Authorized live geolocation from your mobile device"
+      actions={
+        <button
+          type="button"
+          className={`btn btn--small ${isTracking ? 'btn--secondary' : 'btn--primary'}`}
+          onClick={isTracking ? stopTracking : startTracking}
+        >
+          {isTracking ? 'Stop Tracking Phone' : 'Start Phone Tracking'}
+        </button>
+      }
+    >
+      <div className="notice notice--info">
+        <strong>Important Disclosure:</strong>
+        <p>{disclosure}</p>
+      </div>
+
+      <div className="data-row-group">
+        <DataRow label="Phone GPS Status" value={isTracking ? 'Actively Transmitting' : 'Idle / Off'} />
+        <DataRow label="Browser Permission" value={permissionState} />
+        {accuracyMetres != null && (
+          <DataRow
+            label="Location Accuracy"
+            value={`±${Math.round(accuracyMetres)} m (${accuracyMetres > 35 ? 'UNCERTAIN' : 'ACCURATE'})`}
+          />
+        )}
+        {currentPosition && (
+          <DataRow
+            label="Current phone location"
+            value={`${currentPosition.latitude.toFixed(5)}, ${currentPosition.longitude.toFixed(5)}`}
+          />
+        )}
+        {lastTransmittedAt && (
+          <DataRow label="Last Transmission" value={lastTransmittedAt.toLocaleTimeString()} />
+        )}
+      </div>
+
+      {lastError && <p className="notice notice--warning notice--inline">{lastError}</p>}
+    </Panel>
+  )
+}
+
+function HardwareSensorsPanel({ sensors }) {
+  if (!sensors) return null
+
+  const sensorEntries = sensors.sensors
+    ? Object.entries(sensors.sensors)
+    : [
+        ['tamper', { name: 'Enclosure Tamper', state: sensors.tamper_triggered ? 'TAMPER_ALERT' : 'SECURE', supported: true }],
+        ['power', { name: 'Power Line', state: sensors.power_connected ? 'MAIN_POWER' : 'BATTERY_DISCONNECT', supported: true }],
+        ['ignition', { name: 'Ignition', state: sensors.ignition ? 'ON' : 'OFF', supported: false }],
+        ['shock', { name: 'Vibration & Shock', state: sensors.shock_detected ? 'SHOCK_DETECTED' : 'NORMAL', supported: false }],
+        ['door', { name: 'Door Contact', state: sensors.door_open ? 'DOOR_OPEN' : 'CLOSED', supported: false }],
+        ['mount', { name: 'Device Mount', state: 'ATTACHED', supported: false }],
+      ]
+
+  return (
+    <Panel
+      title="Hardware Tampering & Sensors"
+      subtitle={sensors.diagnostic_message || 'Telemetry diagnostics for physical GPS tracker'}
+    >
+      <div className="hardware-sensors-grid">
+        {sensorEntries.map(([key, sensor]) => (
+          <div key={key} className={`sensor-item sensor-item--${(sensor.state || '').toLowerCase()}`}>
+            <span className="sensor-item__name">{sensor.name}</span>
+            <span className="sensor-item__state">{sensor.state || 'UNAVAILABLE'}</span>
+            {!sensor.supported && (
+              <span className="sensor-item__note muted">
+                Requires: {sensor.required_hardware || 'Compatible physical tracker'}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
     </Panel>
   )
 }
@@ -152,14 +285,10 @@ function SimulatorPanel({ custodyId, onDone }) {
 
   const toast = useToast()
 
-
   const run = useMutation({
     mutationFn: () =>
       simulateTrack(custodyId, { scenario, seed: seed === '' ? null : Number(seed) }),
     onSuccess: (data) => {
-      // The simulation raises alerts as a side effect, and those land in a
-      // different section of the page, so the count is reported here rather than
-      // left for the reader to notice.
       toast.success(
         `Track generated — ${data.fix_count ?? 0} fixes`,
         data.alerts_raised
@@ -244,12 +373,36 @@ export function TrackingPage() {
   const { user } = useAuth()
   const canTriage = useHasRole(TRIAGE_ROLES)
   const isStaff = useHasRole([ROLES.VALET_OPERATOR, ROLES.VALET_MANAGER, ROLES.ADMIN])
+  const isCustomer = useHasRole(ROLES.CUSTOMER)
+  const canManageGeofence = useHasRole([ROLES.VALET_MANAGER, ROLES.ADMIN, ROLES.CUSTOMER])
 
+  const [showZoneBuilder, setShowZoneBuilder] = useState(false)
+  const [mobileFix, setMobileFix] = useState(null)
+  const handleMobilePosition = useCallback(
+    (position) => setMobileFix({ custodyId, position }),
+    [custodyId],
+  )
+  const currentPhoneFix =
+    mobileFix && mobileFix.custodyId === custodyId ? mobileFix.position : null
+
+  // Real-time SSE streaming hook
+  const { streamStatus, liveView, reconnect } = useLiveGpsStream(custodyId, {
+    enabled: Boolean(custodyId),
+    onAlert: (newAlert) => {
+      toast.error(`Security Alert: ${newAlert.title}`, newAlert.reason)
+      queryClient.invalidateQueries({ queryKey: ['alerts'] })
+    },
+    onFix: () => {
+      queryClient.invalidateQueries({ queryKey: ['alerts'] })
+    },
+  })
+
+  // Regular query acting as initial source or fallback polling
   const tracking = useQuery({
     queryKey: ['gps', 'tracking', custodyId],
     queryFn: () => fetchTracking(custodyId),
     enabled: Boolean(custodyId),
-    refetchInterval: REFRESH_MS,
+    refetchInterval: streamStatus === 'connected' ? false : REFRESH_MS,
     retry: 1,
   })
 
@@ -261,8 +414,6 @@ export function TrackingPage() {
     retry: 1,
   })
 
-  // Model provenance for staff. It changes only when the artifact is retrained,
-  // so it is fetched once and not polled with the live telemetry.
   const modelInfo = useQuery({
     queryKey: ['ml', 'model'],
     queryFn: fetchModelInfo,
@@ -273,19 +424,23 @@ export function TrackingPage() {
 
   const toast = useToast()
 
-
   const triage = useMutation({
-    mutationFn: ({ alert, action, notes, dismiss }) =>
-      action === 'acknowledge'
-        ? acknowledgeAlert(alert.id)
-        : resolveAlert(alert.id, { notes, dismiss }),
+    mutationFn: ({ alert, action, notes, dismiss, reason }) => {
+      if (action === 'acknowledge') return acknowledgeAlert(alert.id)
+      if (action === 'investigate') return investigateAlert(alert.id, { notes })
+      if (action === 'reopen') return reopenAlert(alert.id, { reason })
+      return resolveAlert(alert.id, { notes, dismiss })
+    },
     onSuccess: (_data, variables) => {
-      toast.success(
-        variables.action === 'acknowledge' ? 'Alert acknowledged' : 'Alert closed',
+      const msg =
         variables.action === 'acknowledge'
-          ? 'Recorded as seen. It stays open until it is resolved.'
-          : 'Resolved and recorded in the audit log with your name against it.',
-      )
+          ? 'Alert acknowledged'
+          : variables.action === 'investigate'
+          ? 'Alert marked as investigating'
+          : variables.action === 'reopen'
+          ? 'Alert reopened'
+          : 'Alert closed'
+      toast.success(msg, 'Updated and recorded in the audit log.')
       queryClient.invalidateQueries({ queryKey: ['alerts'] })
       queryClient.invalidateQueries({ queryKey: ['gps', 'tracking', custodyId] })
     },
@@ -306,9 +461,10 @@ export function TrackingPage() {
     )
   }
 
-  if (tracking.isPending) return <Spinner label="Loading tracking data…" />
+  if (tracking.isPending && !liveView) return <Spinner label="Loading tracking data…" />
 
-  const view = tracking.data
+  // Merge liveView from SSE with tracking.data from REST
+  const view = liveView || tracking.data
   const latest = view?.latest_fix
 
   return (
@@ -322,36 +478,129 @@ export function TrackingPage() {
             {view?.zone ? ` · zone ${view.zone.code}` : ' · no zone assigned'}
           </p>
         </div>
-        {latest && (
-          <Badge tone={MOVEMENT_STATUS_TONES[latest.movement_status] ?? 'badge--muted'}>
-            {movementStatusLabel(latest.movement_status)}
-          </Badge>
-        )}
+        <div className="header-actions">
+          {latest && (
+            <Badge tone={MOVEMENT_STATUS_TONES[latest.movement_status] ?? 'badge--muted'}>
+              {movementStatusLabel(latest.movement_status)}
+            </Badge>
+          )}
+          {canManageGeofence && (
+            <button
+              type="button"
+              className="btn btn--secondary btn--small"
+              onClick={() => setShowZoneBuilder((prev) => !prev)}
+            >
+              {showZoneBuilder ? 'Close Safe Zone Builder' : 'Configure Safe Zone'}
+            </button>
+          )}
+        </div>
       </header>
 
       <ErrorNotice error={tracking.error ? normaliseError(tracking.error) : null} onRetry={tracking.refetch} />
 
       <SimulatedBanner view={view} />
 
+      {/* Safe Zone Builder Interactive Drawer */}
+      {showZoneBuilder && (
+        <SafeZoneBuilder
+          initialCenter={view?.zone?.centre || latest}
+          vehicleId={view?.vehicle?.id}
+          custodyId={custodyId}
+          onCreated={() => setShowZoneBuilder(false)}
+          onCancel={() => setShowZoneBuilder(false)}
+        />
+      )}
+
       <div className="tracking-layout">
-        <Panel
-          title="Position and geofence"
-          subtitle={
-            view?.zone
-              ? `${view.zone.name} · boundary ${Math.round(view.zone.effective_radius_metres)} m · tolerance ${view.zone.buffer_metres} m`
-              : 'No geofence assigned to this session'
-          }
-        >
-          <TrackingMap
-            zone={view?.zone}
-            latestFix={latest}
-            track={view?.track ?? []}
-            status={latest?.movement_status ?? MOVEMENT_STATUS.NORMAL}
-          />
-        </Panel>
+        <div className="tracking-layout__main">
+          <Panel
+            title="Position and geofence"
+            subtitle={
+              view?.zone
+                ? `${view.zone.name} · boundary ${Math.round(view.zone.effective_radius_metres)} m · tolerance ${view.zone.buffer_metres} m`
+                : 'No geofence assigned to this session'
+            }
+          >
+            <TrackingMap
+              zone={view?.zone}
+              latestFix={latest}
+              phoneFix={currentPhoneFix ?? view?.phone_fix}
+              track={view?.track ?? []}
+              status={latest?.movement_status ?? MOVEMENT_STATUS.NORMAL}
+              freshness={view?.freshness ?? 'OFFLINE'}
+              boundaryState={view?.boundary_state}
+              streamStatus={streamStatus}
+            />
+          </Panel>
+
+          <Panel
+            title="Security alerts"
+            subtitle={
+              canTriage
+                ? 'Acknowledge, resolve, or dismiss as a false positive.'
+                : 'Only a manager or administrator can act on an alert.'
+            }
+            actions={
+              <button
+                type="button"
+                className="btn btn--ghost btn--small"
+                onClick={() => alerts.refetch()}
+                disabled={alerts.isFetching}
+              >
+                Refresh
+              </button>
+            }
+          >
+            <ErrorNotice error={alerts.error ? normaliseError(alerts.error) : null} onRetry={alerts.refetch} />
+            {triage.error && <ErrorNotice error={normaliseError(triage.error)} />}
+
+            {alerts.isPending ? (
+              <Spinner label="Loading alerts…" />
+            ) : (alerts.data?.alerts ?? []).length === 0 ? (
+              <EmptyState
+                icon="✓"
+                title="No alerts for this session"
+                body="No geofence breach or security event has been recorded against this custody session."
+              />
+            ) : (
+              <div className="alert-list">
+                {(alerts.data?.alerts ?? []).map((alert) => (
+                  <AlertCard
+                    key={alert.id}
+                    alert={alert}
+                    canTriage={canTriage}
+                    busy={triage.isPending}
+                    onAcknowledge={(item) => triage.mutate({ alert: item, action: 'acknowledge' })}
+                    onInvestigate={(item) => triage.mutate({ alert: item, action: 'investigate' })}
+                    onResolve={(item, { notes, dismiss }) =>
+                      triage.mutate({ alert: item, action: 'resolve', notes, dismiss })
+                    }
+                    onReopen={(item) => triage.mutate({ alert: item, action: 'reopen' })}
+                  />
+                ))}
+              </div>
+            )}
+          </Panel>
+        </div>
 
         <div className="tracking-layout__side">
           <Panel title="Current reading">
+            {custodyId && ['disconnected', 'reconnecting'].includes(streamStatus) && (
+              <button
+                type="button"
+                className="btn btn--secondary btn--small"
+                onClick={reconnect}
+              >
+                Reconnect live updates
+              </button>
+            )}
+            <DataRow label="GPS status" value={gpsStatusLabel(view, latest)} />
+            {view?.gps_device && (
+              <DataRow
+                label="Hardware connection"
+                value={view.gps_device.connection_status}
+              />
+            )}
             {latest ? (
               <>
                 <DataRow label="Movement status" value={movementStatusLabel(latest.movement_status)} />
@@ -370,8 +619,8 @@ export function TrackingPage() {
                   }
                 />
                 <DataRow label="Within zone" value={latest.is_within_zone ? 'Yes' : 'No'} />
-                <DataRow label="Fix recorded" value={formatDateTime(latest.recorded_at)} />
-                <DataRow label="Source" value={telemetrySourceLabel(latest.source)} />
+                <DataRow label="Last successful fix" value={formatDateTime(latest.recorded_at)} />
+                <DataRow label="GPS source" value={telemetrySourceLabel(latest.source)} />
                 {latest.is_simulated && (
                   <p className="notice notice--warning notice--inline">
                     This reading is <strong>simulated</strong> telemetry, not hardware data.
@@ -387,8 +636,21 @@ export function TrackingPage() {
             )}
           </Panel>
 
-          {/* Shown beneath the measurement rather than replacing it: the rule
-              verdict is what was stored, and a prototype's opinion is context. */}
+          {/* Real Mobile GPS Tracking Panel */}
+          {isCustomer && (
+            <MobileTrackingPanel
+              custodyId={custodyId}
+              onPositionChange={handleMobilePosition}
+              onNewFix={() => {
+                queryClient.invalidateQueries({ queryKey: ['gps', 'tracking', custodyId] })
+              }}
+            />
+          )}
+
+          {/* Physical Tracker Hardware Sensors */}
+          {view?.sensors && <HardwareSensorsPanel sensors={view.sensors} />}
+
+          {/* Shown beneath the measurement rather than replacing it */}
           {isStaff && (
             <Panel title="Prototype classifier" subtitle="Advisory only">
               <MlVerdictCard
@@ -417,57 +679,6 @@ export function TrackingPage() {
         </div>
       </div>
 
-      <Panel
-        title="Security alerts"
-        subtitle={
-          canTriage
-            ? 'Acknowledge, resolve, or dismiss as a false positive.'
-            : 'Only a manager or administrator can act on an alert.'
-        }
-        actions={
-          <button
-            type="button"
-            className="btn btn--ghost btn--small"
-            onClick={() => alerts.refetch()}
-            disabled={alerts.isFetching}
-          >
-            Refresh
-          </button>
-        }
-      >
-        <ErrorNotice error={alerts.error ? normaliseError(alerts.error) : null} onRetry={alerts.refetch} />
-        {triage.error && <ErrorNotice error={normaliseError(triage.error)} />}
-
-        {alerts.isPending ? (
-          <Spinner label="Loading alerts…" />
-        ) : (alerts.data?.alerts ?? []).length === 0 ? (
-          <EmptyState
-            icon="✓"
-            title="No alerts for this session"
-            body="No geofence breach or security event has been recorded against this custody session."
-          />
-        ) : (
-          <div className="alert-list">
-            {(alerts.data?.alerts ?? []).map((alert) => (
-              <AlertCard
-                key={alert.id}
-                alert={alert}
-                canTriage={canTriage}
-                busy={triage.isPending}
-                onAcknowledge={(item) => triage.mutate({ alert: item, action: 'acknowledge' })}
-                onResolve={(item, { notes, dismiss }) =>
-                  triage.mutate({ alert: item, action: 'resolve', notes, dismiss })
-                }
-              />
-            ))}
-          </div>
-        )}
-      </Panel>
-
-      {/* Provenance for the classifier whose opinion appears above. Rendered for
-          staff only: it is an internal detail about the detector, and showing
-          training metrics to a customer would invite them to be read as a
-          warranty about their vehicle. */}
       {isStaff && (
         <SecurityModelPanel
           info={modelInfo.data ?? null}

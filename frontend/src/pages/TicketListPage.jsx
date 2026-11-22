@@ -16,8 +16,10 @@ import { StatusBadge } from '../components/vehicles/StatusBadge'
 import { TICKET_STATUS, TICKET_STATUS_LABELS } from '../utils/constants'
 import { formatDateTime } from '../utils/format'
 
+const ACTIVE_FILTER = 'ACTIVE'
 const FILTERS = [
-  { value: '', label: 'All' },
+  { value: ACTIVE_FILTER, label: 'Active' },
+  { value: '', label: 'All tickets' },
   ...Object.values(TICKET_STATUS).map((value) => ({
     value,
     label: TICKET_STATUS_LABELS[value],
@@ -25,11 +27,16 @@ const FILTERS = [
 ]
 
 export function TicketListPage() {
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState(ACTIVE_FILTER)
 
   const query = useQuery({
     queryKey: ['tickets', { status }],
-    queryFn: () => fetchTickets({ status: status || undefined, page_size: 50 }),
+    queryFn: () =>
+      fetchTickets({
+        status: status && status !== ACTIVE_FILTER ? status : undefined,
+        active_only: status === ACTIVE_FILTER ? true : undefined,
+        page_size: 50,
+      }),
   })
 
   const tickets = query.data?.items ?? []
@@ -40,7 +47,7 @@ export function TicketListPage() {
         <div>
           <h1>Valet tickets</h1>
           <p className="muted">
-            Every ticket issued to you, with its current stage in the custody window.
+            Active tickets are shown by default. Choose a status or all tickets to review history.
           </p>
         </div>
       </header>
@@ -69,7 +76,7 @@ export function TicketListPage() {
           <EmptyState
             icon="🎫"
             title="No tickets match this filter"
-            body="Try a different status, or clear the filter to see every ticket on your account."
+            body="Try another status, or choose All tickets to review your ticket history."
           />
         </Panel>
       ) : (

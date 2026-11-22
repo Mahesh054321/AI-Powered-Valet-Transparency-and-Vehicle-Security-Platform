@@ -51,6 +51,14 @@ export const ENDPOINTS = {
   inspectionPickup: '/v1/inspections/pickup',
   inspectionVerify: (detectionId) =>
     `/v1/inspections/detections/${detectionId}/verification`,
+  inspectionAnnotate: (detectionId) =>
+    `/v1/inspections/detections/${detectionId}/notes`,
+  inspectionDispute: (custodyId) =>
+    `/v1/inspections/${custodyId}/dispute`,
+  inspectionResolveDispute: (custodyId) =>
+    `/v1/inspections/${custodyId}/resolve-dispute`,
+  inspectionRecompare: (custodyId) =>
+    `/v1/inspections/${custodyId}/recompare`,
   inspectionDemo: '/v1/inspections/demo',
   inspectionDemoScenarios: '/v1/inspections/demo/scenarios',
   // The backend also serves all of the above unversioned at
@@ -62,6 +70,9 @@ export const ENDPOINTS = {
   // zone, the geofence polygon, the latest fix, the movement status and the
   // alerts, so the map does not have to stitch four responses together.
   gpsEvents: '/v1/gps/events',
+  gpsMobile: '/v1/gps/mobile',
+  gpsVehicle: '/v1/gps/vehicle',
+  gpsStream: (custodyId) => `/v1/gps/stream/${custodyId}`,
   gpsTracking: (custodyId) => `/v1/gps/${custodyId}`,
   gpsFixes: (custodyId) => `/v1/gps/${custodyId}/fixes`,
   gpsSimulate: '/v1/gps/simulate',
@@ -69,7 +80,10 @@ export const ENDPOINTS = {
 
   // --- geofences (implemented, Phase 7) ---
   geofences: '/v1/geofences',
+  geofencePreview: '/v1/geofences/preview',
   geofence: (zoneId) => `/v1/geofences/${zoneId}`,
+  geofenceActivate: (zoneId) => `/v1/geofences/${zoneId}/activate`,
+  geofenceDeactivate: (zoneId) => `/v1/geofences/${zoneId}/deactivate`,
   // The check-in flow still reads zones from the directory endpoint; both are
   // served by the same table.
   parkingZones: '/v1/parking-zones',
@@ -77,7 +91,9 @@ export const ENDPOINTS = {
   // --- security alerts (implemented, Phase 7) ---
   alerts: '/v1/alerts',
   alertAcknowledge: (id) => `/v1/alerts/${id}/acknowledge`,
+  alertInvestigate: (id) => `/v1/alerts/${id}/investigate`,
   alertResolve: (id) => `/v1/alerts/${id}/resolve`,
+  alertReopen: (id) => `/v1/alerts/${id}/reopen`,
 
   // --- prototype security classifier (implemented, Phase 9) ---
   // Both read-only. Classification itself happens inline during telemetry

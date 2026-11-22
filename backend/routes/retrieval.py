@@ -94,7 +94,12 @@ def create_retrieval_blueprint() -> Blueprint:
         payload = json_payload(required=False)
         actor = current_user()
 
-        custody_session_id = payload.get("custody_session_id") or payload.get("custody_id")
+        custody_session_id = (
+            payload.get("custody_session_id")
+            or payload.get("custody_id")
+            or payload.get("ticket_id")
+            or payload.get("id")
+        )
         raw_features = payload.get("features")
 
         if not custody_session_id and raw_features is None:
@@ -184,7 +189,10 @@ def create_retrieval_blueprint() -> Blueprint:
         """
         payload = json_payload(required=False)
         custody_session_id = (
-            payload.get("custody_session_id") or payload.get("custody_id")
+            payload.get("custody_session_id")
+            or payload.get("custody_id")
+            or payload.get("ticket_id")
+            or payload.get("id")
         )
         if not custody_session_id or not isinstance(custody_session_id, str):
             raise ValidationError(

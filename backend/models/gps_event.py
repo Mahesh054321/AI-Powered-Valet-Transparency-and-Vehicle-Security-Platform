@@ -1,8 +1,9 @@
 """GPS telemetry fixes.
 
 One row per position report during a custody session. Every fix records its
-**provenance** (``source``): ``SIMULATED`` for the demo generator, ``HARDWARE``
-for a real receiver, ``MANUAL`` for an operator entry. The project mandate is
+**provenance** (``source``): ``SIMULATED`` for the demo generator, ``REAL_GPS``
+for an authenticated registered hardware feed, ``MOBILE_GPS`` for an authorized
+browser, or ``MANUAL`` for an operator entry. The project mandate is
 that simulated data must never be mistakable for hardware data, so provenance
 is stored per row rather than inferred from a deployment-wide setting.
 
@@ -25,7 +26,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base, UUIDPrimaryKeyMixin
@@ -112,19 +113,29 @@ class GpsEvent(UUIDPrimaryKeyMixin, Base):
             "comment": (
                 "Position fixes during custody. Immutable: a telemetry row is a "
                 "historical measurement, so it has no updated_at. `source` "
-                "distinguishes SIMULATED from HARDWARE data on every row."
+                "distinguishes SIMULATED from authenticated REAL_GPS data on every row."
             )
         },
     )
 
-    custody_session_id: Mapped[str] = mapped_column(
+    custody_session_id: Mapped[str | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(
             "custody_sessions.id",
             ondelete="CASCADE",
             name="fk_gps_events_custody_session_id_custody_sessions",
         ),
-        nullable=False,
+        nullable=True,
+        index=True,
+    )
+    vehicle_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "vehicles.id",
+            ondelete="SET NULL",
+            name="fk_gps_events_vehicle_id_vehicles",
+        ),
+        nullable=True,
         index=True,
     )
 
@@ -145,9 +156,15 @@ class GpsEvent(UUIDPrimaryKeyMixin, Base):
         nullable=False,
         default=str(TelemetrySource.SIMULATED),
         server_default=str(TelemetrySource.SIMULATED),
-        comment="SIMULATED | HARDWARE | MANUAL - never inferred.",
+        comment=(
+            "SIMULATED | REAL_GPS | MOBILE_GPS | MANUAL "
+            "(legacy sources retained) - never inferred."
+        ),
     )
     device_id: Mapped[str | None] = mapped_column(String(DEVICE_ID_MAX_LENGTH))
+    sensor_data: Mapped[dict | None] = mapped_column(
+        JSONB, comment="Hardware tracker telemetry (ignition, tamper, shock, power, door)."
+    )
 
     # -- geofence evaluation ------------------------------------------------
     zone_id: Mapped[str | None] = mapped_column(
@@ -156,6 +173,9 @@ class GpsEvent(UUIDPrimaryKeyMixin, Base):
         comment="The zone this fix was evaluated against.",
     )
     is_within_zone: Mapped[bool] = mapped_column(nullable=False, default=True)
+    boundary_state: Mapped[str | None] = mapped_column(
+        String(32), comment="INSIDE | NEAR_BOUNDARY | OUTSIDE | UNCERTAIN"
+    )
     distance_from_zone_metres: Mapped[float | None] = mapped_column(
         Numeric(9, 2),
         comment="Signed distance to the zone boundary; positive means outside.",
@@ -201,7 +221,8 @@ class GpsEvent(UUIDPrimaryKeyMixin, Base):
     def to_dict(self) -> dict:
         return {
             "id": str(self.id),
-            "custody_session_id": str(self.custody_session_id),
+            "custody_session_id": str(self.custody_session_id) if self.custody_session_id else None,
+            "vehicle_id": str(self.vehicle_id) if self.vehicle_id else None,
             "recorded_at": self.recorded_at.isoformat() if self.recorded_at else None,
             "latitude": float(self.latitude),
             "longitude": float(self.longitude),
@@ -215,8 +236,10 @@ class GpsEvent(UUIDPrimaryKeyMixin, Base):
             "source": self.source,
             "is_simulated": self.is_simulated,
             "device_id": self.device_id,
+            "sensor_data": self.sensor_data,
             "zone_id": str(self.zone_id) if self.zone_id else None,
             "is_within_zone": self.is_within_zone,
+            "boundary_state": self.boundary_state,
             "distance_from_zone_metres": (
                 float(self.distance_from_zone_metres)
                 if self.distance_from_zone_metres is not None

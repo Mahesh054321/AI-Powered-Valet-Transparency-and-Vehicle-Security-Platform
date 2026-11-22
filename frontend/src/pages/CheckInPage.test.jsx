@@ -30,7 +30,7 @@ vi.mock('../services/uploadService', () => ({
 }))
 
 import { fetchCustomers, fetchParkingZones } from '../services/directoryService'
-import { fetchVehicles } from '../services/vehicleService'
+import { createVehicle, fetchVehicles } from '../services/vehicleService'
 import { checkInTicket, issueTicket } from '../services/ticketService'
 
 const CUSTOMER = { id: 'c-1', full_name: 'Aisha Verma', email: 'aisha@example.com', status: 'ACTIVE' }
@@ -64,6 +64,7 @@ describe('CheckInPage', () => {
     vi.mocked(fetchCustomers).mockReset()
     vi.mocked(fetchParkingZones).mockReset()
     vi.mocked(fetchVehicles).mockReset()
+    vi.mocked(createVehicle).mockReset()
     vi.mocked(issueTicket).mockReset()
     vi.mocked(checkInTicket).mockReset()
   })
@@ -114,6 +115,36 @@ describe('CheckInPage', () => {
     await user.click(await screen.findByRole('button', { name: /aisha verma/i }))
 
     await waitFor(() => expect(fetchVehicles).toHaveBeenCalledWith({ owner_id: 'c-1', page_size: 50 }))
+  })
+
+  it('shows a newly registered vehicle in the selected customer list', async () => {
+    const user = userEvent.setup()
+    stubLookups()
+    const registered = {
+      id: 'v-2',
+      plate_number: 'UP85CA9999',
+      make: 'Hyundai',
+      model: 'Creta',
+      status: 'REGISTERED',
+    }
+    vi.mocked(fetchVehicles)
+      .mockResolvedValueOnce({ items: [VEHICLE], pagination: {} })
+      .mockResolvedValue({ items: [VEHICLE, registered], pagination: {} })
+    vi.mocked(createVehicle).mockResolvedValue({ vehicle: registered })
+    renderWizard()
+
+    await user.click(await screen.findByRole('button', { name: /aisha verma/i }))
+    await user.click(await screen.findByRole('button', { name: /register new/i }))
+    await user.type(screen.getByLabelText(/^registration number/i), registered.plate_number)
+    await user.type(screen.getByLabelText(/^make/i), registered.make)
+    await user.type(screen.getByLabelText(/^model/i), registered.model)
+    await user.click(screen.getByRole('button', { name: /register and select/i }))
+
+    const vehicleButton = await screen.findByRole('button', { name: /UP85CA9999/i })
+    expect(vehicleButton).toHaveAttribute('aria-pressed', 'true')
+    expect(createVehicle).toHaveBeenCalledWith(
+      expect.objectContaining({ ownerId: CUSTOMER.id }),
+    )
   })
 
   it('offers no handover until a vehicle and a zone are chosen', async () => {

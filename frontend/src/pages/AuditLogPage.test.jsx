@@ -90,10 +90,12 @@ beforeEach(() => {
 })
 
 describe('AuditLogPage', () => {
-  it('states that the log cannot be edited, using the API note', async () => {
+  it('states in plain language that audit records cannot be changed', async () => {
     renderPage()
-    expect(await screen.findByText('This log cannot be edited')).toBeTruthy()
-    expect(await screen.findByText('The audit trail is append-only.')).toBeTruthy()
+    expect(await screen.findByText('Audit records are permanent')).toBeTruthy()
+    expect(
+      await screen.findByText(/entries cannot be changed or deleted/i),
+    ).toBeTruthy()
   })
 
   it('renders the entries the API returned', async () => {
@@ -157,9 +159,9 @@ describe('AuditLogPage', () => {
     )
   })
 
-  it('sends lifecycle_only as a boolean flag', async () => {
+  it('filters to custody events when that option is selected', async () => {
     renderPage()
-    const checkbox = await screen.findByLabelText(/Lifecycle events only/)
+    const checkbox = await screen.findByLabelText(/Custody events only/)
     fireEvent.click(checkbox)
     await waitFor(() =>
       expect(fetchAuditLog).toHaveBeenCalledWith(
@@ -191,7 +193,7 @@ describe('AuditLogPage', () => {
     renderPage()
     fireEvent.click(await screen.findByRole('button', { name: 'Custody timeline' }))
 
-    const input = await screen.findByLabelText(/^Custody session id/)
+    const input = await screen.findByLabelText(/^Custody session id/i)
     const load = screen.getByRole('button', { name: 'Load timeline' })
     expect(load).toBeDisabled()
 
@@ -207,7 +209,7 @@ describe('AuditLogPage', () => {
     const callsBefore = fetchAuditLog.mock.calls.length
 
     fireEvent.click(screen.getByRole('button', { name: 'Custody timeline' }))
-    await screen.findByLabelText(/^Custody session id/)
+    await screen.findByLabelText(/^Custody session id/i)
 
     expect(fetchAuditLog.mock.calls.length).toBe(callsBefore)
   })

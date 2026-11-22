@@ -49,9 +49,16 @@ describe('MainLayout navigation', () => {
     renderAs('VALET_MANAGER')
 
     expect(screen.getByRole('link', { name: /manager dashboard/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /reports/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /audit log/i })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /reports/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /my vehicles/i })).not.toBeInTheDocument()
+  })
+
+  it('does not expose developer implementation details in the app footer', () => {
+    renderAs('CUSTOMER')
+
+    expect(screen.getByText('AI-Powered Valet Transparency and Vehicle Security Platform')).toBeInTheDocument()
+    expect(screen.queryByText(/Academic MVP|React \+ Flask|PostgreSQL \+ OpenCV/i)).not.toBeInTheDocument()
   })
 
   it('displays the signed-in identity and role', () => {

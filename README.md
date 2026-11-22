@@ -647,7 +647,7 @@ Every value comes from the environment. See
 | `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins | `http://localhost:5173,http://127.0.0.1:5173` |
 | `MAX_CONTENT_LENGTH_MB` `ALLOWED_IMAGE_EXTENSIONS` `MIN_IMAGE_PIXELS` `MAX_IMAGE_PIXELS` | Upload policy | `15`, `jpg,jpeg,png,webp`, `64`, `4096` |
 | `GEOFENCE_BUFFER_METRES` `SUSPICIOUS_SPEED_KMPH` | Detection thresholds | `25`, `12` |
-| `TELEMETRY_SOURCE` | **`simulated` or `hardware`** — describes the *installation* and is reported by `/api/readyz`. Individual fixes carry their own `source` column, so a session can contain both | `simulated` |
+| `TELEMETRY_SOURCE` | **`simulated` or `hardware`** — describes the installation configuration reported by `/api/readyz`; it does not prove a tracker is connected. Each fix records its own `SIMULATED`, `MOBILE_GPS`, `REAL_GPS` or `MANUAL` provenance | `simulated` |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | Bootstrap admin | — (empty password is generated and printed once) |
 
 ## 11. Security model
@@ -707,7 +707,7 @@ simulated is stated explicitly rather than blurred.
 | Geofence / suspicious-movement detection | **Rule engine** with stated thresholds, *not* a learned model. Every verdict stores the inputs that produced it. See [`docs/AI-INTEGRITY.md`](docs/AI-INTEGRITY.md) §4a |
 | Security classifier (ML layer) | **Prototype trained on synthetic telemetry** — the one learned model here, and it is advisory only. It may *raise* a fix's verdict and may never lower it, so a geofence breach always alerts regardless of its confidence. Never represent it as a production model. See [`docs/AI-INTEGRITY.md`](docs/AI-INTEGRITY.md) §4b |
 | Retrieval-time prediction | Will be a **statistical model fitted on synthetic historical data**, with its confidence interval reported |
-| GPS coordinates | **Simulated** unless a hardware feed is configured — but provenance is stored *per fix* (`SIMULATED` / `HARDWARE` / `MANUAL`), not inferred from a deployment-wide setting, and the UI labels each reading |
+| GPS coordinates | **Simulated** unless an authenticated hardware feed supplies `REAL_GPS` fixes — provenance is stored per fix (`SIMULATED` / `MOBILE_GPS` / `REAL_GPS` / `MANUAL`), not inferred from a deployment-wide setting, and the UI labels each reading |
 | Vehicle photos | Real uploads when available; synthetic demo images otherwise, always flagged as demo data |
 
 Nothing in the UI claims a capability that the backend does not implement.

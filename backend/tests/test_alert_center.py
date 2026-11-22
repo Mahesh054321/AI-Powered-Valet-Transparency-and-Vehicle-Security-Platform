@@ -518,6 +518,54 @@ class TestResolve:
         assert row.actor_id == manager.id
 
 
+class TestDeleteResolved:
+    def test_a_manager_can_delete_a_resolved_alert_and_the_action_is_audited(self, pg_client):
+        from models.audit_log import AuditLog
+
+        manager = make_user(Role.VALET_MANAGER)
+        db.session.commit()
+        alert_id = _raise(pg_client, manager).get_json()["data"]["alert_id"]
+        pg_client.post(
+            f"{FEED}/{alert_id}/resolve", json={}, headers=_auth(manager)
+        )
+
+        response = pg_client.delete(f"{FEED}/{alert_id}", headers=_auth(manager))
+
+        assert response.status_code == 200
+        assert response.get_json()["data"] == {"alert_id": alert_id, "deleted": True}
+        assert db.session.get(Alert, uuid.UUID(alert_id)) is None
+        audit = db.session.execute(
+            select(AuditLog).where(AuditLog.entity_id == uuid.UUID(alert_id))
+            .order_by(AuditLog.seq.desc())
+        ).scalars().first()
+        assert audit.action == "DELETE"
+        assert audit.old_values["status"] == "RESOLVED"
+        assert audit.actor_id == manager.id
+
+    def test_an_open_alert_cannot_be_deleted(self, pg_client):
+        manager = make_user(Role.VALET_MANAGER)
+        db.session.commit()
+        alert_id = _raise(pg_client, manager).get_json()["data"]["alert_id"]
+
+        response = pg_client.delete(f"{FEED}/{alert_id}", headers=_auth(manager))
+
+        assert response.status_code == 409
+        assert db.session.get(Alert, uuid.UUID(alert_id)) is not None
+
+    def test_an_operator_cannot_delete_a_resolved_alert(self, pg_client):
+        manager = make_user(Role.VALET_MANAGER)
+        operator = make_user(Role.VALET_OPERATOR)
+        db.session.commit()
+        alert_id = _raise(pg_client, manager).get_json()["data"]["alert_id"]
+        pg_client.post(
+            f"{FEED}/{alert_id}/resolve", json={}, headers=_auth(manager)
+        )
+
+        response = pg_client.delete(f"{FEED}/{alert_id}", headers=_auth(operator))
+
+        assert response.status_code == 403
+
+
 class TestChannels:
     def test_raising_an_alert_produces_in_app_notifications(self, pg_client):
         """Business logic never names a transport, yet notifications appear —

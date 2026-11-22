@@ -217,6 +217,19 @@ describe('TrackingPage', () => {
     expect(screen.getByText(/Zone A - Covered Parking/)).toBeInTheDocument()
   })
 
+  it('keeps security alerts below the map in the main tracking column', async () => {
+    vi.mocked(fetchTracking).mockResolvedValue(view())
+    vi.mocked(fetchAlerts).mockResolvedValue(alertsPayload())
+
+    renderPage()
+
+    const alertHeading = await screen.findByText('Security alerts')
+    const mainColumn = document.querySelector('.tracking-layout__main')
+
+    expect(mainColumn).toContainElement(document.querySelector('.tracking-map-wrapper'))
+    expect(mainColumn).toContainElement(alertHeading)
+  })
+
   it('draws the stored geofence ring, not a circle derived from the radius', async () => {
     vi.mocked(fetchTracking).mockResolvedValue(view())
     vi.mocked(fetchAlerts).mockResolvedValue(alertsPayload())
@@ -306,6 +319,15 @@ describe('TrackingPage', () => {
           vehicle: { plate_number: 'UP85CA1234' },
           custody_session: { id: CUSTODY_ID, status: 'PARKED', dropped_off_at: null },
         },
+        {
+          ticket_code: 'VT-202609-OLD123',
+          vehicle: { plate_number: 'UP85CD5678' },
+          custody_session: {
+            id: 'closed-session',
+            status: 'CHECKED_OUT',
+            dropped_off_at: '2026-09-07T10:00:00+00:00',
+          },
+        },
       ],
     })
 
@@ -313,6 +335,8 @@ describe('TrackingPage', () => {
 
     expect(await screen.findByText('Choose a vehicle to track')).toBeInTheDocument()
     expect(screen.getByText('VT-202609-ABC123 · PARKED')).toBeInTheDocument()
+    expect(screen.queryByText(/VT-202609-OLD123/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /UP85CD5678/ })).not.toBeInTheDocument()
   })
 
   it('says so plainly when there is nothing in custody', async () => {
@@ -371,6 +395,16 @@ describe('TrackingPage', () => {
     expect(
       screen.getByText('Only a manager or administrator can act on an alert.'),
     ).toBeInTheDocument()
+    expect(screen.queryByText(/Mobile Browser Tracking|Mobile GPS Tracking/)).not.toBeInTheDocument()
+  })
+
+  it('shows the mobile location panel to customers only', async () => {
+    vi.mocked(fetchTracking).mockResolvedValue(view())
+    vi.mocked(fetchAlerts).mockResolvedValue(alertsPayload())
+
+    renderPage({ role: 'CUSTOMER' })
+
+    expect(await screen.findByText('Mobile Browser Tracking')).toBeInTheDocument()
   })
 
   it('shows the simulator to staff who may post telemetry', async () => {

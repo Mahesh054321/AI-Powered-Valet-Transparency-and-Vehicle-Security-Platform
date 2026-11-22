@@ -393,8 +393,12 @@ export const TELEMETRY_SOURCE = {
 
 export const TELEMETRY_SOURCE_LABELS = {
   SIMULATED: 'Simulated',
-  HARDWARE: 'Hardware GPS',
+  HARDWARE: 'Legacy hardware source',
   MANUAL: 'Entered by staff',
+  MOBILE_GPS: 'Authorized mobile GPS',
+  REAL_GPS: 'Authenticated hardware GPS',
+  VEHICLE_GPS: 'Legacy vehicle source',
+  CAR_GPS: 'Legacy vehicle source',
 }
 
 export function telemetrySourceLabel(source) {
