@@ -273,6 +273,7 @@ function buildMenu(role) {
       links: [
         { to: '/manager', label: 'Manager Dashboard', icon: '📊' },
         { to: '/alerts', label: 'Security Alerts', icon: '⚠' },
+        { to: '/reports', label: 'Reports', icon: '📈' },
         { to: '/audit', label: 'Audit Log', icon: '🗒' },
       ],
     })

@@ -644,7 +644,6 @@ export function AlertsPage() {
           <strong>{pendingDelete?.message}</strong>
         </p>
       </ConfirmDialog>
-
       <ConfirmDialog
         open={pendingBulkAction?.type === 'resolve'}
         title="Resolve selected alerts?"

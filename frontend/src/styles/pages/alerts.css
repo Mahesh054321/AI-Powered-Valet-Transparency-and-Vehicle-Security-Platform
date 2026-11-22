@@ -348,7 +348,6 @@
   .alert-table .alert-actions {
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   }
-
   .alert-bulk-actions {
     align-items: flex-start;
   }
