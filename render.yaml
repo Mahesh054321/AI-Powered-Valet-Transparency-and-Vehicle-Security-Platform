@@ -1,23 +1,20 @@
-# Render-only deployment: paid API with persistent image storage, Static Site,
-# and managed PostgreSQL. Review plan prices before creating this Blueprint.
-# Backend and frontend subdomain destinations below assume these unique names
-# are available; edit after creation if Render assigns different URLs.
+# Render Free demo Blueprint (November 2026).
+# CAUTION: Render Free Postgres expires after 30 days and has no backups.
+# Free Web Services have ephemeral filesystems: uploaded photos will not persist
+# across a service restart or redeploy. Do not use with real vehicle/customer data.
+# Check the actual Render service URLs after provisioning.
 services:
   - type: web
     name: valet-api-demo-054321
     runtime: docker
-    plan: standard
+    plan: free
     region: singapore
     dockerContext: ./backend
     dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /api/readyz
-    numInstances: 1
-    # Supported on paid web services, runs on a separate compute instance.
-    preDeployCommand: python utils/scripts/init_db.py
-    disk:
-      name: valet-evidence
-      mountPath: /app/storage/media
-      sizeGB: 1
+    # No preDeployCommand: Render only supports it on paid web services.
+    # The backend/docker-entrypoint.sh script runs idempotent migrations at boot.
+    # No disk: Render Free does not support persistent disks.
     envVars:
       - key: FLASK_ENV
         value: production
@@ -32,9 +29,9 @@ services:
       - key: UPLOAD_FOLDER
         value: /app/storage/media
       - key: DB_POOL_SIZE
-        value: '3'
-      - key: DB_MAX_OVERFLOW
         value: '2'
+      - key: DB_MAX_OVERFLOW
+        value: '1'
       - key: JSON_LOGS
         value: '1'
       - key: FLASK_DEBUG
@@ -47,7 +44,6 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
     routes:
-      # Keep these before the SPA fallback. Both are required by this project.
       - type: rewrite
         source: /api/*
         destination: https://valet-api-demo-054321.onrender.com/api/*
@@ -63,7 +59,7 @@ services:
 
 databases:
   - name: valet-db-demo-054321
-    plan: 0.1c-256mb
+    plan: free
     region: singapore
     databaseName: valet_db
     user: valet_user
