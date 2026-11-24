@@ -19,6 +19,16 @@ else
   gosu appuser python utils/scripts/init_db.py
 fi
 
+
+# One-time secure admin bootstrap. Unlike SEED_ON_START, creates no demo staff
+# accounts with publicly documented passwords.
+if [ "${BOOTSTRAP_ADMIN_ON_START:-0}" = "1" ]; then
+  : "${SEED_ADMIN_EMAIL:?Set SEED_ADMIN_EMAIL in Render environment}"
+  : "${SEED_ADMIN_PASSWORD:?Set SEED_ADMIN_PASSWORD in Render environment}"
+  echo '[startup] Bootstrapping administrator if absent...'
+  gosu appuser python utils/scripts/bootstrap_admin.py
+fi
+
 # One worker is intentional: app SSE broadcaster/rate limiting is process-local.
 # Limit threads for a small-memory free instance (512 MB).
 exec gosu appuser gunicorn \
