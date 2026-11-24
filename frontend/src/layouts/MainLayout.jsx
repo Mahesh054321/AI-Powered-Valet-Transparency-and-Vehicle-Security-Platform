@@ -279,6 +279,17 @@ function buildMenu(role) {
     })
   }
 
+
+  if (role === 'ADMIN') {
+    groups.push({
+      id: 'administration',
+      label: 'Administration',
+      links: [
+        { to: '/staff-accounts', label: 'Manage Accounts', icon: '👥' },
+      ],
+    })
+  }
+
   return groups
 }
 

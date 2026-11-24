@@ -22,6 +22,7 @@ import { TrackingPage } from '../pages/TrackingPage'
 import { AlertsPage } from '../pages/AlertsPage'
 import { AuditLogPage } from '../pages/AuditLogPage'
 import { ManagerDashboardPage } from '../pages/ManagerDashboardPage'
+import { StaffAccountsPage } from '../pages/StaffAccountsPage'
 import { ValetDashboardPage } from '../pages/ValetDashboardPage'
 import { TicketListPage } from '../pages/TicketListPage'
 import { VehicleDetailPage } from '../pages/VehicleDetailPage'
@@ -109,6 +110,13 @@ export const ROUTES = [
     icon: '📊',
     roles: [ROLES.VALET_MANAGER, ROLES.ADMIN],
     element: <ManagerDashboardPage />,
+  },
+  {
+    path: '/staff-accounts',
+    label: 'Manage Accounts',
+    icon: '👥',
+    roles: [ROLES.ADMIN],
+    element: <StaffAccountsPage />,
   },
   {
     path: '/audit',

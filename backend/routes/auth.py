@@ -159,6 +159,61 @@ def create_auth_blueprint() -> Blueprint:
             {"user": auth_service.public_profile(user), "message": f"{user.role} account created."}
         )
 
+
+    def _admin_actor():
+        actor = auth_service.get_user_by_id(current_user().user_id)
+        auth_service.assert_admin(actor)
+        return actor
+
+    @blueprint.get("/users")
+    @require_role(Role.ADMIN)
+    def list_users():
+        from utils.exceptions import ValidationError
+        try:
+            page = int(request.args.get("page", 1))
+            page_size = int(request.args.get("page_size", 20))
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("Pagination must use whole numbers.") from exc
+        data = auth_service.list_accounts(
+            actor=_admin_actor(), page=page, page_size=page_size,
+            search=request.args.get("search", ""), role=request.args.get("role") or None,
+            status=request.args.get("status") or None,
+        )
+        return ok(data)
+
+    @blueprint.patch("/users/<user_id>")
+    @require_role(Role.ADMIN)
+    def edit_user(user_id: str):
+        user = auth_service.update_account(
+            user_id=user_id, changes=_payload(), actor=_admin_actor(), ip_address=_client_ip(),
+        )
+        return ok({"user": auth_service.public_profile(user), "message": "Account updated."})
+
+    @blueprint.post("/users/<user_id>/password")
+    @require_role(Role.ADMIN)
+    def set_user_password(user_id: str):
+        body = require_fields(_payload(), "password")
+        user = auth_service.reset_account_password(
+            user_id=user_id, password=body["password"], actor=_admin_actor(), ip_address=_client_ip(),
+        )
+        return ok({"user": auth_service.public_profile(user), "message": "Password reset."})
+
+    @blueprint.delete("/users/<user_id>")
+    @require_role(Role.ADMIN)
+    def remove_user(user_id: str):
+        user = auth_service.deactivate_account(
+            user_id=user_id, actor=_admin_actor(), ip_address=_client_ip(),
+        )
+        return ok({"user": auth_service.public_profile(user), "message": "Account deactivated; records preserved."})
+
+    @blueprint.post("/users/<user_id>/reactivate")
+    @require_role(Role.ADMIN)
+    def restore_user(user_id: str):
+        user = auth_service.reactivate_account(
+            user_id=user_id, actor=_admin_actor(), ip_address=_client_ip(),
+        )
+        return ok({"user": auth_service.public_profile(user), "message": "Account reactivated."})
+
     return blueprint
 
 

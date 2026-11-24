@@ -21,6 +21,9 @@ export const ENDPOINTS = {
   authRefresh: '/v1/auth/refresh',
   authMe: '/v1/auth/me',
   authUsers: '/v1/auth/users',
+  authUser: (id) => `/v1/auth/users/${id}`,
+  authUserPassword: (id) => `/v1/auth/users/${id}/password`,
+  authUserReactivate: (id) => `/v1/auth/users/${id}/reactivate`,
 
   // --- vehicles (implemented, Phase 3) ---
   vehicles: '/v1/vehicles',

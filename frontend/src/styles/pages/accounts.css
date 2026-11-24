@@ -1,0 +1,16 @@
+/* Administrator account directory: compact on desktop, scrollable on mobile. */
+.account-manager__heading { display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.account-manager__note { font-size: 0.9rem; }
+.account-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr)); gap: 1rem; }
+.account-manager__filters { display: flex; flex-wrap: wrap; align-items: end; gap: .8rem; margin-bottom: 1rem; }
+.account-manager__filters .field { flex: 1 1 160px; min-width: 140px; }
+.account-manager__filters .field:first-child { flex: 2 1 240px; }
+.account-manager__table-scroll { overflow-x: auto; max-width: 100%; }
+.account-manager__table { width: 100%; border-collapse: collapse; min-width: 750px; font-size: .9rem; }
+.account-manager__table th, .account-manager__table td { text-align: left; padding: .85rem .65rem; border-bottom: 1px solid var(--border-default); vertical-align: middle; }
+.account-manager__table th { color: var(--text-secondary); font-weight: 600; white-space: nowrap; }
+.account-manager__table td .muted { overflow-wrap: anywhere; }
+.account-manager__row-actions, .account-manager__actions, .account-manager__pagination { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.account-manager__pagination { justify-content: flex-end; margin-top: 1rem; }
+.account-manager__table code { font-size: .8rem; }
+@media (max-width: 680px) { .account-manager__heading { align-items: stretch; } .account-manager__filters { display: grid; grid-template-columns: 1fr; } }

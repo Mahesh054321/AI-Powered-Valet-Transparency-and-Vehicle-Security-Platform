@@ -28,9 +28,11 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import UTC, datetime
 from dataclasses import dataclass
 from typing import Any
 
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
@@ -48,6 +50,7 @@ from utils.exceptions import (
     AuthenticationError,
     AuthorizationError,
     ConflictError,
+    NotFoundError,
     RateLimitError,
     ValidationError,
 )
@@ -59,7 +62,7 @@ from utils.security import (
     create_token,
     verify_password,
 )
-from utils.validation import validate_email, validate_password, validate_phone, validate_text
+from utils.validation import validate_email, validate_password, validate_phone, validate_text, validate_uuid
 
 logger = logging.getLogger(__name__)
 
@@ -496,6 +499,149 @@ def create_user(
     return user
 
 
+
+# Account management is audit-preserving: the UUID is immutable, and "delete"
+# deactivates the account rather than breaking historical tickets/audit records.
+MANAGEABLE_ROLES: frozenset[str] = frozenset({
+    Role.CUSTOMER.value, Role.VALET_OPERATOR.value, Role.VALET_MANAGER.value,
+})
+EDITABLE_ACCOUNT_FIELDS: frozenset[str] = frozenset({"full_name", "email", "phone", "role"})
+
+
+def _managed_account(user_id: str) -> User:
+    key = validate_uuid(user_id, field="user_id")
+    user = db.session.get(User, key)
+    if user is None:
+        raise NotFoundError("Account not found.")
+    if user.role == Role.ADMIN.value:
+        raise AuthorizationError("Administrator accounts cannot be edited from Staff Accounts.")
+    return user
+
+
+def list_accounts(
+    *, actor: User | None, page: int = 1, page_size: int = 20,
+    search: str = "", role: str | None = None, status: str | None = None,
+) -> dict:
+    """Paginated account directory; only admins can see user emails/phones."""
+    assert_admin(actor)
+    if not 1 <= page <= 100000 or not 1 <= page_size <= 100:
+        raise ValidationError("Invalid pagination parameters.")
+    if role and role not in Role.values():
+        raise ValidationError("Invalid role filter.", details={"field": "role"})
+    if status and status not in [item.value for item in UserStatus]:
+        raise ValidationError("Invalid status filter.", details={"field": "status"})
+    if len(search) > 120:
+        raise ValidationError("Search text is too long.")
+    query = db.session.query(User)
+    if search.strip():
+        # Quote SQL wildcard characters so a literal search stays literal.
+        term = search.strip().replace("%", r"\%").replace("_", r"\_")
+        pattern = f"%{term}%"
+        query = query.filter(or_(User.email.ilike(pattern, escape="\\"), User.full_name.ilike(pattern, escape="\\")))
+    if role:
+        query = query.filter(User.role == role)
+    if status:
+        query = query.filter(User.status == status)
+    total = query.count()
+    accounts = (
+        query.order_by(User.created_at.desc(), User.email.asc())
+        .offset((page - 1) * page_size).limit(page_size).all()
+    )
+    return {
+        "users": [public_profile(user) for user in accounts],
+        "page": page, "page_size": page_size, "total": total,
+        "pages": (total + page_size - 1) // page_size,
+    }
+
+
+def update_account(
+    *, user_id: str, changes: dict, actor: User | None, ip_address: str | None = None,
+) -> User:
+    """Edit a customer/valet/manager; never accept password or UUID in a patch."""
+    assert_admin(actor)
+    if not isinstance(changes, dict) or not changes:
+        raise ValidationError("Select at least one account field to update.")
+    unexpected = set(changes) - EDITABLE_ACCOUNT_FIELDS
+    if unexpected:
+        raise ValidationError("Unsupported account fields.", details={"fields": sorted(unexpected)})
+    user = _managed_account(user_id)
+    before = {key: getattr(user, key) for key in changes}
+    if "full_name" in changes:
+        user.full_name = validate_text(changes["full_name"], field="full_name", min_length=2, max_length=120)
+    if "email" in changes:
+        clean_email = validate_email(changes["email"])
+        # Check before assigning to avoid autoflush turning a duplicate into a 500.
+        taken = db.session.query(User.id).filter(User.email == clean_email, User.id != user.id).first()
+        if taken:
+            raise ConflictError(EMAIL_TAKEN_MESSAGE, details={"field": "email"})
+        user.email = clean_email
+    if "phone" in changes:
+        user.phone = validate_phone(changes["phone"], required=False)
+    if "role" in changes:
+        role = str(changes["role"] or "").upper()
+        if role not in MANAGEABLE_ROLES:
+            raise ValidationError("Only Customer, Valet or Manager roles can be assigned here.", details={"field": "role"})
+        user.role = role
+    after = {key: getattr(user, key) for key in changes}
+    if before != after:
+        _audit(action=AuditAction.UPDATE, outcome=str(AuditOutcome.SUCCESS),
+               entity_id=user.id, actor=actor, description="Administrator updated an account.",
+               new_values=after, ip_address=ip_address,
+               metadata={"changed_fields": sorted(changes)})
+        try:
+            db.session.commit()
+        except IntegrityError as exc:
+            db.session.rollback()
+            raise ConflictError(EMAIL_TAKEN_MESSAGE, details={"field": "email"}) from exc
+    return user
+
+
+def reset_account_password(
+    *, user_id: str, password: str, actor: User | None, ip_address: str | None = None,
+) -> User:
+    """Set a new password without ever reading or returning the old one."""
+    assert_admin(actor)
+    user = _managed_account(user_id)
+    user.set_password(validate_password(password))
+    _audit(action=AuditAction.UPDATE, outcome=str(AuditOutcome.SUCCESS),
+           entity_id=user.id, actor=actor, description="Administrator reset an account password.",
+           metadata={"changed_fields": ["password"]}, ip_address=ip_address)
+    db.session.commit()
+    return user
+
+
+def deactivate_account(*, user_id: str, actor: User | None, ip_address: str | None = None) -> User:
+    """Reversible soft delete, keeping every existing audit/ticket relationship."""
+    assert_admin(actor)
+    user = _managed_account(user_id)
+    if user.status == UserStatus.DEACTIVATED.value:
+        raise ConflictError("Account is already deactivated.")
+    old_status = user.status
+    user.status = UserStatus.DEACTIVATED.value
+    user.is_active = False
+    user.deactivated_at = datetime.now(tz=UTC)
+    _audit(action=AuditAction.DELETE, outcome=str(AuditOutcome.SUCCESS),
+           entity_id=user.id, actor=actor, description="Administrator deactivated an account (soft delete).",
+           new_values={"status": user.status, "previous_status": old_status}, ip_address=ip_address)
+    db.session.commit()
+    return user
+
+
+def reactivate_account(*, user_id: str, actor: User | None, ip_address: str | None = None) -> User:
+    assert_admin(actor)
+    user = _managed_account(user_id)
+    if user.status != UserStatus.DEACTIVATED.value:
+        raise ConflictError("Only deactivated accounts can be reactivated.")
+    user.status = UserStatus.ACTIVE.value
+    user.is_active = True
+    user.deactivated_at = None
+    _audit(action=AuditAction.STATUS_CHANGE, outcome=str(AuditOutcome.SUCCESS),
+           entity_id=user.id, actor=actor, description="Administrator reactivated an account.",
+           new_values={"status": user.status}, ip_address=ip_address)
+    db.session.commit()
+    return user
+
+
 def assert_admin(actor: User | None) -> None:
     """Guard for callers that must be an administrator.
 
@@ -525,6 +671,11 @@ __all__ = [
     "authenticate",
     "assert_admin",
     "create_user",
+    "list_accounts",
+    "update_account",
+    "reset_account_password",
+    "deactivate_account",
+    "reactivate_account",
     "get_current_profile",
     "get_user_by_id",
     "is_token_revoked",

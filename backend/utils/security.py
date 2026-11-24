@@ -14,7 +14,7 @@ from __future__ import annotations
 import hmac
 import uuid
 from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
@@ -322,6 +322,10 @@ def load_current_user(required: bool = True) -> AuthContext | None:
             raise AuthenticationError(
                 f"This account is {user.status.lower()} and cannot sign in."
             )
+        if user is not None:
+            # Role/identity changes apply on the *next request*, not when an old
+            # JWT eventually expires. Never trust a stale ADMIN claim.
+            context = replace(context, role=user.role, email=user.email)
     except AuthenticationError:
         raise
     except ValueError as exc:
