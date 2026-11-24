@@ -24,7 +24,7 @@ from flask import current_app, g, request
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from utils.exceptions import AuthenticationError, AuthorizationError
+from utils.exceptions import AuthenticationError, AuthorizationError, ServiceUnavailableError
 
 
 class Role(StrEnum):
@@ -284,15 +284,10 @@ def load_current_user(required: bool = True) -> AuthContext | None:
     3. **status** -- a suspended or deactivated account is rejected even while
        its token is unexpired.
 
-    Steps 2 and 3 reject only when the account is *found and not usable*. A
-    subject that does not exist is allowed through, because tokens are minted
-    for non-account principals too (the seeded audit history references actors
-    that were never accounts), and the endpoints that need a real user load it
-    explicitly.
-
-    If the database is unreachable the cryptographic checks still stand and the
-    account checks are skipped, so a database outage degrades authentication
-    rather than disabling it outright.
+    In production, a token is rejected if its account is missing, its UUID is
+    malformed, or database verification fails. Development/testing retain the
+    original permissive handling of synthetic/non-account principals used by
+    local workflows, but must not be used on an internet-facing server.
     """
     cached = g.get("auth_context")
     if cached is not None:
@@ -321,15 +316,22 @@ def load_current_user(required: bool = True) -> AuthContext | None:
             )
 
         user = db.session.get(User, uuid.UUID(context.user_id))
+        if user is None and current_app.config.get("APP_ENV") == "production":
+            raise AuthenticationError("This session is no longer valid. Please sign in again.")
         if user is not None and not user.can_authenticate:
             raise AuthenticationError(
                 f"This account is {user.status.lower()} and cannot sign in."
             )
     except AuthenticationError:
         raise
-    except (ValueError, SQLAlchemyError) as exc:
-        # No database, or a subject id that is not a UUID. The signature,
-        # expiry, issuer, audience and type checks above already passed.
+    except ValueError as exc:
+        if current_app.config.get("APP_ENV") == "production":
+            raise AuthenticationError("Invalid account identifier in session.") from exc
+        current_app.logger.debug("Skipping account checks during auth: %s", exc)
+    except SQLAlchemyError as exc:
+        if current_app.config.get("APP_ENV") == "production":
+            current_app.logger.warning("Session verification database unavailable", exc_info=True)
+            raise ServiceUnavailableError("Session verification is temporarily unavailable.") from exc
         current_app.logger.debug("Skipping account checks during auth: %s", exc)
 
     g.auth_context = context

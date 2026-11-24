@@ -220,8 +220,8 @@ def create_gps_blueprint() -> Blueprint:
             try:
                 while True:
                     try:
-                        event_name, data = queue.get(timeout=15.0)
-                        yield sse_event(event_name, data)
+                        message = queue.get(timeout=15.0)
+                        yield sse_event(message["event"], message["data"])
                     except Empty:
                         yield ": keepalive\n\n"
             except GeneratorExit:
