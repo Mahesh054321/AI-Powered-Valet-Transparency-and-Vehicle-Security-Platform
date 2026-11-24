@@ -43,6 +43,7 @@ describe('MainLayout navigation', () => {
     expect(screen.getByRole('link', { name: /vehicle check-in/i })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /manager dashboard/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /reports/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /parking zones/i })).not.toBeInTheDocument()
   })
 
   it('shows the full operations menu to a manager', () => {
@@ -52,6 +53,12 @@ describe('MainLayout navigation', () => {
     expect(screen.getByRole('link', { name: /audit log/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /reports/i })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /my vehicles/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /parking zones/i })).not.toBeInTheDocument()
+  })
+
+  it('shows parking zone management only to the administrator', () => {
+    renderAs('ADMIN')
+    expect(screen.getByRole('link', { name: /parking zones/i })).toHaveAttribute('href', '/parking-zones')
   })
 
   it('does not expose developer implementation details in the app footer', () => {

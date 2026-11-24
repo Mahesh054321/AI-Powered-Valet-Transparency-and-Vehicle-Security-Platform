@@ -1,0 +1,19 @@
+/* Administrator parking zone management; the tracking maps remain read-only. */
+.parking-zones-layout { display: grid; grid-template-columns: minmax(250px, 340px) minmax(0, 1fr); align-items: start; gap: 1.25rem; }
+.parking-zones-list, .parking-zones-main { min-width: 0; }
+.parking-zones-main { display: grid; gap: 1.25rem; }
+.parking-zones-items { display: grid; gap: .6rem; margin-top: .8rem; max-height: 560px; overflow: auto; }
+.parking-zone-item { border: 1px solid var(--border-color, #d5dce5); border-radius: .7rem; padding: .7rem; background: var(--surface, #fff); }
+.parking-zone-item.is-selected { border-color: #2563eb; box-shadow: inset 3px 0 #2563eb; }
+.parking-zone-item__select { display: grid; gap: .3rem; width: 100%; border: 0; background: transparent; text-align: left; cursor: pointer; color: inherit; padding: .1rem; }
+.parking-zone-item__select span { font-size: .82rem; }
+.parking-zone-item__actions, .parking-zones-form__actions, .parking-zones-form__points { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .65rem; }
+.zone-map { width: 100%; overflow: hidden; border: 1px solid var(--border-color, #d5dce5); border-radius: .7rem; }
+.zone-map__leaflet { height: min(54vh, 480px); min-height: 300px; width: 100%; z-index: 0; }
+.parking-zones-map-note { margin: .75rem 0 0; font-size: .9rem; }
+.parking-zones-form { display: grid; gap: .8rem; }
+.parking-zones-form .form-row { display: flex; flex-wrap: wrap; gap: .7rem; }
+.parking-zones-form .form-row > .field { flex: 1 1 150px; min-width: 0; }
+.parking-zones-form .field > input, .parking-zones-form .field > select { width: 100%; }
+.parking-zones-form__actions { justify-content: flex-end; padding-top: .5rem; }
+@media (max-width: 900px) { .parking-zones-layout { grid-template-columns: minmax(0, 1fr); } .zone-map__leaflet { height: 370px; } }

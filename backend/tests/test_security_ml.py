@@ -490,8 +490,9 @@ def _clean(pg_app):
 
 
 def _setup(client):
-    """A checked-in vehicle inside a manager-created geofence."""
+    """A checked-in vehicle inside an administrator-created geofence."""
     manager = make_user(Role.VALET_MANAGER)
+    admin = make_user(Role.ADMIN)
     operator = make_user(Role.VALET_OPERATOR)
     customer = make_user()
     vehicle = make_vehicle(customer.id)
@@ -506,7 +507,7 @@ def _setup(client):
             "longitude": CENTRE[1],
             "radius": RADIUS,
         },
-        headers=bearer(manager),
+        headers=bearer(admin),
     )
     assert zone.status_code == 201, zone.get_json()
 

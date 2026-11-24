@@ -1,14 +1,14 @@
 """Geofence endpoints.
 
-    GET    /geofences                   authenticated - list safe zones with geometry
-    POST   /geofences                   manager/admin/customer - create zone/safe boundary
-    POST   /geofences/preview           authenticated - preview boundary calculation
-    GET    /geofences/<zone_id>         authenticated - safe zone details
-    PUT    /geofences/<zone_id>         manager/admin/creator - update/replace safe zone
-    PATCH  /geofences/<zone_id>         manager/admin/creator - reconfigure boundary
-    DELETE /geofences/<zone_id>         manager/admin/creator - delete inactive zone
-    POST   /geofences/<zone_id>/activate    manager/admin/creator - activate safe zone
-    POST   /geofences/<zone_id>/deactivate  manager/admin/creator - deactivate safe zone
+    GET    /geofences                   authenticated - view zones / map geometry
+    POST   /geofences                   ADMIN - create parking zone
+    POST   /geofences/preview           ADMIN - preview zone boundary
+    GET    /geofences/<zone_id>         authenticated - view boundary
+    PUT    /geofences/<zone_id>         ADMIN - replace zone definition
+    PATCH  /geofences/<zone_id>         ADMIN - edit zone and boundary
+    DELETE /geofences/<zone_id>         ADMIN - deactivate, preserve history
+    POST   /geofences/<zone_id>/activate    ADMIN - activate zone
+    POST   /geofences/<zone_id>/deactivate  ADMIN - deactivate zone
 
 Mounted at both ``/api/v1/geofences`` and ``/api/geofences``.
 """

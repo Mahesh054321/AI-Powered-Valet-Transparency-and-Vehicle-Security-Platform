@@ -23,6 +23,7 @@ import { AlertsPage } from '../pages/AlertsPage'
 import { AuditLogPage } from '../pages/AuditLogPage'
 import { ManagerDashboardPage } from '../pages/ManagerDashboardPage'
 import { StaffAccountsPage } from '../pages/StaffAccountsPage'
+import { ParkingZonesPage } from '../pages/ParkingZonesPage'
 import { ValetDashboardPage } from '../pages/ValetDashboardPage'
 import { TicketListPage } from '../pages/TicketListPage'
 import { VehicleDetailPage } from '../pages/VehicleDetailPage'
@@ -117,6 +118,13 @@ export const ROUTES = [
     icon: '👥',
     roles: [ROLES.ADMIN],
     element: <StaffAccountsPage />,
+  },
+  {
+    path: '/parking-zones',
+    label: 'Parking Zones',
+    icon: '🗺️',
+    roles: [ROLES.ADMIN],
+    element: <ParkingZonesPage />,
   },
   {
     path: '/audit',

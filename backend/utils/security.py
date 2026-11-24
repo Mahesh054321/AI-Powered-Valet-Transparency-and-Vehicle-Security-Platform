@@ -78,7 +78,6 @@ ROLE_CAPABILITIES: dict[str, set[str]] = {
         "telemetry:read_all",
         "alert:read_all",
         "alert:acknowledge",
-        "zone:manage",
         "report:read_all",
         "user:read_all",
     },

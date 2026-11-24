@@ -28,6 +28,7 @@ CENTRE = (28.4595, 77.0266)  # Gurgaon test coordinates
 
 def _setup_context(client):
     manager = make_user(Role.VALET_MANAGER)
+    admin = make_user(Role.ADMIN)
     operator = make_user(Role.VALET_OPERATOR)
     customer = make_user(Role.CUSTOMER)
     outsider = make_user(Role.CUSTOMER)
@@ -44,7 +45,7 @@ def _setup_context(client):
             "radius": 150.0,
             "zone_type": "CIRCLE",
         },
-        headers=bearer(manager),
+        headers=bearer(admin),
     )
     assert zone_resp.status_code == 201
     zone_id = zone_resp.get_json()["data"]["id"]
@@ -67,6 +68,7 @@ def _setup_context(client):
 
     return {
         "manager": manager,
+        "admin": admin,
         "operator": operator,
         "customer": customer,
         "outsider": outsider,
@@ -79,7 +81,7 @@ def _setup_context(client):
 
 def test_preview_geofence_calculation(client, pg_app):
     """POST /geofences/preview calculates metrics for circles and rectangles without saving."""
-    manager = make_user(Role.VALET_MANAGER)
+    admin = make_user(Role.ADMIN)
     db.session.commit()
 
     # Circle preview
@@ -92,7 +94,7 @@ def test_preview_geofence_calculation(client, pg_app):
             "radius": 80.0,
             "buffer_metres": 20.0,
         },
-        headers=bearer(manager),
+        headers=bearer(admin),
     )
     assert resp.status_code == 200
     data = resp.get_json()["data"]
@@ -112,7 +114,7 @@ def test_preview_geofence_calculation(client, pg_app):
             "width_metres": 60.0,
             "orientation_degrees": 45.0,
         },
-        headers=bearer(manager),
+        headers=bearer(admin),
     )
     assert resp_rect.status_code == 200
     rect_data = resp_rect.get_json()["data"]
@@ -121,60 +123,22 @@ def test_preview_geofence_calculation(client, pg_app):
     assert rect_data["estimated_area_sq_metres"] > 0
 
 
-def test_customer_can_create_and_manage_safe_zone_for_own_vehicle(client, pg_app):
-    """Customers can create safe zones for their vehicles with RBAC isolation."""
+def test_customer_cannot_configure_parking_boundaries(client, pg_app):
+    """Customers can view geometry, but cannot create or change any zone."""
     ctx = _setup_context(client)
     customer = ctx["customer"]
-    outsider = ctx["outsider"]
     vehicle = ctx["vehicle"]
-
-    # Outsider cannot create safe zone for another customer's vehicle
-    forbidden = client.post(
+    attempted = client.post(
         GEOFENCES,
-        json={
-            "code": unique("SZ-OUT").upper()[:32],
-            "name": "Outsider Attempt",
-            "latitude": CENTRE[0],
-            "longitude": CENTRE[1],
-            "radius": 100.0,
-            "vehicle_id": str(vehicle.id),
-        },
-        headers=bearer(outsider),
-    )
-    assert forbidden.status_code == 403
-
-    # Customer can create safe zone for their own vehicle
-    created_resp = client.post(
-        GEOFENCES,
-        json={
-            "code": unique("SZ-CUST").upper()[:32],
-            "name": "Aisha Home Yard",
-            "latitude": CENTRE[0],
-            "longitude": CENTRE[1],
-            "zone_type": "RECTANGLE",
-            "length_metres": 100.0,
-            "width_metres": 50.0,
-            "vehicle_id": str(vehicle.id),
-        },
+        json={"code": unique("SZ-CUST").upper()[:32], "name": "Private zone",
+              "latitude": CENTRE[0], "longitude": CENTRE[1], "radius": 100,
+              "vehicle_id": str(vehicle.id)},
         headers=bearer(customer),
     )
-    assert created_resp.status_code == 201
-    zone_id = created_resp.get_json()["data"]["id"]
-
-    # Customer can fetch zone details
-    zone_details = client.get(f"{GEOFENCES}/{zone_id}", headers=bearer(customer))
-    assert zone_details.status_code == 200
-    assert zone_details.get_json()["data"]["zone_type"] == "RECTANGLE"
-
-    # Customer can deactivate zone
-    deact = client.post(f"{GEOFENCES}/{zone_id}/deactivate", headers=bearer(customer))
-    assert deact.status_code == 200
-    assert deact.get_json()["data"]["status"] == ZoneStatus.DEACTIVATED.value
-
-    # Customer can reactivate zone
-    act = client.post(f"{GEOFENCES}/{zone_id}/activate", headers=bearer(customer))
-    assert act.status_code == 200
-    assert act.get_json()["data"]["status"] == "ACTIVE"
+    assert attempted.status_code == 403
+    assert client.get(f"{GEOFENCES}/{ctx['zone_id']}", headers=bearer(customer)).status_code == 200
+    assert client.post(f"{GEOFENCES}/{ctx['zone_id']}/deactivate", headers=bearer(customer)).status_code == 403
+    assert client.post(f"{GEOFENCES}/{ctx['zone_id']}/activate", headers=bearer(customer)).status_code == 403
 
 
 def test_mobile_gps_tracking_flow(client, pg_app):

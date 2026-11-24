@@ -57,8 +57,9 @@ def north_of(distance_metres: float) -> tuple[float, float]:
 
 
 def _context(client):
-    """A checked-in vehicle in a manager-created geofence, plus every actor."""
+    """A checked-in vehicle in an admin-created geofence, plus every actor."""
     manager = make_user(Role.VALET_MANAGER)
+    admin = make_user(Role.ADMIN)
     operator = make_user(Role.VALET_OPERATOR)
     customer = make_user()
     outsider = make_user()
@@ -74,7 +75,7 @@ def _context(client):
             "longitude": CENTRE[1],
             "radius": RADIUS,
         },
-        headers=bearer(manager),
+        headers=bearer(admin),
     )
     assert zone_response.status_code == 201, zone_response.get_json()
     zone_id = zone_response.get_json()["data"]["id"]
@@ -97,6 +98,7 @@ def _context(client):
 
     return {
         "manager": manager,
+        "admin": admin,
         "operator": operator,
         "customer": customer,
         "outsider": outsider,
@@ -137,7 +139,7 @@ def test_a_geofence_is_created_from_a_centre_and_a_radius(client, pg_app):
             "longitude": 77.68,
             "radius": 120.0,
         },
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 201, response.get_json()
     data = response.get_json()["data"]
@@ -167,7 +169,7 @@ def test_an_explicit_polygon_overrides_the_generated_circle(client, pg_app):
             "radius": 100.0,
             "geofence_polygon": polygon,
         },
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 201, response.get_json()
     assert response.get_json()["data"]["geofence_polygon"] == polygon
@@ -183,8 +185,8 @@ def test_a_duplicate_zone_code_is_a_conflict(client, pg_app):
         "longitude": CENTRE[1],
         "radius": 80.0,
     }
-    assert client.post(GEOFENCES, json=body, headers=bearer(context["manager"])).status_code == 201
-    duplicate = client.post(GEOFENCES, json=body, headers=bearer(context["manager"]))
+    assert client.post(GEOFENCES, json=body, headers=bearer(context["admin"])).status_code == 201
+    duplicate = client.post(GEOFENCES, json=body, headers=bearer(context["admin"]))
     assert duplicate.status_code == 409
     assert duplicate.get_json()["error"]["details"]["code"] == code
 
@@ -200,7 +202,7 @@ def test_a_zero_radius_is_refused_because_every_fix_would_be_a_breach(client, pg
             "longitude": CENTRE[1],
             "radius": 0,
         },
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 422
     assert "zero-radius" in response.get_json()["error"]["message"]
@@ -217,7 +219,7 @@ def test_an_absurdly_large_radius_is_refused(client, pg_app):
             "longitude": CENTRE[1],
             "radius": 900_000,
         },
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 422
 
@@ -234,7 +236,7 @@ def test_a_polygon_vertex_that_is_not_a_pair_is_refused(client, pg_app):
             "radius": 100.0,
             "geofence_polygon": [[77.6730, 27.4920], [77.6760], [77.6760, 27.4950]],
         },
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 422
 
@@ -251,7 +253,7 @@ def test_a_vertex_outside_the_legal_coordinate_ranges_is_refused(client, pg_app)
             "radius": 100.0,
             "geofence_polygon": [[77.6730, 27.4920], [77.6760, 95.0], [77.6760, 27.4950]],
         },
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 422
 
@@ -277,7 +279,7 @@ def test_a_swapped_vertex_order_is_accepted_when_both_values_are_legal(client, p
             "radius": 100.0,
             "geofence_polygon": swapped,
         },
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 201, response.get_json()
     assert response.get_json()["data"]["geofence_polygon"] == swapped
@@ -295,7 +297,7 @@ def test_a_polygon_with_fewer_than_three_vertices_is_refused(client, pg_app):
             "radius": 100.0,
             "geofence_polygon": [[77.673, 27.492], [77.676, 27.492]],
         },
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 422
 
@@ -305,7 +307,7 @@ def test_a_missing_required_field_is_reported_by_name(client, pg_app):
     response = client.post(
         GEOFENCES,
         json={"name": "No code", "latitude": CENTRE[0], "longitude": CENTRE[1], "radius": 90},
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 422
     assert response.get_json()["error"]["details"]["field"] == "code"
@@ -326,7 +328,7 @@ def test_an_operator_cannot_create_a_geofence(client, pg_app):
         headers=bearer(context["operator"]),
     )
     assert response.status_code == 403
-    assert "VALET_MANAGER" in response.get_json()["error"]["details"]["required"]
+    assert "ADMIN" in response.get_json()["error"]["details"]["required"]
 
 
 def test_an_anonymous_caller_cannot_list_geofences(client, pg_app):
@@ -349,7 +351,7 @@ def test_a_geofence_can_be_reconfigured_and_the_change_is_audited(client, pg_app
     response = client.patch(
         f"{GEOFENCES}/{context['zone_id']}",
         json={"radius": 180.0},
-        headers=bearer(context["manager"]),
+        headers=bearer(context["admin"]),
     )
     assert response.status_code == 200, response.get_json()
     assert response.get_json()["data"]["radius_metres"] == 180.0
@@ -366,7 +368,7 @@ def test_a_geofence_can_be_reconfigured_and_the_change_is_audited(client, pg_app
 def test_a_nonexistent_zone_is_a_404(client, pg_app):
     context = _context(client)
     response = client.patch(
-        f"{GEOFENCES}/{uuid.uuid4()}", json={"radius": 90}, headers=bearer(context["manager"])
+        f"{GEOFENCES}/{uuid.uuid4()}", json={"radius": 90}, headers=bearer(context["admin"])
     )
     assert response.status_code == 404
 
@@ -1246,3 +1248,55 @@ def test_the_unversioned_aliases_behave_identically(client, pg_app):
 
     assert client.get("/api/geofences", headers=bearer(context["manager"])).status_code == 200
     assert client.get("/api/alerts", headers=bearer(context["manager"])).status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Administrator-only zone configuration (public maps remain readable)
+# ---------------------------------------------------------------------------
+def test_only_admin_may_mutate_parking_zones(client, pg_app):
+    ctx = _context(client)
+    zone_id = ctx["zone_id"]
+    body = {"code": unique("LOCKED").upper()[:32], "name": "Cannot create", "latitude": 27.5, "longitude": 77.68, "radius": 75}
+    for forbidden_role in ("manager", "operator", "customer"):
+        headers = bearer(ctx[forbidden_role])
+        assert client.get(GEOFENCES, headers=headers).status_code == 200
+        assert client.get(f"{GEOFENCES}/{zone_id}", headers=headers).status_code == 200
+        assert client.post(GEOFENCES, json=body, headers=headers).status_code == 403
+        assert client.post(f"{GEOFENCES}/preview", json=body, headers=headers).status_code == 403
+        assert client.patch(f"{GEOFENCES}/{zone_id}", json={"name": "Hacked"}, headers=headers).status_code == 403
+        assert client.put(f"{GEOFENCES}/{zone_id}", json={"name": "Hacked"}, headers=headers).status_code == 403
+        assert client.delete(f"{GEOFENCES}/{zone_id}", headers=headers).status_code == 403
+        assert client.post(f"{GEOFENCES}/{zone_id}/deactivate", headers=headers).status_code == 403
+        assert client.post(f"{GEOFENCES}/{zone_id}/activate", headers=headers).status_code == 403
+
+
+def test_admin_can_edit_zone_capacity_name_code_and_geometry(client, pg_app):
+    ctx = _context(client)
+    zone_id = ctx["zone_id"]
+    headers = bearer(ctx["admin"])
+    edited = client.patch(
+        f"{GEOFENCES}/{zone_id}",
+        json={"code": unique("RENAMED").upper()[:32], "name": "Covered Lot", "capacity": 45,
+              "zone_type": "CIRCLE", "latitude": 27.5, "longitude": 77.68, "radius": 140},
+        headers=headers,
+    )
+    assert edited.status_code == 200, edited.get_json()
+    assert edited.get_json()["data"]["capacity"] == 45
+    assert edited.get_json()["data"]["name"] == "Covered Lot"
+    assert edited.get_json()["data"]["centre"]["latitude"] == 27.5
+    assert client.patch(f"{GEOFENCES}/{zone_id}", json={"capacity": 0}, headers=headers).status_code == 422
+    assert client.post(f"{GEOFENCES}/{zone_id}/deactivate", headers=headers).status_code == 200
+    assert client.post(f"{GEOFENCES}/{zone_id}/activate", headers=headers).status_code == 200
+
+
+def test_admin_polygon_edit_preserves_custom_ring(client, pg_app):
+    ctx = _context(client)
+    vertices = [[77.678, 27.499], [77.682, 27.499], [77.682, 27.502], [77.678, 27.499]]
+    response = client.patch(
+        f"{GEOFENCES}/{ctx['zone_id']}",
+        json={"zone_type": "POLYGON", "latitude": 27.5, "longitude": 77.68, "geofence_polygon": vertices},
+        headers=bearer(ctx["admin"]),
+    )
+    assert response.status_code == 200, response.get_json()
+    assert response.get_json()["data"]["geofence_polygon"] == vertices
+    assert response.get_json()["data"]["zone_type"] == "POLYGON"

@@ -16,7 +16,6 @@ import { useToast } from '../context/ToastContext'
 
 import { AlertCard } from '../components/tracking/AlertCard'
 import { MlVerdictCard } from '../components/tracking/MlVerdictCard'
-import { SafeZoneBuilder } from '../components/tracking/SafeZoneBuilder'
 import { SecurityModelPanel } from '../components/tracking/SecurityModelPanel'
 import { TrackingMap } from '../components/tracking/TrackingMap'
 import { Badge, DataRow, EmptyState, ErrorNotice, Panel, Spinner } from '../components/ui'
@@ -374,9 +373,7 @@ export function TrackingPage() {
   const canTriage = useHasRole(TRIAGE_ROLES)
   const isStaff = useHasRole([ROLES.VALET_OPERATOR, ROLES.VALET_MANAGER, ROLES.ADMIN])
   const isCustomer = useHasRole(ROLES.CUSTOMER)
-  const canManageGeofence = useHasRole([ROLES.VALET_MANAGER, ROLES.ADMIN, ROLES.CUSTOMER])
 
-  const [showZoneBuilder, setShowZoneBuilder] = useState(false)
   const [mobileFix, setMobileFix] = useState(null)
   const handleMobilePosition = useCallback(
     (position) => setMobileFix({ custodyId, position }),
@@ -484,32 +481,12 @@ export function TrackingPage() {
               {movementStatusLabel(latest.movement_status)}
             </Badge>
           )}
-          {canManageGeofence && (
-            <button
-              type="button"
-              className="btn btn--secondary btn--small"
-              onClick={() => setShowZoneBuilder((prev) => !prev)}
-            >
-              {showZoneBuilder ? 'Close Safe Zone Builder' : 'Configure Safe Zone'}
-            </button>
-          )}
         </div>
       </header>
 
       <ErrorNotice error={tracking.error ? normaliseError(tracking.error) : null} onRetry={tracking.refetch} />
 
       <SimulatedBanner view={view} />
-
-      {/* Safe Zone Builder Interactive Drawer */}
-      {showZoneBuilder && (
-        <SafeZoneBuilder
-          initialCenter={view?.zone?.centre || latest}
-          vehicleId={view?.vehicle?.id}
-          custodyId={custodyId}
-          onCreated={() => setShowZoneBuilder(false)}
-          onCancel={() => setShowZoneBuilder(false)}
-        />
-      )}
 
       <div className="tracking-layout">
         <div className="tracking-layout__main">

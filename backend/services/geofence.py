@@ -79,9 +79,9 @@ TELEMETRY_ROLES = (
     Role.VALET_MANAGER.value,
     Role.ADMIN.value,
 )
-#: Who may define or move a geofence. Moving a boundary changes the meaning of
-#: every future fix, so it is a manager-level act rather than operator-level.
-GEOFENCE_ROLES = (Role.VALET_MANAGER.value, Role.ADMIN.value)
+#: Only administrators may create, preview or reconfigure parking geofences.
+#: A map UI restriction alone is insufficient: every mutation is checked here.
+GEOFENCE_ROLES = (Role.ADMIN.value,)
 #: Who may acknowledge or resolve a security alert. Deliberately the same
 #: narrowness as damage verification: the person driving the vehicle is not the
 #: one who dismisses the alert about it.
@@ -1340,7 +1340,9 @@ def _validated_radius(value: Any, *, field: str = "radius") -> float:
 
 
 def preview_geofence(payload: dict[str, Any], actor: AuthContext | None = None) -> dict[str, Any]:
-    """Calculate and preview a safe boundary geometry without saving it."""
+    """Calculate an admin-only boundary preview without saving it."""
+    if actor is not None:
+        _require_role(actor, GEOFENCE_ROLES, action="preview a geofence")
     zone_type = str(payload.get("zone_type") or ZoneType.CIRCLE.value).upper()
     lat = validate_latitude(payload.get("latitude"))
     lon = validate_longitude(payload.get("longitude"))
@@ -1380,9 +1382,9 @@ def create_geofence(payload: dict[str, Any], actor: AuthContext) -> dict[str, An
     """Create a parking zone and its geofence.
 
     Accepts circular (centre + radius), rectangular (dimensions + orientation),
-    or arbitrary polygon definitions. Supports customer-defined vehicle safe zones
-    with multi-tenant isolation.
+    or arbitrary polygon definitions. Creating any zone requires ADMIN.
     """
+    _require_role(actor, GEOFENCE_ROLES, action="create a geofence")
     vehicle = None
     vehicle_id_raw = payload.get("vehicle_id")
     if vehicle_id_raw:
@@ -1391,10 +1393,6 @@ def create_geofence(payload: dict[str, Any], actor: AuthContext) -> dict[str, An
         vehicle = db.session.get(Vehicle, v_id)
         if vehicle is None:
             raise NotFoundError("No vehicle was found with that id.", details={"vehicle_id": str(v_id)})
-        if actor.role == Role.CUSTOMER.value and str(vehicle.owner_id) != actor.user_id:
-            raise AuthorizationError("Customers may only create safe zones for their own vehicles.")
-    else:
-        _require_role(actor, GEOFENCE_ROLES, action="create a geofence")
 
     code = validate_text(payload.get("code"), field="code", max_length=32).upper()
     name = validate_text(payload.get("name"), field="name", max_length=80)
@@ -1529,27 +1527,46 @@ def update_geofence(
     a boundary retroactively changes what every future fix means, which is a
     security-relevant act rather than housekeeping.
     """
+    _require_role(actor, GEOFENCE_ROLES, action="modify a geofence")
     zone = db.session.get(ParkingZone, validate_uuid(zone_id, field="zone_id"))
     if zone is None:
         raise NotFoundError(
             "No parking zone was found with that id.", details={"zone_id": str(zone_id)}
         )
 
-    if actor.role == Role.CUSTOMER.value:
-        if zone.created_by_id != uuid.UUID(actor.user_id) and not (
-            zone.vehicle and str(zone.vehicle.owner_id) == actor.user_id
-        ):
-            raise AuthorizationError("Customers may only modify their own safe zones.")
-    else:
-        _require_role(actor, GEOFENCE_ROLES, action="modify a geofence")
-
     changed: dict[str, Any] = {}
+    if payload.get("code"):
+        code = validate_text(payload["code"], field="code", max_length=32).upper()
+        if code != zone.code:
+            existing = db.session.execute(
+                select(ParkingZone).where(func.upper(ParkingZone.code) == code)
+            ).scalar_one_or_none()
+            if existing is not None:
+                raise ConflictError("A parking zone with that code already exists.", details={"field": "code", "code": code})
+            zone.code = code
+            changed["code"] = code
+    if "capacity" in payload:
+        try:
+            capacity = int(payload["capacity"])
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("'capacity' must be a whole number.", details={"field": "capacity"}) from exc
+        if isinstance(payload["capacity"], float) and not payload["capacity"].is_integer():
+            raise ValidationError("'capacity' must be a whole number.", details={"field": "capacity"})
+        if capacity < 1 or capacity < zone.current_occupancy:
+            raise ValidationError(
+                "Capacity must be at least 1 and cannot be below current occupancy.",
+                details={"field": "capacity", "current_occupancy": zone.current_occupancy},
+            )
+        zone.capacity = capacity
+        changed["capacity"] = capacity
     if payload.get("name"):
         zone.name = validate_text(payload["name"], field="name", max_length=80)
         changed["name"] = zone.name
-    if payload.get("description") is not None:
-        zone.description = validate_text(
-            str(payload["description"]), field="description", max_length=300
+    if "description" in payload:
+        description = str(payload.get("description") or "").strip()
+        zone.description = (
+            validate_text(description, field="description", max_length=300)
+            if description else None
         )
         changed["description"] = zone.description
     if payload.get("buffer_metres") is not None:
@@ -1577,7 +1594,22 @@ def update_geofence(
     new_type = str(payload.get("zone_type") or zone.zone_type or ZoneType.POLYGON.value).upper()
     zone.zone_type = new_type
 
-    if new_type == ZoneType.RECTANGLE.value and (payload.get("length_metres") or payload.get("width_metres") or payload.get("orientation_degrees") or payload.get("latitude")):
+    if new_type == ZoneType.POLYGON.value and payload.get("geofence_polygon") is not None:
+        ring = _validated_polygon(payload["geofence_polygon"])
+        zone.geofence_polygon = ring
+        lat = validate_latitude(payload.get("latitude", zone.centre_latitude))
+        lon = validate_longitude(payload.get("longitude", zone.centre_longitude))
+        zone.centre_latitude = lat
+        zone.centre_longitude = lon
+        zone.radius_metres = max(
+            (engine.haversine_m(lat, lon, vertex[1], vertex[0]) for vertex in ring),
+            default=0.0,
+        )
+        changed["polygon_vertices"] = len(ring)
+        changed["latitude"] = lat
+        changed["longitude"] = lon
+        geometry_changed = True
+    elif new_type == ZoneType.RECTANGLE.value and ("length_metres" in payload or "width_metres" in payload or "orientation_degrees" in payload or "latitude" in payload or "longitude" in payload):
         zone.length_metres = _optional_float(payload.get("length_metres", zone.length_metres), field="length_metres", minimum=1.0) or 100.0
         zone.width_metres = _optional_float(payload.get("width_metres", zone.width_metres), field="width_metres", minimum=1.0) or 50.0
         zone.orientation_degrees = _optional_float(payload.get("orientation_degrees", zone.orientation_degrees), field="orientation_degrees") or 0.0
@@ -1665,17 +1697,10 @@ def get_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str, Any]
 
 def delete_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str, Any]:
     """Deactivate or remove a safe zone."""
+    _require_role(actor, GEOFENCE_ROLES, action="delete a geofence")
     zone = db.session.get(ParkingZone, validate_uuid(zone_id, field="zone_id"))
     if zone is None:
         raise NotFoundError("No parking zone was found with that id.", details={"zone_id": str(zone_id)})
-
-    if actor.role == Role.CUSTOMER.value:
-        if zone.created_by_id != uuid.UUID(actor.user_id) and not (
-            zone.vehicle and str(zone.vehicle.owner_id) == actor.user_id
-        ):
-            raise AuthorizationError("Customers may only delete their own safe zones.")
-    else:
-        _require_role(actor, GEOFENCE_ROLES, action="delete a geofence")
 
     zone.status = ZoneStatus.DEACTIVATED.value
     _audit(
@@ -1692,17 +1717,10 @@ def delete_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str, A
 
 def activate_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str, Any]:
     """Set a deactivated safe zone back to ACTIVE."""
+    _require_role(actor, GEOFENCE_ROLES, action="activate a geofence")
     zone = db.session.get(ParkingZone, validate_uuid(zone_id, field="zone_id"))
     if zone is None:
         raise NotFoundError("No parking zone was found with that id.", details={"zone_id": str(zone_id)})
-    if actor.role == Role.CUSTOMER.value:
-        if zone.created_by_id != uuid.UUID(actor.user_id) and not (
-            zone.vehicle and str(zone.vehicle.owner_id) == actor.user_id
-        ):
-            raise AuthorizationError("Customers may only activate their own safe zones.")
-    else:
-        _require_role(actor, GEOFENCE_ROLES, action="activate a geofence")
-
     zone.status = ZoneStatus.ACTIVE.value
     _audit(
         action=AuditAction.SAFE_ZONE_UPDATED.value,
@@ -1718,17 +1736,10 @@ def activate_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str,
 
 def deactivate_geofence(zone_id: uuid.UUID | str, actor: AuthContext) -> dict[str, Any]:
     """Set an active safe zone to DEACTIVATED."""
+    _require_role(actor, GEOFENCE_ROLES, action="deactivate a geofence")
     zone = db.session.get(ParkingZone, validate_uuid(zone_id, field="zone_id"))
     if zone is None:
         raise NotFoundError("No parking zone was found with that id.", details={"zone_id": str(zone_id)})
-    if actor.role == Role.CUSTOMER.value:
-        if zone.created_by_id != uuid.UUID(actor.user_id) and not (
-            zone.vehicle and str(zone.vehicle.owner_id) == actor.user_id
-        ):
-            raise AuthorizationError("Customers may only deactivate their own safe zones.")
-    else:
-        _require_role(actor, GEOFENCE_ROLES, action="deactivate a geofence")
-
     zone.status = ZoneStatus.DEACTIVATED.value
     _audit(
         action=AuditAction.SAFE_ZONE_UPDATED.value,

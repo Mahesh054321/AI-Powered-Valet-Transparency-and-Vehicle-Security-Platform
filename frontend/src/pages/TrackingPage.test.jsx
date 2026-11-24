@@ -217,6 +217,17 @@ describe('TrackingPage', () => {
     expect(screen.getByText(/Zone A - Covered Parking/)).toBeInTheDocument()
   })
 
+  it.each(['ADMIN', 'VALET_MANAGER', 'VALET_OPERATOR', 'CUSTOMER'])(
+    'does not offer zone configuration on the tracking map to %s', async (role) => {
+      vi.mocked(fetchTracking).mockResolvedValue(view())
+      vi.mocked(fetchAlerts).mockResolvedValue(alertsPayload())
+      renderPage({ role })
+      expect(await screen.findByText('UP85CA1234')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /configure safe zone/i })).not.toBeInTheDocument()
+      expect(screen.queryByText(/safe zone builder/i)).not.toBeInTheDocument()
+    },
+  )
+
   it('keeps security alerts below the map in the main tracking column', async () => {
     vi.mocked(fetchTracking).mockResolvedValue(view())
     vi.mocked(fetchAlerts).mockResolvedValue(alertsPayload())

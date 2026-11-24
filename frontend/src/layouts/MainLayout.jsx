@@ -286,6 +286,7 @@ function buildMenu(role) {
       label: 'Administration',
       links: [
         { to: '/staff-accounts', label: 'Manage Accounts', icon: '👥' },
+        { to: '/parking-zones', label: 'Parking Zones', icon: '🗺️' },
       ],
     })
   }
