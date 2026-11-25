@@ -50,7 +50,7 @@ function findingSummary(reasoning) {
   return `${cut.slice(0, cut.lastIndexOf(' ') > 100 ? cut.lastIndexOf(' ') : 257)}…`
 }
 
-export function DamageCard({ detection, canVerify, onVerify, busy }) {
+export function DamageCard({ detection, canVerify, onVerify, busy, index }) {
   const [notes, setNotes] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [error, setError] = useState(null)
@@ -76,9 +76,10 @@ export function DamageCard({ detection, canVerify, onVerify, busy }) {
   }
 
   return (
-    <article className={`finding ${isPotential ? 'finding--potential' : ''}`}>
+    <article className={`finding ${isPotential ? 'finding--potential' : status === VERIFICATION_STATUS.CONFIRMED ? 'finding--verified' : 'finding--dismissed'}`}>
       <header className="finding__header">
-        <div>
+        <div className="finding__intro">
+          <span className="finding__overline"><span className="finding__overline-dot" aria-hidden="true" /> Image comparison finding{index ? ` #${String(index).padStart(2, '0')}` : ''}</span>
           <h4 className="finding__title">
             <span className={`finding__flag ${isPotential ? 'finding__flag--warn' : ''}`}>
               {label}
@@ -136,7 +137,12 @@ export function DamageCard({ detection, canVerify, onVerify, busy }) {
       )}
 
       {(detection.evidence_url || detection.comparison_url) && (
-        <div className="finding__images">
+        <section className="finding__evidence" aria-label="Photo evidence">
+          <div className="finding__evidence-heading">
+            <strong>Visual evidence</strong>
+            <span>Review the original comparison before confirming any defect</span>
+          </div>
+          <div className="finding__images">
           {detection.evidence_url && (
             <figure>
               <img src={detection.evidence_url} alt="Detected region, drop-off beside pickup" />
@@ -149,7 +155,8 @@ export function DamageCard({ detection, canVerify, onVerify, busy }) {
               <figcaption>Comparison</figcaption>
             </figure>
           )}
-        </div>
+          </div>
+        </section>
       )}
 
       <details className="finding__reasoning" open={expanded} onToggle={(e) => setExpanded(e.target.open)}>

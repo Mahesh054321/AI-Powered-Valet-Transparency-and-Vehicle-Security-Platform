@@ -257,6 +257,15 @@ export function ConditionReportPage() {
 
       {report.comparison_ready && (
         <div className="report-summary" aria-label="Vehicle inspection results">
+          <div className="report-summary__lead">
+            <span className="report-summary__symbol" aria-hidden="true">◇</span>
+            <div>
+              <span className="report-summary__eyebrow">AI-ASSISTED CONDITION COMPARISON</span>
+              <h2>{findings.length > 0 ? `${findings.length} potential change${findings.length === 1 ? '' : 's'} flagged` : 'Comparison completed'}</h2>
+              <p>{findings.length > 0 ? 'The detector noticed changes between drop-off and pickup photos. These are candidates for human review, not confirmed damage.' : 'No candidate regions passed the current thresholds. This does not prove that the car is free from damage.'}</p>
+            </div>
+            <a href="#condition-findings" className="report-summary__jump">Review findings ↓</a>
+          </div>
           <div className="report-summary__item">
             <span>Flagged regions</span>
             <strong>{findings.length}</strong>
@@ -334,13 +343,14 @@ export function ConditionReportPage() {
           </p>
         ) : (
           <div className="findings">
-            {findings.map((detection) => (
+            {findings.map((detection, index) => (
               <div
                 key={detection.id}
                 id={`finding-${detection.id}`}
                 className={highlightedFindingId === detection.id ? 'finding--highlight' : ''}
               >
                 <DamageCard
+                  index={index + 1}
                   detection={detection}
                   canVerify={canVerify}
                   busy={verify.isPending}

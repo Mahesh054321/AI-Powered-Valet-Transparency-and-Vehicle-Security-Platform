@@ -683,6 +683,7 @@ class TestPublishers:
             severity=AlertSeverity.HIGH.value,
             status=AlertStatus.OPEN.value,
             title="Vehicle left its zone",
+            description="Last two location fixes are outside the permitted boundary.",
             reason="Last fix was outside the boundary.",
             confidence=0.9,
         )
@@ -696,6 +697,17 @@ class TestPublishers:
         assert alert.severity == AlertSeverity.HIGH.value
         assert alert.source_entity_type == "security_alerts"
         assert alert.source_type == AlertType.GEOFENCE_BREACH.value
+
+        # The unified feed must expose the real source explanation, not only
+        # a generic headline. The query is scoped to a manager who may see it.
+        manager = make_user(Role.VALET_MANAGER)
+        db.session.commit()
+        displayed = next(
+            item for item in _list(pg_client, manager)["alerts"]
+            if item["alert_id"] == str(alert.id)
+        )
+        assert displayed["description"] == "Last two location fixes are outside the permitted boundary."
+        assert displayed["reason"] == "Last fix was outside the boundary."
 
     def test_a_tamper_alert_becomes_suspicious_movement(self, pg_client):
         """The projection folds the detector's seven types into five; this is

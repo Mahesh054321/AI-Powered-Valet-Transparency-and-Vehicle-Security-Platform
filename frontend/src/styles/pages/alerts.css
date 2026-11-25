@@ -364,3 +364,143 @@
   line-height: var(--leading-relaxed);
   white-space: normal;
 }
+
+/* ===========================================================================
+   NOTIFICATION PREVIEW V3 — distinct from the full Security Alerts page.
+   The previous small popover opened leftward over the sidebar and showed only
+   a message. This layout anchors to the bell, makes the reason and next step
+   visible and keeps the read action separate from resolving the incident.
+   =========================================================================== */
+.bell__button--open { background: var(--primary-subtle); color: var(--primary); border-color: var(--primary-border); }
+.bell__panel {
+  left: 0;
+  right: auto;
+  top: calc(100% + 12px);
+  width: min(460px, calc(100vw - 2rem));
+  max-height: min(690px, 78vh);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  border-radius: 18px;
+  border: 1px solid var(--border-default);
+  box-shadow: 0 28px 65px -22px rgb(15 23 42 / 35%), 0 12px 25px -14px rgb(15 23 42 / 22%);
+  background: var(--surface-raised);
+}
+.bell__head {
+  padding: 22px 22px 18px;
+  align-items: flex-start;
+  color: white;
+  background: linear-gradient(120deg, #121c37 0%, #172d59 64%, #21418b 100%);
+  border-bottom: 0;
+}
+.bell__head-copy { display: grid; gap: 5px; }
+.bell__head h2 { color: white; font-size: 1.3rem; line-height: 1.25; font-weight: 750; }
+.bell__eyebrow { color: #b0cbff; font-weight: 750; font-size: 10px; letter-spacing: .14em; }
+.bell__head-summary { color: #d9e6fb; font-size: 12px; }
+.bell__close {
+  display: grid; place-items: center; width: 31px; height: 31px;
+  border: 1px solid rgb(255 255 255 / 24%); border-radius: 10px;
+  color: white; background: rgb(255 255 255 / 12%); cursor: pointer;
+}
+.bell__close:hover { background: rgb(255 255 255 / 24%); }
+.bell__toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--surface-muted); border-bottom: 1px solid var(--border-default);
+  padding: 11px 18px; color: var(--text-secondary); font-size: 12px;
+}
+.bell__mark-all {
+  padding: 7px 9px; border: 0; border-radius: 8px; color: var(--primary);
+  background: var(--primary-subtle); font-weight: 750; cursor: pointer;
+}
+.bell__mark-all:disabled { opacity: .5; cursor: not-allowed; }
+.bell__list { list-style: none; padding: 10px; margin: 0; min-height: 0; overflow-y: auto; }
+.bell__item {
+  margin: 0 0 9px; border: 1px solid var(--border-default) !important;
+  border-left: 3px solid var(--slate-300) !important;
+  border-radius: 12px; background: white;
+  box-shadow: 0 3px 12px rgb(15 23 42 / 4%); overflow: hidden;
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.bell__item:hover { box-shadow: 0 7px 20px rgb(15 23 42 / 10%); transform: translateY(-1px); }
+.bell__item--high { border-left-color: var(--amber-500) !important; }
+.bell__item--critical { border-left-color: var(--red-500) !important; }
+.bell__item--medium { border-left-color: var(--brand-500) !important; }
+.bell__item--low { border-left-color: var(--slate-400) !important; }
+.bell__item-button { gap: 9px; padding: 15px; border-radius: 0; }
+.bell__item-button:hover { background: var(--slate-25); }
+.bell__item-header { display: flex; align-items: flex-start; gap: 10px; }
+.bell__item-icon {
+  flex: 0 0 37px; display: grid; place-items: center;
+  height: 37px; border-radius: 11px;
+  color: var(--slate-700); background: var(--slate-100);
+  font-size: 21px; line-height: 1; font-weight: 800;
+}
+.bell__item-icon--high { background: var(--amber-100); color: var(--amber-700); }
+.bell__item-icon--critical { background: var(--red-100); color: var(--red-700); }
+.bell__item-icon--medium { background: var(--brand-100); color: var(--brand-700); }
+.bell__item-header-content { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.bell__item-topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bell__item-type { font-size: 13px; text-transform: none; letter-spacing: -.01em; color: var(--text-primary); }
+.bell__item-time { font-size: 11px; white-space: nowrap; color: var(--text-tertiary); }
+.bell__item-metadata { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.bell__severity {
+  font-size: 10px; font-weight: 800; letter-spacing: .04em;
+  padding: 3px 8px; border-radius: 30px;
+  background: var(--slate-100); color: var(--slate-600);
+}
+.bell__severity--high { background: var(--amber-50); color: var(--amber-700); }
+.bell__severity--critical { background: var(--red-50); color: var(--red-700); }
+.bell__severity--medium { background: var(--brand-50); color: var(--brand-700); }
+.bell__item-vehicle { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.bell__item-message { font-size: 14px; font-weight: 650; line-height: 1.5; }
+.bell__item-detail, .bell__item-reason { font-size: 12px; line-height: 1.5; color: var(--text-secondary); }
+.bell__item-guidance {
+  display: grid; gap: 4px; padding: 10px 12px; border-radius: 9px;
+  background: var(--brand-50); color: var(--slate-700);
+  font-size: 12px; line-height: 1.45;
+}
+.bell__item-guidance strong { color: var(--brand-700); font-size: 11px; }
+.bell__view-detail { color: var(--brand-700); font-size: 12px; font-weight: 750; }
+.bell__item-actions {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 0 15px 13px;
+}
+.bell__item-actions a {
+  display: inline-flex; gap: 7px; align-items: center;
+  padding: 8px 10px; border: 1px solid var(--border-default);
+  border-radius: 8px; font-size: 12px; font-weight: 750;
+  color: var(--text-secondary); background: var(--surface-raised);
+}
+.bell__item-actions a:hover { background: var(--primary-subtle); color: var(--primary); text-decoration: none; }
+.bell__foot { display: flex; gap: 10px; padding: 11px 17px; background: var(--surface-muted); }
+.bell__open-centre {
+  padding: 10px 12px; background: var(--primary); color: white;
+  border: 0; border-radius: 9px; font-size: 12px; font-weight: 750; cursor: pointer;
+}
+.bell__open-centre:hover { background: var(--primary-hover); }
+.bell__mode { font-size: 10px; white-space: nowrap; letter-spacing: 0; }
+.bell__empty { display: grid; justify-items: center; gap: 8px; padding: 35px 18px; }
+.bell__empty p { margin: 0; }
+.bell__empty-icon { display: grid; place-items: center; border-radius: 50%; width: 46px; height: 46px; font-weight: 800; background: var(--success-subtle); color: var(--success); font-size: 23px; }
+.bell button:focus-visible, .bell a:focus-visible { outline: 3px solid var(--primary-ring); outline-offset: 2px; }
+@media (max-width: 639px) {
+  .bell__panel {
+    position: fixed; left: 0; right: 0; top: var(--topbar-height);
+    width: 100vw; max-height: calc(100dvh - var(--topbar-height) - 12px);
+    border-radius: 0 0 18px 18px;
+  }
+  .bell__head { padding: 19px 18px 16px; }
+  .bell__item-button { padding: 12px; }
+  .bell__item-actions { padding-inline: 12px; }
+  .bell__foot { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) { .bell__item { transition: none; } }
+
+/* The alert centre now shows the source detector's actual explanation when
+   available, rather than only the alert headline and generic recommendation. */
+.alert-table__description, .alert-table__reason {
+  display: block; margin-top: 7px; padding: 8px 10px;
+  background: var(--slate-50); border-radius: 8px;
+  font-size: 12px; line-height: 1.55; color: var(--slate-600);
+}
+.alert-table__reason { border-left: 3px solid var(--amber-500); }
+.alert-table__reason strong { color: var(--slate-700); }
+.alert-table__guidance { margin-top: 9px; padding: 8px 10px; border-radius: 8px; background: var(--brand-50); }

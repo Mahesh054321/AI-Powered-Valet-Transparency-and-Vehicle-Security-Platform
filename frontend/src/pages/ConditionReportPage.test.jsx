@@ -106,7 +106,7 @@ describe('ConditionReportPage', () => {
     renderReport()
 
     await waitFor(() => expect(screen.getByText('Potential Damage')).toBeTruthy())
-    expect(screen.getByText(/Scratch/)).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /Scratch/i })).toBeInTheDocument()
     expect(screen.getByText(/LEFT FRONT DOOR/i)).toBeTruthy()
     expect(screen.getByText('82%')).toBeTruthy()
     expect(screen.getByText('Awaiting review')).toBeTruthy()

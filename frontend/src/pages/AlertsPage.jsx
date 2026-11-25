@@ -504,6 +504,12 @@ export function AlertsPage() {
                   </span>
                   <span role="cell" data-label="Message" className="alert-table__message">
                     <strong className="alert-table__primary-message">{alert.message}</strong>
+                    {alert.description && alert.description !== alert.message && (
+                      <span className="alert-table__description">{alert.description}</span>
+                    )}
+                    {alert.reason && alert.reason !== alert.message && alert.reason !== alert.description && (
+                      <span className="alert-table__reason"><strong>Recorded reason:</strong> {alert.reason}</span>
+                    )}
                     {alertGuidance(alert.type) && (
                       <span className="alert-table__guidance">
                         <strong>Next step:</strong> {alertGuidance(alert.type)}

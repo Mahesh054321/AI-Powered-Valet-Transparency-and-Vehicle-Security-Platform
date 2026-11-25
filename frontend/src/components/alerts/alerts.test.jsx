@@ -153,6 +153,38 @@ describe('NotificationBell', () => {
     await waitFor(() => expect(screen.getByText(/polled every/)).toBeInTheDocument())
   })
 
+  it('shows a distinct recommended action in the dropdown for suspicious movement', async () => {
+    vi.mocked(fetchAlertSummary).mockResolvedValue({ unread: 1, total: 1 })
+    vi.mocked(fetchAlerts).mockResolvedValue({
+      alerts: [alert({
+        type: 'SUSPICIOUS_MOVEMENT',
+        message: 'ML classifier flagged an unusual movement pattern',
+        reason: 'Anomalous distance and time pattern',
+      })],
+      total: 1,
+    })
+    renderWithProviders(<NotificationBell />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Notifications/i }))
+    expect(await screen.findByText('ML classifier flagged an unusual movement pattern')).toBeInTheDocument()
+    expect(screen.getByText(/Anomalous distance and time pattern/)).toBeInTheDocument()
+    expect(screen.getByText('Recommended next step')).toBeInTheDocument()
+    expect(screen.getByText(/Review location evidence and check with on-duty valet staff/)).toBeInTheDocument()
+  })
+
+  it('keeps a recorded description separate from advisory guidance', async () => {
+    vi.mocked(fetchAlertSummary).mockResolvedValue({ unread: 1, total: 1 })
+    vi.mocked(fetchAlerts).mockResolvedValue({
+      alerts: [alert({ description: 'Last GPS reading is not reliable enough for a security conclusion.' })],
+      total: 1,
+    })
+    renderWithProviders(<NotificationBell />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Notifications/i }))
+    expect(await screen.findByText(/Last GPS reading is not reliable enough/)).toBeInTheDocument()
+    expect(screen.getByText('Recommended next step')).toBeInTheDocument()
+  })
+
   it('marks one alert read without closing it', async () => {
     vi.mocked(fetchAlertSummary).mockResolvedValue({ unread: 1, total: 1 })
     vi.mocked(fetchAlerts).mockResolvedValue({ alerts: [alert()], total: 1 })
@@ -203,6 +235,21 @@ describe('AlertsPage', () => {
     // producing a button that returns 403.
     expect(screen.queryByRole('button', { name: 'Resolve' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Mark read' })).toBeInTheDocument()
+  })
+
+  it('shows source description and recorded reason separately from recommended guidance', async () => {
+    vi.mocked(fetchAlertSummary).mockResolvedValue({ unread: 1, total: 1, can_resolve: true })
+    vi.mocked(fetchAlerts).mockResolvedValue({
+      alerts: [alert({
+        description: 'Last location is outside the permitted zone.',
+        reason: 'Two consecutive valid GPS readings crossed the zone boundary.',
+      })], total: 1,
+    })
+    renderWithProviders(<AlertsPage />, { token: buildToken({ role: 'VALET_MANAGER' }) })
+
+    expect(await screen.findByText('Last location is outside the permitted zone.')).toBeInTheDocument()
+    expect(screen.getByText(/Two consecutive valid GPS readings crossed/)).toBeInTheDocument()
+    expect(screen.getByText(/Review the vehicle track, assigned boundary and GPS accuracy/)).toBeInTheDocument()
   })
 
   it('offers resolve to a manager', async () => {

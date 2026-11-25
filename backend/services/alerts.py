@@ -387,6 +387,33 @@ def alert_dict(alert: Alert, *, actor: AuthContext | None = None) -> dict[str, A
     return body
 
 
+def _source_security_details(alerts: list[Alert]) -> dict[str, dict[str, str | None]]:
+    """Fetch original detector explanations for visible feed entries in one query.
+
+    The feed is already authorization-scoped before this helper is invoked;
+    reading only linked source IDs prevents an N+1 query for each alert and
+    never exposes unrelated security records. Older feed rows may point to a
+    deleted or missing source and simply keep their original message.
+    """
+    source_ids = {
+        alert.source_id for alert in alerts
+        if alert.source_entity_type == "security_alerts" and alert.source_id
+    }
+    if not source_ids:
+        return {}
+
+    from models.security_alert import SecurityAlert
+
+    rows = db.session.execute(
+        select(SecurityAlert.id, SecurityAlert.description, SecurityAlert.reason)
+        .where(SecurityAlert.id.in_(source_ids))
+    ).all()
+    return {
+        str(source_id): {"description": description, "reason": reason}
+        for source_id, description, reason in rows
+    }
+
+
 def list_alerts(
     actor: AuthContext,
     *,
@@ -450,8 +477,18 @@ def list_alerts(
         ).scalars()
     )
 
+    # Preserve the original alert message and enrich only its actual linked
+    # security-detector explanation. This is evidence, not an AI paraphrase.
+    security_details = _source_security_details(rows)
+    items = []
+    for alert in rows:
+        item = alert_dict(alert, actor=actor)
+        if alert.source_entity_type == "security_alerts" and alert.source_id:
+            item.update(security_details.get(str(alert.source_id), {}))
+        items.append(item)
+
     return {
-        "items": [alert_dict(alert, actor=actor) for alert in rows],
+        "items": items,
         "total": total,
         "page": page,
         "page_size": page_size,
@@ -492,7 +529,10 @@ def get_alert(actor: AuthContext, alert_id: str) -> dict[str, Any]:
     if alert is None:
         raise NotFoundError("Alert not found.", details={"alert_id": alert_id})
     _owned_or_visible(actor, alert)
-    return alert_dict(alert, actor=actor)
+    body = alert_dict(alert, actor=actor)
+    if alert.source_entity_type == "security_alerts" and alert.source_id:
+        body.update(_source_security_details([alert]).get(str(alert.source_id), {}))
+    return body
 
 
 def mark_read(actor: AuthContext, alert_id: str) -> dict[str, Any]:
