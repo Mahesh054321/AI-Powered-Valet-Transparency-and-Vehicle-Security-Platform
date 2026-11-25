@@ -255,6 +255,29 @@ export function ConditionReportPage() {
         )}
       </Panel>
 
+      {report.comparison_ready && (
+        <div className="report-summary" aria-label="Vehicle inspection results">
+          <div className="report-summary__item">
+            <span>Flagged regions</span>
+            <strong>{findings.length}</strong>
+          </div>
+          <div className="report-summary__item">
+            <span>Awaiting human review</span>
+            <strong>{findings.filter((finding) => finding.verification_status === 'UNVERIFIED').length}</strong>
+          </div>
+          <div className="report-summary__item">
+            <span>Confirmed by manager</span>
+            <strong>{report.confirmed_count ?? 0}</strong>
+          </div>
+          <p className="report-summary__note">
+            Each result below shows the suspected damage type, location, detection score,
+            label score, measured image area (when available), and technical explanation.
+            These scores are not a validated accuracy percentage.
+            <a href="#condition-findings"> Review findings</a>
+          </p>
+        </div>
+      )}
+
       {/* Interactive Before/After Visual Comparison Suite */}
       {comparisons.length > 0 && (
         <Panel
@@ -294,6 +317,7 @@ export function ConditionReportPage() {
       </div>
 
       {/* Findings and Region Candidates */}
+      <div id="condition-findings" className="report-findings-anchor">
       <Panel
         title={`Detected regions (${findings.length})`}
         actions={
@@ -330,6 +354,7 @@ export function ConditionReportPage() {
         )}
         {verify.isError && <ErrorNotice error={verify.error.apiError ?? normaliseError(verify.error)} />}
       </Panel>
+      </div>
 
       {/* Unmatched Angles Warning */}
       {pickup?.unmatched_angles?.length > 0 && (

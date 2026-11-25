@@ -175,3 +175,18 @@
     font-size: var(--text-3xl);
   }
 }
+
+/* Closed tickets never show an active retrieval number. */
+.retrieval-card--closed {
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--success);
+  background: var(--surface-muted);
+  padding: var(--space-3) var(--space-4);
+  display: grid;
+  gap: var(--space-1);
+}
+.retrieval-card--closed p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}

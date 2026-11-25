@@ -12,6 +12,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { Badge } from '../ui'
+import { alertGuidance } from '../../utils/alertGuidance'
 import {
   ALERT_SEVERITY_TONES,
   ALERT_STATUS_LABELS,
@@ -85,6 +86,11 @@ export function AlertCard({
 
   const isOpen = alert.status === 'OPEN' || alert.status === 'ACKNOWLEDGED' || alert.status === 'INVESTIGATING' || alert.status === 'REOPENED'
   const confidencePct = alert.confidence != null ? Math.round(Number(alert.confidence) * 100) : null
+  const description =
+    alert.description && alert.description.trim() && alert.description.trim() !== alert.reason?.trim()
+      ? alert.description.trim()
+      : null
+  const guidance = alertGuidance(alert.alert_type)
 
   return (
     <article className="alert-card">
@@ -103,7 +109,12 @@ export function AlertCard({
         </div>
       </header>
 
-      <p className="alert-card__reason">{alert.reason}</p>
+      {description && <p className="alert-card__description">{description}</p>}
+
+      <p className="alert-card__reason">
+        <strong>Recorded reason:</strong> <span>{alert.reason ?? 'No reason provided'}</span>
+      </p>
+      {guidance && <p className="alert-card__guidance"><strong>Recommended action:</strong> {guidance}</p>}
 
       {((alert.custody_session_id || alert.custody_id) || (alert.vehicle_id || alert.vehicle?.id)) && (
         <div className="alert-card__links">

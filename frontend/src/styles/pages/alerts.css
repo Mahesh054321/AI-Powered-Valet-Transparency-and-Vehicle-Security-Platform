@@ -352,3 +352,15 @@
     align-items: flex-start;
   }
 }
+
+/* The original incident text remains primary; suggested action is distinct. */
+.alert-table__message { min-width: 0; overflow-wrap: anywhere; }
+.alert-table__primary-message { display: block; font-weight: var(--weight-medium); }
+.alert-table__guidance {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+  white-space: normal;
+}

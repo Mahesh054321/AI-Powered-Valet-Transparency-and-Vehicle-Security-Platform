@@ -34,6 +34,12 @@ describe('AlertCard', () => {
     ).toBeInTheDocument()
   })
 
+  it('separates recorded evidence from recommended action', () => {
+    render(<AlertCard alert={alert()} />)
+    expect(screen.getByText(/review the vehicle track/i)).toBeInTheDocument()
+    expect(screen.getByText(/recorded reason/i)).toBeInTheDocument()
+  })
+
   it('labels the alert type and severity in words a manager can read', () => {
     render(<AlertCard alert={alert()} />)
 

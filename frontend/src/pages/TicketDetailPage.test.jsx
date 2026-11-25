@@ -210,6 +210,47 @@ describe('TicketDetailPage pickup request', () => {
     expect(await screen.findByText(/estimator offline/i)).toBeInTheDocument()
   })
 
+  it('hides the live retrieval estimate once the pickup is complete', async () => {
+    vi.clearAllMocks()
+    stubTicket({
+      status: 'COMPLETED',
+      custody_session: {
+        id: SESSION_ID,
+        status: 'CHECKED_OUT',
+        dropped_off_at: '2026-09-11T09:05:00Z',
+        zone_assigned_at: '2026-09-11T09:06:00Z',
+        retrieval_requested_at: '2026-09-11T11:00:00Z',
+        ready_for_pickup_at: '2026-09-11T11:10:00Z',
+        picked_up_at: '2026-09-11T11:15:00Z',
+        odometer_at_drop_off: 41200,
+      },
+    })
+
+    renderPage()
+
+    expect(await screen.findByText(/a live retrieval estimate no longer applies/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /estimate retrieval time/i })).toBeNull()
+    expect(fetchRetrievalPrediction).not.toHaveBeenCalled()
+  })
+
+  it('never requests an estimate for a cancelled ticket', async () => {
+    vi.clearAllMocks()
+    stubTicket({ status: 'CANCELLED' })
+    renderPage()
+    expect(await screen.findByText(/ticket cancelled/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /estimate retrieval time/i })).not.toBeInTheDocument()
+    expect(fetchRetrievalPrediction).not.toHaveBeenCalled()
+  })
+
+  it('treats a recorded pickup time as closed even if status projection lags', async () => {
+    vi.clearAllMocks()
+    const previous = stubTicket()
+    stubTicket({ custody_session: { ...previous.custody_session, picked_up_at: '2026-09-11T11:15:00Z' } })
+    renderPage()
+    expect(await screen.findByText(/a live retrieval estimate no longer applies/i)).toBeInTheDocument()
+    expect(fetchRetrievalPrediction).not.toHaveBeenCalled()
+  })
+
   it('completes the pickup with the odometer and condition acceptance', async () => {
     vi.mocked(completeTicket).mockResolvedValue({ ticket: { id: TICKET_ID, status: 'COMPLETED' } })
     const user = userEvent.setup()

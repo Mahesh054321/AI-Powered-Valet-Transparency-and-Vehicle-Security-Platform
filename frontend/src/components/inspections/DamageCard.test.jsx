@@ -32,7 +32,7 @@ function potentialFinding(overrides = {}) {
 describe('DamageCard', () => {
   it('labels an unreviewed finding as potential damage, never as fact', () => {
     renderWithProviders(
-      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => {}} />,
+      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => { }} />,
     )
 
     expect(screen.getByText('Potential Damage')).toBeTruthy()
@@ -41,10 +41,12 @@ describe('DamageCard', () => {
 
   it('shows the damage type, region and both confidences', () => {
     renderWithProviders(
-      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => {}} />,
+      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => { }} />,
     )
 
-    expect(screen.getByText(/Scratch/)).toBeTruthy()
+    expect(
+      screen.getByRole('heading', { name: /Scratch/i })
+    ).toBeInTheDocument()
     expect(screen.getByText(/LEFT FRONT DOOR/i)).toBeTruthy()
     // Region confidence and the weaker label confidence, as percentages.
     expect(screen.getByText('82%')).toBeTruthy()
@@ -52,9 +54,42 @@ describe('DamageCard', () => {
     expect(screen.getByText(/weaker claim than detecting the change/i)).toBeTruthy()
   })
 
+  it('shows the affected image area when the detector supplied a measured fraction', () => {
+    renderWithProviders(
+      <DamageCard
+        detection={potentialFinding({
+          algorithm_params: { region_statistics: { area_fraction: 0.0136 } },
+        })}
+        canVerify={false}
+        onVerify={() => { }}
+      />,
+    )
+    expect(screen.getByText('1.36%')).toBeInTheDocument()
+    expect(screen.getByText(/not vehicle damage percentage/i)).toBeInTheDocument()
+  })
+
+  it('does not turn an unavailable label score into 0 percent', () => {
+    renderWithProviders(
+      <DamageCard
+        detection={potentialFinding({ type_confidence: null })}
+        canVerify={false}
+        onVerify={() => { }}
+      />,
+    )
+    expect(screen.getByText('Not available')).toBeInTheDocument()
+    expect(screen.queryByText('0%')).not.toBeInTheDocument()
+  })
+
+  it('shows a human-readable description outside the technical disclosure', () => {
+    renderWithProviders(
+      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => { }} />,
+    )
+    expect(document.querySelector('.finding__description')?.textContent).toMatch(/region is thin and stretched/i)
+  })
+
   it('renders the detected region and the comparison image', () => {
     renderWithProviders(
-      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => {}} />,
+      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => { }} />,
     )
 
     const images = screen.getAllByRole('img')
@@ -65,7 +100,7 @@ describe('DamageCard', () => {
 
   it('hides the verification controls from anyone who may not verify', () => {
     renderWithProviders(
-      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => {}} />,
+      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => { }} />,
     )
 
     expect(screen.queryByRole('button', { name: /confirm damage/i })).toBeNull()
@@ -74,7 +109,7 @@ describe('DamageCard', () => {
 
   it('offers confirm and reject to a verifier', () => {
     renderWithProviders(
-      <DamageCard detection={potentialFinding()} canVerify onVerify={() => {}} />,
+      <DamageCard detection={potentialFinding()} canVerify onVerify={() => { }} />,
     )
 
     expect(screen.getByRole('button', { name: /confirm damage/i })).toBeTruthy()
@@ -126,7 +161,7 @@ describe('DamageCard', () => {
           verification_notes: 'Customer charged.',
         })}
         canVerify
-        onVerify={() => {}}
+        onVerify={() => { }}
       />,
     )
 
@@ -146,7 +181,7 @@ describe('DamageCard', () => {
           presentation_label: 'Dismissed - Not Damage',
         })}
         canVerify
-        onVerify={() => {}}
+        onVerify={() => { }}
       />,
     )
 
@@ -169,7 +204,7 @@ describe('DamageCard', () => {
 
   it('explains why the region was flagged', () => {
     renderWithProviders(
-      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => {}} />,
+      <DamageCard detection={potentialFinding()} canVerify={false} onVerify={() => { }} />,
     )
 
     expect(screen.getByText('Why this was flagged')).toBeTruthy()

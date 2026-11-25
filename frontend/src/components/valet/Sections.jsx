@@ -10,6 +10,7 @@
 import { Badge } from '../ui'
 import { Link } from 'react-router-dom'
 import { relativeTime } from '../../services/staffDashboardService'
+import { alertGuidance } from '../../utils/alertGuidance'
 
 const SEVERITY_TONE = {
   LOW: 'badge--muted',
@@ -41,7 +42,13 @@ export function AlertList({ alerts, canTriage, onAcknowledge, onResolve }) {
               <strong>{alert.title}</strong>
               <Badge tone="badge--muted">{alert.status}</Badge>
             </div>
+            {alert.description && alert.description !== alert.reason && (
+              <p className="valet-alerts__description">{alert.description}</p>
+            )}
             <p className="valet-alerts__reason">{alert.reason}</p>
+            {alertGuidance(alert.alert_type) && (
+              <p className="valet-alerts__guidance"><strong>Next step:</strong> {alertGuidance(alert.alert_type)}</p>
+            )}
             <p className="valet-alerts__meta muted">
               {alert.alert_type} · {relativeTime(alert.occurred_at) ?? 'time unknown'}
               {alert.acknowledged_by_email ? ` · seen by ${alert.acknowledged_by_email}` : ''}

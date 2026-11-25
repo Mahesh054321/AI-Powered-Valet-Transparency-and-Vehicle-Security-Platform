@@ -20,19 +20,34 @@ import {
   angleLabel,
 } from '../../utils/constants'
 
-/** Confidence as a percentage plus a tone. Never rendered as a probability. */
-function ConfidenceMeter({ value }) {
-  const percent = Math.round((value ?? 0) * 100)
+/** These are *uncalibrated ranking scores*, not measured accuracy. */
+function ConfidenceMeter({ value, label }) {
+  const numeric = value === null || value === undefined ? null : Number(value)
+  if (numeric === null || !Number.isFinite(numeric)) {
+    return <span className="finding__not-scored">Not available</span>
+  }
+  const percent = Math.round(Math.max(0, Math.min(1, numeric)) * 100)
   const tone = percent >= 70 ? 'meter--high' : percent >= 40 ? 'meter--mid' : 'meter--low'
 
   return (
-    <div className="meter" title={`Ranking signal: ${percent}%`}>
-      <div className="meter__track">
+    <div className="meter" role="img" aria-label={`${label}: ${percent}% heuristic score`} title={`${label}: ${percent}% heuristic score (not proven accuracy)`}>
+      <div className="meter__track" aria-hidden="true">
         <div className={`meter__fill ${tone}`} style={{ width: `${percent}%` }} />
       </div>
       <span className="meter__value">{percent}%</span>
     </div>
   )
+}
+
+/** Prefer the actual detector's reason for its label, not a generic invented cause. */
+function findingSummary(reasoning) {
+  if (!reasoning) return null
+  const text = String(reasoning).trim()
+  const labelReason = text.match(/Labelled [\s\S]*? because ([\s\S]*?)(?:\. (?:This label|Bipolar|Mapped)|$)/)
+  const reason = labelReason ? labelReason[1].trim() : text
+  if (reason.length <= 260) return reason
+  const cut = reason.slice(0, 257)
+  return `${cut.slice(0, cut.lastIndexOf(' ') > 100 ? cut.lastIndexOf(' ') : 257)}…`
 }
 
 export function DamageCard({ detection, canVerify, onVerify, busy }) {
@@ -43,6 +58,12 @@ export function DamageCard({ detection, canVerify, onVerify, busy }) {
   const label = detection.presentation_label ?? 'Potential Damage'
   const status = detection.verification_status ?? VERIFICATION_STATUS.UNVERIFIED
   const isPotential = status === VERIFICATION_STATUS.UNVERIFIED
+  const defectLabel = DAMAGE_TYPE_LABELS[detection.damage_type] ?? detection.damage_type ?? 'Damage'
+  const summary = findingSummary(detection.detection_reasoning)
+  const labelConfidenceTitle = `${defectLabel} label score`
+  const rawAreaFraction = detection.algorithm_params?.region_statistics?.area_fraction ?? detection.statistics?.area_fraction
+  const imageAreaPercent = rawAreaFraction == null ? null : Number(rawAreaFraction) * 100
+  const areaIsValid = Number.isFinite(imageAreaPercent) && imageAreaPercent >= 0 && imageAreaPercent <= 100
 
   async function submit(nextStatus) {
     setError(null)
@@ -79,19 +100,33 @@ export function DamageCard({ detection, canVerify, onVerify, busy }) {
         </div>
       </header>
 
+      <p className="finding__description">
+        <strong>Why this {defectLabel.toLowerCase()} was flagged:</strong>{' '}
+        {summary ?? 'No detailed explanation was supplied by the detector.'}
+      </p>
+
       <div className="finding__metrics">
         <div>
-          <span className="finding__metric-label">Region confidence</span>
-          <ConfidenceMeter value={detection.confidence} />
+          <span className="finding__metric-label">Detected change score</span>
+          <ConfidenceMeter value={detection.confidence} label="Detected change score" />
         </div>
         <div>
-          <span className="finding__metric-label">Label confidence</span>
-          <ConfidenceMeter value={detection.type_confidence} />
-          <small className="muted">
-            Naming the defect is a weaker claim than detecting the change.
-          </small>
+          <span className="finding__metric-label">{labelConfidenceTitle}</span>
+          <ConfidenceMeter value={detection.type_confidence} label={labelConfidenceTitle} />
+          <small className="muted">Naming the defect is a weaker claim than detecting the change.</small>
         </div>
+        {areaIsValid && (
+          <div className="finding__area">
+            <span className="finding__metric-label">Changed region in photo</span>
+            <strong>{imageAreaPercent.toFixed(2)}%</strong>
+            <small className="muted">Share of image pixels, not vehicle damage percentage</small>
+          </div>
+        )}
       </div>
+      <p className="finding__score-note">
+        Percentages are image measurements or heuristic scores, <strong>not verified
+        damage accuracy</strong>. A manager must review the photos.
+      </p>
 
       {isPotential && (
         <p className="finding__caveat">
@@ -119,7 +154,7 @@ export function DamageCard({ detection, canVerify, onVerify, busy }) {
 
       <details className="finding__reasoning" open={expanded} onToggle={(e) => setExpanded(e.target.open)}>
         <summary>Why this was flagged</summary>
-        <p>{detection.detection_reasoning}</p>
+        <p>{detection.detection_reasoning ?? "No technical reasoning was provided."}</p>
         {detection.algorithm_params?.region_statistics && (
           <dl className="finding__stats">
             {Object.entries(detection.algorithm_params.region_statistics).map(([key, value]) => (

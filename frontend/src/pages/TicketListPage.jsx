@@ -81,7 +81,7 @@ export function TicketListPage() {
         </Panel>
       ) : (
         <Panel subtitle={`${query.data?.pagination?.total_items ?? tickets.length} ticket(s)`}>
-          <table className="table">
+          <table className="table ticket-list__table">
             <thead>
               <tr>
                 <th>Ticket</th>
@@ -94,17 +94,17 @@ export function TicketListPage() {
             <tbody>
               {tickets.map((ticket) => (
                 <tr key={ticket.id}>
-                  <td>
+                  <td data-label="Ticket">
                     <Link className="table__link mono" to={`/tickets/${ticket.id}`}>
                       {ticket.ticket_code}
                     </Link>
                   </td>
-                  <td className="ticket__plate">{ticket.vehicle?.plate_number ?? '—'}</td>
-                  <td>{formatDateTime(ticket.issued_at)}</td>
-                  <td>
+                  <td data-label="Vehicle" className="ticket__plate">{ticket.vehicle?.plate_number ?? '—'}</td>
+                  <td data-label="Issued">{formatDateTime(ticket.issued_at)}</td>
+                  <td data-label="Status">
                     <StatusBadge status={ticket.status} labels={TICKET_STATUS_LABELS} />
                   </td>
-                  <td>{ticket.parking_zone?.code ?? '—'}</td>
+                  <td data-label="Zone">{ticket.parking_zone?.code ?? '—'}</td>
                 </tr>
               ))}
             </tbody>

@@ -118,10 +118,19 @@ export function TicketDetailPage() {
   // yet" rather than a failure, so the error is rendered as an empty state with
   // a button - and retries are off, because re-asking a route that has already
   // said "there is nothing" three times is just noise in the network log.
+  const activeCustodySessionId = query.data?.ticket?.custody_session?.id
+  const activeCustodyStatus = query.data?.ticket?.custody_session?.status
+  const activeTicketStatus = query.data?.ticket?.status
+  const isTicketClosed = activeCustodyStatus === 'CHECKED_OUT' ||
+    activeTicketStatus === 'COMPLETED' ||
+    activeTicketStatus === 'CANCELLED' ||
+    Boolean(query.data?.ticket?.custody_session?.picked_up_at)
+  const showRetrievalEstimate = Boolean(activeCustodySessionId) && !isTicketClosed
+
   const estimateQuery = useQuery({
-    queryKey: ['retrieval-estimate', id],
-    queryFn: () => fetchRetrievalPrediction(query.data?.ticket?.custody_session?.id),
-    enabled: Boolean(query.data?.ticket?.custody_session?.id),
+    queryKey: ['retrieval-estimate', activeCustodySessionId],
+    queryFn: () => fetchRetrievalPrediction(activeCustodySessionId),
+    enabled: showRetrievalEstimate,
     retry: false,
   })
 
@@ -137,7 +146,7 @@ export function TicketDetailPage() {
           ? `About ${data.estimated_minutes} minutes. Indicative only — baseline model on synthetic data.`
           : 'Shown on the retrieval card below.',
       )
-      queryClient.invalidateQueries({ queryKey: ['retrieval-estimate', id] })
+      queryClient.invalidateQueries({ queryKey: ['retrieval-estimate', query.data.ticket.custody_session.id] })
     },
     onError: (error) =>
       toast.error('Could not generate an estimate', normaliseError(error).message),
@@ -196,15 +205,27 @@ export function TicketDetailPage() {
 
       {session && (
         <Panel
-          title="Retrieval estimate"
-          subtitle="How long until the vehicle reaches the handover point"
+          title={showRetrievalEstimate ? 'Retrieval estimate' : 'Pickup summary'}
+          subtitle={showRetrievalEstimate
+            ? 'How long until the vehicle reaches the handover point'
+            : 'Final handover status — historical retrieval estimates are no longer active'}
         >
-          <RetrievalEstimateCard
-            estimate={estimateQuery.data ?? null}
-            loading={estimateQuery.isFetching && !estimateQuery.data}
-            onRequest={() => estimate.mutate()}
-            busy={estimate.isPending}
-          />
+          {showRetrievalEstimate ? (
+            <RetrievalEstimateCard
+              estimate={estimateQuery.data ?? null}
+              loading={estimateQuery.isFetching && !estimateQuery.data}
+              onRequest={() => estimate.mutate()}
+              busy={estimate.isPending}
+            />
+          ) : (
+            <div className="retrieval-card retrieval-card--closed" role="status">
+              <strong>{activeTicketStatus === 'CANCELLED' ? 'Ticket cancelled' : 'Pickup completed'}</strong>
+              <p>
+                This ticket is closed. A live retrieval estimate no longer applies.
+                {session?.picked_up_at && ` Vehicle handed back on ${formatDateTime(session.picked_up_at)}.`}
+              </p>
+            </div>
+          )}
         </Panel>
       )}
 

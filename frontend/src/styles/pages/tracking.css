@@ -70,6 +70,10 @@
   overflow: hidden;
   background: var(--surface-sunken);
   box-shadow: var(--shadow-sm);
+  isolation: isolate;
+  z-index: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 /* Leaflet sizes its container from CSS, so the height above is load-bearing.
@@ -102,6 +106,7 @@
   min-height: 240px;
   font: inherit;
 }
+
 
 .tracking-marker {
   background: transparent;
@@ -231,11 +236,20 @@
   flex: none;
 }
 
+.alert-card__description,
 .alert-card__reason {
   margin: 0;
   font-size: var(--text-base);
   color: var(--text-secondary);
   line-height: var(--leading-relaxed);
+  overflow-wrap: anywhere;
+}
+
+.alert-card__description {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
 }
 
 .alert-card__meta {
@@ -547,7 +561,21 @@
   }
 
   .tracking-map {
-    height: 320px;
+    height: 360px;
+  }
+
+  .tracking-map__toolbar {
+    align-items: stretch;
+    padding: var(--space-3);
+  }
+
+  .tracking-map__indicators,
+  .tracking-map__actions {
+    width: 100%;
+  }
+
+  .tracking-map__actions {
+    justify-content: flex-start;
   }
 
   .alert-evidence__row {
@@ -561,6 +589,10 @@
 }
 
 @media (max-width: 639px) {
+  .tracking-map {
+    height: 340px;
+  }
+
   .tracking-map__toolbar {
     align-items: stretch;
   }
@@ -571,7 +603,13 @@
   }
 
   .tracking-map__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-content: flex-start;
+  }
+
+  .tracking-map__actions .btn {
+    width: 100%;
   }
 
   .alert-evidence__row {
@@ -586,6 +624,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  min-width: 0;
+  position: relative;
+  isolation: isolate;
+  z-index: 0;
 }
 
 .tracking-map__toolbar {
@@ -801,4 +843,29 @@
 .tracking-legend__swatch--phone {
   background: #2563eb;
   border-radius: 50%;
+}
+
+/* Readable incident descriptions and actions, with no raw unbroken overflow. */
+.alert-card__guidance,
+.valet-alerts__guidance {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--info);
+  background: var(--info-subtle);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  overflow-wrap: anywhere;
+}
+.valet-alerts__description,
+.valet-alerts__reason { overflow-wrap: anywhere; }
+.tracking-layout__main .panel,
+.tracking-layout__side .panel { min-width: 0; }
+@media (max-width: 639px) {
+  .tracking-map__toolbar { padding: var(--space-2); }
+  .tracking-map__actions { grid-template-columns: repeat(auto-fit,minmax(125px,1fr)); }
+  .tracking-legend { gap: var(--space-2) var(--space-3); }
+  .alert-card { padding: var(--space-3); }
+  .alert-card__badges { flex: 1 1 auto; }
 }

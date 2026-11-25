@@ -79,6 +79,27 @@
   gap: var(--space-4);
 }
 
+/* Browser defaults put stray bullets outside the mobile drawer. */
+.nav ul, .nav li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav__close {
+  display: none;
+  margin-left: auto;
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: var(--radius-md);
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  flex: none;
+}
+
 /* Grouping the menu by what the user is trying to do, rather than listing
    every route alphabetically, is what makes a nav with a dozen entries
    scannable. */
@@ -340,17 +361,23 @@
     transform: translateX(-100%);
     transition: transform var(--duration-base) var(--ease-out);
     box-shadow: var(--shadow-xl);
+    z-index: var(--z-overlay);
   }
 
   .shell__sidebar.is-open {
     transform: translateX(0);
   }
+  .nav__close {
+    display: grid;
+    place-items: center;
+  }
+
 
   .shell__backdrop {
     display: block;
     position: fixed;
     inset: 0;
-    z-index: calc(var(--z-sticky) - 1);
+    z-index: calc(var(--z-overlay) - 1);
     background: var(--surface-overlay);
     border: none;
     padding: 0;
@@ -379,6 +406,29 @@
 @media (max-width: 639px) {
   .topbar {
     padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .topbar__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: var(--text-sm);
+  }
+
+  /* My Account remains available from the drawer; save header space on phones. */
+  .topbar__identity-link {
+    display: none !important;
+  }
+
+  .topbar__user {
+    flex: 0 0 auto;
+    gap: var(--space-1);
+  }
+
+  .topbar__user > .btn {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    white-space: nowrap;
   }
 
   .page__header {

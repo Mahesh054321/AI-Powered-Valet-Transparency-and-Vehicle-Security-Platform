@@ -24,6 +24,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertBanner, Badge, ConfirmDialog, ErrorNotice, Panel, Spinner } from '../components/ui'
 import { useToast } from '../context/ToastContext'
 import { normaliseError } from '../services/apiClient'
+import { alertGuidance } from '../utils/alertGuidance'
 import {
   ALERT_SEVERITIES,
   ALERT_STATUSES,
@@ -502,7 +503,12 @@ export function AlertsPage() {
                     </Badge>
                   </span>
                   <span role="cell" data-label="Message" className="alert-table__message">
-                    {alert.message}
+                    <strong className="alert-table__primary-message">{alert.message}</strong>
+                    {alertGuidance(alert.type) && (
+                      <span className="alert-table__guidance">
+                        <strong>Next step:</strong> {alertGuidance(alert.type)}
+                      </span>
+                    )}
                     {alert.source?.type && (
                       <span className="mgr-table__muted">
                         Source: {alert.source.type.replace(/_/g, ' ').toLowerCase()}

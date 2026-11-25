@@ -402,6 +402,17 @@
   color: var(--text-secondary);
 }
 
+.finding__description {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
 /* The crops the detector compared. Shown rather than described, so a reviewer
    can disagree with the model on the evidence it actually used. */
 .finding__images {
@@ -940,3 +951,48 @@
   cursor: pointer;
 }
 
+
+/* Mentor-friendly condition evidence: score, coverage and clear explanation. */
+.report-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  scroll-margin-top: 5rem;
+}
+.report-summary__item {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+}
+.report-summary__item span { color: var(--text-secondary); font-size: var(--text-sm); }
+.report-summary__item strong { font-size: var(--text-xl); font-variant-numeric: tabular-nums; }
+.report-summary__note {
+  grid-column: 1/-1;
+  padding: var(--space-3);
+  background: var(--surface-muted);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+.report-findings-anchor { scroll-margin-top: 6rem; min-width: 0; }
+.finding__not-scored { font-size: var(--text-sm); color: var(--text-secondary); }
+.finding__area { display: grid; gap: var(--space-1); }
+.finding__area strong { font-size: var(--text-lg); font-variant-numeric: tabular-nums; }
+.finding__area small { display: block; }
+.finding__score-note {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+.finding__description { overflow-wrap: anywhere; }
+.finding__reasoning p { overflow-wrap: anywhere; }
+@media (max-width: 639px) {
+  .report-summary { grid-template-columns: 1fr; gap: var(--space-2); }
+  .report-summary__item { padding: var(--space-3); }
+  .finding__header { align-items: flex-start; }
+  .finding__badges { margin-left: 0; }
+  .finding__verify-actions .btn { flex: 1 1 140px; }
+}

@@ -239,3 +239,39 @@
     white-space: nowrap;
   }
 }
+
+/* Responsive ticket history: keep every field visible without side scrolling. */
+@media (max-width: 639px) {
+  .ticket-list__table,
+  .ticket-list__table tbody,
+  .ticket-list__table tr,
+  .ticket-list__table td { display: block; width: 100%; }
+  .ticket-list__table thead { display: none; }
+  .ticket-list__table tbody { display: grid; gap: var(--space-3); }
+  .ticket-list__table tr {
+    padding: var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+  }
+  .ticket-list__table td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
+    border: none;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .ticket-list__table td + td { border-top: 1px solid var(--border-subtle); }
+  .ticket-list__table td::before {
+    content: attr(data-label);
+    color: var(--text-tertiary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    text-align: left;
+    flex: 0 0 5.5rem;
+  }
+  .ticket-list__table .table__link { overflow-wrap: anywhere; }
+}

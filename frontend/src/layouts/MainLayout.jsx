@@ -89,6 +89,14 @@ export function MainLayout() {
             <span className="brand__text">
               <strong>Valet</strong> Transparency
             </span>
+            <button
+              type="button"
+              className="nav__close"
+              aria-label="Close menu"
+              onClick={closeMenu}
+            >
+              ×
+            </button>
           </div>
 
           <nav className="nav" aria-label="Primary">
