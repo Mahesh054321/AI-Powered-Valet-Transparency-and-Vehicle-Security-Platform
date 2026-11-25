@@ -31,6 +31,7 @@ import { uploadDropOffPhoto } from '../services/uploadService'
 import { normaliseError } from '../services/apiClient'
 import { DataRow, ErrorNotice, Field, Panel, Spinner } from '../components/ui'
 import { VehicleForm } from '../components/vehicles/VehicleForm'
+import { CameraCapture } from '../components/camera/CameraCapture'
 import { CHECK_IN_PHOTO_ANGLES } from '../utils/constants'
 import { useAuth } from '../hooks/useAuth'
 
@@ -133,8 +134,7 @@ export function CheckInPage() {
         ? 5
         : 9
 
-  async function handlePhoto(angle, event) {
-    const file = event.target.files?.[0]
+  async function handlePhoto(angle, file) {
     if (!file) return
 
     setUploading(angle)
@@ -404,9 +404,18 @@ export function CheckInPage() {
                           type="file"
                           accept="image/png,image/jpeg,image/webp"
                           hidden
-                          onChange={(event) => handlePhoto(angle.key, event)}
+                          onChange={(event) => {
+                            handlePhoto(angle.key, event.target.files?.[0])
+                            event.target.value = ''
+                          }}
                         />
                       </label>
+                      <CameraCapture
+                        label="Capture with Camera"
+                        filenamePrefix={`checkin-${angle.key.toLowerCase()}`}
+                        disabled={Boolean(uploading)}
+                        onCapture={(file) => handlePhoto(angle.key, file)}
+                      />
                     </div>
                   )
                 })}

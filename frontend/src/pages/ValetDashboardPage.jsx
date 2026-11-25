@@ -44,6 +44,7 @@ import {
 } from '../services/staffDashboardService'
 import { capturePickup } from '../services/inspectionService'
 import { normaliseError } from '../services/apiClient'
+import { CameraCapture } from '../components/camera/CameraCapture'
 
 /** How often the screen re-reads. Short enough to feel prompt, long enough
  *  that a row does not reorder while an operator is reading it. */
@@ -549,20 +550,31 @@ function PickupUpload({ rows, files, onFiles, onSubmit }) {
           <strong>{row.vehicle?.plate_number ?? '—'}</strong>
           <div className="pickup-upload__angles">
             {PICKUP_ANGLES.map((angle) => (
-              <label key={angle} className="pickup-upload__angle">
-                <span>{angle}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0]
-                    onFiles({
-                      ...files,
-                      [`${row.custody_session_id}:${angle}`]: file,
-                    })
-                  }}
+              <div key={angle} className="pickup-upload__angle">
+                <label>
+                  <span>{angle} (upload)</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      if (file) onFiles({
+                        ...files,
+                        [`${row.custody_session_id}:${angle}`]: file,
+                      })
+                      event.target.value = ''
+                    }}
+                  />
+                </label>
+                <CameraCapture
+                  label="Capture with Camera"
+                  filenamePrefix={`pickup-${angle.toLowerCase()}`}
+                  onCapture={(file) => onFiles({
+                    ...files,
+                    [`${row.custody_session_id}:${angle}`]: file,
+                  })}
                 />
-              </label>
+              </div>
             ))}
           </div>
           <button

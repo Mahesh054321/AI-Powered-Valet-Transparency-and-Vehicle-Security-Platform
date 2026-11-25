@@ -15,10 +15,11 @@
  */
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Badge, ErrorNotice, Field, Panel, Spinner } from '../components/ui'
 import { DamageCard } from '../components/inspections/DamageCard'
+import { CameraCapture } from '../components/camera/CameraCapture'
 import {
   captureDropOff,
   capturePickup,
@@ -33,6 +34,7 @@ const MAX_PHOTOS = 12
 /** A photo the operator has queued, paired with the angle it was taken from. */
 function QueuedPhoto({ photo, onAngle, onRemove }) {
   const preview = useMemo(() => URL.createObjectURL(photo.file), [photo.file])
+  useEffect(() => () => URL.revokeObjectURL(preview), [preview])
 
   return (
     <li className="queued-photo">
@@ -186,6 +188,15 @@ export function InspectionCapturePage() {
                 onChange={(event) => addFiles(event.target.files)}
               />
             </Field>
+            <div className="camera-capture__actions">
+              <CameraCapture
+                label="Capture with Camera"
+                filenamePrefix={stage === 'dropoff' ? 'dropoff' : 'pickup'}
+                disabled={busy || photos.length >= MAX_PHOTOS}
+                onCapture={(file) => addFiles([file])}
+              />
+              <span className="muted">{photos.length}/{MAX_PHOTOS} photos selected</span>
+            </div>
 
             {photos.length > 0 && (
               <ul className="queued-photos">
