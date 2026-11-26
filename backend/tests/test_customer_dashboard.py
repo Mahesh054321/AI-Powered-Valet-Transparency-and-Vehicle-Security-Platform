@@ -276,6 +276,28 @@ class TestRequestVehicleWorkflow:
         assert session.status == CustodyStatus.RETRIEVAL_REQUESTED.value
         assert session.retrieval_requested_at is not None
 
+    def test_request_creates_one_staff_alert_and_no_customer_leak(self, pg_client, pg_app):
+        from models.alert import Alert
+        from models.notification import Notification
+        from sqlalchemy import select
+
+        context = _checked_in(pg_client)
+        response = pg_client.post(REQUEST, json={"custody_session_id": context["custody_id"]},
+                                  headers=bearer(context["customer"]))
+        assert response.status_code == 201, response.get_json()
+        assert response.get_json()["data"]["valet_notification"]["alert_created"] is True
+        alerts = db.session.execute(select(Alert).where(
+            Alert.custody_session_id == uuid.UUID(context["custody_id"]),
+            Alert.type == "RETRIEVAL_REQUESTED",
+        )).scalars().all()
+        assert len(alerts) == 1
+        assert "CUSTOMER" not in alerts[0].audiences
+        notifications = db.session.execute(select(Notification).where(
+            Notification.alert_id == alerts[0].id,
+            Notification.user_id == context["operator"].id,
+        )).scalars().all()
+        assert notifications, "Valet operator needs an actual in-app notification row"
+
     def test_it_audits_the_customers_act_of_asking(self, pg_client, pg_app):
         """Distinct from the status-change entry: this is who asked, and when."""
         context = _checked_in(pg_client)

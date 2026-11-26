@@ -39,6 +39,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
+from flask import current_app
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -368,6 +369,36 @@ def ticket_dict(
     return payload
 
 
+
+
+def upgrade_ticket_qr(actor: AuthContext, ticket_id: str) -> ValetTicket:
+    """Replace a legacy text QR with an authenticated deep link.
+
+    Only the vehicle owner and staff can upgrade it. The change is audited with
+    the previous and new hashes; the old printed QR must be replaced manually.
+    """
+    ticket = get_ticket(actor, ticket_id)
+    base_url = current_app.config["TICKET_QR_BASE_URL"]
+    desired = qr_codes.build_qr_payload(ticket.ticket_code, ticket_id=str(ticket.id), base_url=base_url)
+    if ticket.qr_payload == desired:
+        return ticket
+    old_digest = (ticket.metadata_ or {}).get("qr_sha256")
+    old_path = ticket.qr_code_path
+    new_qr = qr_codes.issue_ticket_qr(ticket.ticket_code, ticket_id=str(ticket.id), base_url=base_url)
+    ticket.qr_payload = new_qr["qr_payload"]
+    ticket.qr_code_path = new_qr["qr_code_path"]
+    ticket.metadata_ = {**(ticket.metadata_ or {}), "qr_sha256": new_qr["qr_image"]["sha256"]}
+    record_event(
+        action=AuditAction.UPDATE,
+        entity_type="valet_tickets", entity_id=ticket.id,
+        actor=actor,
+        description="Replaced ticket's legacy text QR with authenticated ticket URL",
+        old_values={"qr_sha256": old_digest, "qr_code_path": old_path},
+        new_values={"qr_sha256": new_qr["qr_image"]["sha256"], "qr_code_path": ticket.qr_code_path},
+    )
+    db.session.commit()
+    return ticket
+
 # ---------------------------------------------------------------------------
 # Issuing
 # ---------------------------------------------------------------------------
@@ -433,9 +464,15 @@ def issue_ticket(
     )
 
     ticket_code = _unique_ticket_code()
-    qr = qr_codes.issue_ticket_qr(ticket_code)
+    ticket_id = uuid.uuid4()
+    qr = qr_codes.issue_ticket_qr(
+        ticket_code,
+        ticket_id=str(ticket_id),
+        base_url=current_app.config["TICKET_QR_BASE_URL"],
+    )
 
     ticket = ValetTicket(
+        id=ticket_id,
         ticket_code=ticket_code,
         customer_id=vehicle.owner_id,
         vehicle_id=vehicle.id,

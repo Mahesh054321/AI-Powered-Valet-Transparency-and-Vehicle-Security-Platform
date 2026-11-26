@@ -10,10 +10,10 @@ is issued, for three reasons:
   pickup is the one issued at drop-off;
 * no new browser dependency is needed to display it.
 
-The QR payload is deliberately a short, human-inspectable string rather than a
-URL: it must stay readable by a scanner that is not connected to this platform,
-and it must not embed a secret -- possession of the ticket code is not
-authentication. Authorisation still happens through the API's own bearer token.
+A QR carrying a link opens the authenticated ticket detail screen; it never
+contains personal vehicle or customer data. Ticket possession is not proof of
+ownership; the API still checks JWT ownership/role. Legacy human-readable QR
+codes remain valid as identification but cannot open a browser automatically.
 """
 
 from __future__ import annotations
@@ -36,8 +36,24 @@ BOX_SIZE = 10
 BORDER_MODULES = 4
 
 
-def build_qr_payload(ticket_code: str) -> str:
-    """The string encoded into the ticket's QR code."""
+def build_qr_payload(ticket_code: str, *, ticket_id: str | None = None,
+                     base_url: str | None = None) -> str:
+    """Use a private-by-auth ticket URL for modern QR codes.
+
+    Never embed a plate number, phone, damage report or bearer token. The QR
+    identifies a ticket and the *authenticated* API authorises the viewer.
+    """
+    if ticket_id and base_url:
+        from urllib.parse import urlsplit
+        url = base_url.strip().rstrip("/")
+        parsed = urlsplit(url)
+        if parsed.scheme not in ("http", "https") or not parsed.netloc or parsed.username:
+            raise ValueError("TICKET_QR_BASE_URL must be an http(s) origin")
+        if parsed.scheme != "https" and parsed.hostname not in ("localhost", "127.0.0.1"):
+            raise ValueError("Public ticket QR links must use HTTPS")
+        import uuid
+        ticket_uuid = uuid.UUID(str(ticket_id))
+        return f"{url}/tickets/{ticket_uuid}"
     return f"{QR_PREFIX}:{ticket_code}"
 
 
@@ -56,12 +72,12 @@ def render_png(payload: str) -> bytes:
     return buffer.getvalue()
 
 
-def issue_ticket_qr(ticket_code: str) -> dict[str, Any]:
+def issue_ticket_qr(ticket_code: str, *, ticket_id: str | None = None, base_url: str | None = None) -> dict[str, Any]:
     """Render, store and describe the QR image for a newly issued ticket.
 
     Returns the fields the ticket row needs plus the URL the SPA displays.
     """
-    payload = build_qr_payload(ticket_code)
+    payload = build_qr_payload(ticket_code, ticket_id=ticket_id, base_url=base_url)
     blob = render_png(payload)
 
     reference = store_bytes(

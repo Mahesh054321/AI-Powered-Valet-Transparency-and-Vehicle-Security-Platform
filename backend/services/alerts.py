@@ -314,6 +314,22 @@ def raise_potential_damage(detection, *, actor: AuthContext | None = None):
     )
 
 
+def raise_retrieval_requested(session, *, actor: AuthContext | None = None):
+    """One actionable in-app pickup notification for staff per custody session."""
+    plate = session.vehicle.plate_number if session.vehicle else "Vehicle"
+    zone = session.zone.code if session.zone else "unassigned zone"
+    return create_alert(
+        category=AlertCategory.RETRIEVAL_REQUESTED,
+        message=f"Pickup requested for {plate}. Collect the vehicle from {zone} and bring it to handover.",
+        severity=AlertSeverity.MEDIUM.value,
+        custody_session_id=session.id,
+        vehicle_id=session.vehicle_id,
+        audiences=[AlertAudience.VALET_OPERATOR.value, AlertAudience.VALET_MANAGER.value, AlertAudience.ADMIN.value],
+        source_entity_type="custody_sessions", source_id=session.id,
+        source_type="RETRIEVAL_REQUESTED", actor=actor,
+    )
+
+
 def raise_retrieval_ready(session, *, actor: AuthContext | None = None):
     """Tell the customer their car is staged for handover."""
     plate = session.vehicle.plate_number if session.vehicle else "Your vehicle"
@@ -811,6 +827,7 @@ __all__ = [
     "raise_from_security_alert",
     "raise_potential_damage",
     "raise_retrieval_ready",
+    "raise_retrieval_requested",
     "reopen_alert",
     "resolve_alert",
     "unread_count",

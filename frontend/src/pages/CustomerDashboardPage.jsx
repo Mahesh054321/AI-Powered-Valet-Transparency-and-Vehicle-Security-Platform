@@ -63,9 +63,7 @@ export function CustomerDashboardPage() {
       // without this the only signal is a status badge moving further down.
       toast.success(
         'Pickup requested',
-        data?.estimated_minutes != null
-          ? `A valet has been notified. Estimated retrieval in about ${data.estimated_minutes} minutes.`
-          : 'A valet has been notified. You will see the status change here.',
+        `${data?.valet_notification?.alert_created ? 'Staff notification recorded.' : 'Added to the valet retrieval queue.'} ${data?.estimated_minutes != null ? `Estimated retrieval: ${data.estimated_minutes} minutes.` : 'Estimate not available yet.'}`,
       )
       // Refetch so the cards reflect the new custody status and the stored
       // estimate, rather than only the estimate in the mutation response.
@@ -131,7 +129,7 @@ export function CustomerDashboardPage() {
             <p>
               No estimate could be produced
               {request.data.estimate_error ? `: ${request.data.estimate_error}` : ''}. Your
-              request is recorded and a valet has been notified.
+              request is recorded in the valet retrieval queue.
             </p>
           )}
         </AlertBanner>

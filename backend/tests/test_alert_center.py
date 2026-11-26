@@ -117,13 +117,14 @@ def _list(pg_client, actor, **params):
 
 
 class TestVocabulary:
-    def test_the_five_categories_are_exactly_as_specified(self):
+    def test_all_supported_alert_categories_are_explicitly_enumerated(self):
         assert {member.value for member in AlertCategory} == {
             "GEOFENCE_BREACH",
             "SUSPICIOUS_MOVEMENT",
             "OVERSPEED",
             "POTENTIAL_DAMAGE",
             "RETRIEVAL_READY",
+            "RETRIEVAL_REQUESTED",
         }
 
     def test_every_geofence_type_maps_to_a_category(self):

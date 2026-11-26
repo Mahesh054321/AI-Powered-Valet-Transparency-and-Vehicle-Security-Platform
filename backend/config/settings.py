@@ -115,6 +115,9 @@ class Settings:
         self.PASSWORD_HASH_SCHEME = env_str("PASSWORD_HASH_SCHEME", "pbkdf2:sha256")
         self.PASSWORD_HASH_ITERATIONS = env_int("PASSWORD_HASH_ITERATIONS", 600_000)
 
+        # Ticket QR links point to the SPA, never to a public data endpoint.
+        self.TICKET_QR_BASE_URL = env_str("TICKET_QR_BASE_URL", "http://localhost:5173")
+
         # --- CORS -------------------------------------------------------------
         self.CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", DEFAULT_CORS_ORIGINS)
 

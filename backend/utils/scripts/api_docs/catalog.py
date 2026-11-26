@@ -609,11 +609,11 @@ TICKET_SCHEMA = {
             "nullable": True,
             "properties": {"id": UUID, "code": STRING, "name": STRING},
         },
-        "qr_payload": {"type": "string", "example": "VALET:VT-202609-7UYMVJ"},
+        "qr_payload": {"type": "string", "example": "https://valet-web-demo-054321.onrender.com/tickets/6f92fef4-6a64-48c5-88e5-3f3c610ffdbb"},
         "qr_url": {
             "type": "string",
             "example": "/media/qr/bccfb577e36d488f8d8bf6977abb32a4.png",
-            "description": "Server-rendered PNG. The QR encodes `qr_payload`, not a URL, so a forged code cannot point elsewhere.",
+            "description": "Server-rendered PNG. New QR payloads link to the authenticated ticket details page; access still requires ownership/staff authorization.",
         },
         "qr_code_path": STRING,
         "special_instructions": {"type": "string", "nullable": True},
@@ -716,6 +716,22 @@ add(
              "description": "The ticket's UUID (not the human-readable `ticket_code`)."}],
     example_from=("api_shapes.json", "GET /tickets/<id>"),
     errors=[("401", "Unauthenticated."), ("404", "No such ticket, or it is not yours.")],
+)
+
+add(
+    group="Valet Tickets",
+    method="post",
+    path="/api/v1/tickets/{ticket_id}/qr/upgrade",
+    operationId="upgradeTicketQr",
+    summary="Upgrade a legacy ticket QR to an authenticated URL",
+    description=("Only ticket owner or staff may regenerate a legacy QR as an HTTPS "
+                 "link to /tickets/{ticket_id}. A QR does not authorize access. "
+                 "The rotation is audited; any printed old code must be replaced."),
+    auth="bearer",
+    roles="auth",
+    params=[{"name": "ticket_id", "in": "path", "required": True, "schema": UUID,
+             "description": "Ticket UUID."}],
+    errors=[("401", "Sign-in required."), ("404", "Ticket not found or not yours.")],
 )
 
 add(
@@ -1971,8 +1987,8 @@ FEED_ALERT_SCHEMA = {
         "alert_id": UUID,
         "type": {
             "type": "string",
-            "enum": ["GEOFENCE_BREACH", "SUSPICIOUS_MOVEMENT", "OVERSPEED", "POTENTIAL_DAMAGE", "RETRIEVAL_READY"],
-            "description": "The five categories the alert centre exposes. The originating detector's own type is preserved in `source.type`.",
+            "enum": ["GEOFENCE_BREACH", "SUSPICIOUS_MOVEMENT", "OVERSPEED", "POTENTIAL_DAMAGE", "RETRIEVAL_READY", "RETRIEVAL_REQUESTED"],
+            "description": "The alert categories the alert centre exposes. The originating detector's own type is preserved in `source.type`.",
         },
         "message": STRING,
         "severity": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
@@ -2034,7 +2050,7 @@ add(
             "required": False,
             "schema": {
                 "type": "string",
-                "enum": ["GEOFENCE_BREACH", "SUSPICIOUS_MOVEMENT", "OVERSPEED", "POTENTIAL_DAMAGE", "RETRIEVAL_READY"],
+                "enum": ["GEOFENCE_BREACH", "SUSPICIOUS_MOVEMENT", "OVERSPEED", "POTENTIAL_DAMAGE", "RETRIEVAL_READY", "RETRIEVAL_REQUESTED"],
             },
         },
         {
@@ -2102,7 +2118,7 @@ add(
             "properties": {
                 "type": {
                     "type": "string",
-                    "enum": ["GEOFENCE_BREACH", "SUSPICIOUS_MOVEMENT", "OVERSPEED", "POTENTIAL_DAMAGE", "RETRIEVAL_READY"],
+                    "enum": ["GEOFENCE_BREACH", "SUSPICIOUS_MOVEMENT", "OVERSPEED", "POTENTIAL_DAMAGE", "RETRIEVAL_READY", "RETRIEVAL_REQUESTED"],
                 },
                 "message": {"type": "string"},
                 "severity": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"], "default": "MEDIUM"},

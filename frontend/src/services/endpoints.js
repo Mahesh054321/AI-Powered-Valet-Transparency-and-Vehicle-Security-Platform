@@ -21,9 +21,6 @@ export const ENDPOINTS = {
   authRefresh: '/v1/auth/refresh',
   authMe: '/v1/auth/me',
   authUsers: '/v1/auth/users',
-  authUser: (id) => `/v1/auth/users/${id}`,
-  authUserPassword: (id) => `/v1/auth/users/${id}/password`,
-  authUserReactivate: (id) => `/v1/auth/users/${id}/reactivate`,
 
   // --- vehicles (implemented, Phase 3) ---
   vehicles: '/v1/vehicles',
@@ -33,6 +30,7 @@ export const ENDPOINTS = {
   // --- tickets & custody (implemented, Phase 4) ---
   tickets: '/v1/tickets',
   ticket: (id) => `/v1/tickets/${id}`,
+  ticketQrUpgrade: (id) => `/v1/tickets/${id}/qr/upgrade`,
   // There is no `/tickets/:id/qr` endpoint on purpose. The QR image is rendered
   // once at issue time and the ticket payload carries `qr_url`, which points at
   // /media. One copy of the bytes, one SHA-256 to audit against.

@@ -1218,7 +1218,7 @@ Scoped server-side: a customer sees their own tickets, staff see the tickets the
 | Name | Type | Default | Description |
 |---|---|---|---|
 | `status` | `CREATED`, `IN_CUSTODY`, `READY_FOR_PICKUP`, `COMPLETED`, `CANCELLED` | `—` | — |
-| `active_only` | boolean | `false` | Exclude terminal tickets and tickets for archived vehicles. |
+| `active_only` | boolean | `False` | Exclude terminal tickets and tickets for archived vehicles. |
 | `page` | integer | `1` | 1-based page number. |
 | `page_size` | integer | `20` | Rows per page, capped at 200. Max 200. |
 
@@ -1556,6 +1556,52 @@ The digital ticket, including its custody session when one has been opened.
   "success": true
 }
 ```
+
+*Example `401` response*
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication is required to access this resource.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "9cbb50455cdc4fabb7832bd0c04f5fd3",
+    "server_time": 1789225630.95
+  }
+}
+```
+
+---
+
+### `POST /api/v1/tickets/{ticket_id}/qr/upgrade`
+
+**Upgrade a legacy ticket QR to an authenticated URL**
+
+Only ticket owner or staff may regenerate a legacy QR as an HTTPS link to /tickets/{ticket_id}. A QR does not authorize access. The rotation is audited; any printed old code must be replaced.
+
+| | |
+|---|---|
+| **Authentication** | Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`. |
+| **Token** | `Authorization: Bearer <access_token>` |
+
+**Path parameters**
+
+| Name | Type | Description |
+|---|---|---|
+| `ticket_id` | `uuid` | Ticket UUID. |
+
+*No request body.*
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| `200` | Success. |
+| `401` | Sign-in required. |
+| `404` | Ticket not found or not yours. |
 
 *Example `401` response*
 
@@ -2975,8 +3021,8 @@ Allows customers or managers to submit a formal dispute with reasons, notes, and
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `reason` | `string` | **yes** | Up to 400 characters. |
-| `notes` | `string` | no | Up to 400 characters. |
+| `reason` | `string` | **yes** | — |
+| `notes` | `string` | no | — |
 | `disputed_detection_ids` | `array` | no | — |
 
 *Example request*
@@ -2996,7 +3042,6 @@ curl -X POST http://localhost:5000/api/v1/inspections/{custody_id}/dispute \
 | `401` | Unauthenticated. |
 | `403` | Not authorized for this session. |
 | `404` | No such custody session. |
-| `409` | The custody session is already complete. |
 | `422` | Missing reason or invalid custody ID. |
 
 *Example `401` response*
@@ -3015,39 +3060,6 @@ curl -X POST http://localhost:5000/api/v1/inspections/{custody_id}/dispute \
   }
 }
 ```
-
----
-
-### `POST /api/v1/inspections/{custody_id}/resolve-dispute`
-
-**Resolve a condition dispute and complete custody**
-
-Closes an open disputed custody session, completes its ticket, and frees the assigned parking space. The action is attributed to the manager and recorded in the custody audit trail.
-
-| | |
-|---|---|
-| **Authentication** | `VALET_MANAGER` or `ADMIN`. |
-| **Token** | `Authorization: ****** |
-
-**Path parameters**
-
-| Name | Type | Description |
-|---|---|---|
-| `custody_id` | `uuid` | The disputed custody session UUID. |
-
-**Request body** (`application/json`)
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `notes` | `string` | **yes** | Resolution summary, up to 500 characters. |
-
-| Status | Meaning |
-|---|---|
-| `200` | Dispute resolved and custody completed. |
-| `403` | Only a manager or administrator may resolve a dispute. |
-| `404` | No such custody session. |
-| `409` | The custody session is not currently disputed. |
-| `422` | Missing resolution notes or invalid custody ID. |
 
 ---
 
@@ -6648,7 +6660,7 @@ Role scoping is applied server-side to the query, so a customer cannot widen the
 | Name | Type | Default | Description |
 |---|---|---|---|
 | `status` | `OPEN`, `ACKNOWLEDGED`, `RESOLVED`, `DISMISSED` | `—` | — |
-| `type` | `GEOFENCE_BREACH`, `SUSPICIOUS_MOVEMENT`, `OVERSPEED`, `POTENTIAL_DAMAGE`, `RETRIEVAL_READY` | `—` | — |
+| `type` | `GEOFENCE_BREACH`, `SUSPICIOUS_MOVEMENT`, `OVERSPEED`, `POTENTIAL_DAMAGE`, `RETRIEVAL_READY`, `RETRIEVAL_REQUESTED` | `—` | — |
 | `severity` | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` | `—` | — |
 | `vehicle_id` | uuid | `—` | — |
 | `unread_only` | boolean | `—` | — |
@@ -6796,7 +6808,7 @@ Creating the same alert twice is idempotent where the source allows it: the resp
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `type` | `enum` | **yes** | One of: `GEOFENCE_BREACH`, `SUSPICIOUS_MOVEMENT`, `OVERSPEED`, `POTENTIAL_DAMAGE`, `RETRIEVAL_READY` |
+| `type` | `enum` | **yes** | One of: `GEOFENCE_BREACH`, `SUSPICIOUS_MOVEMENT`, `OVERSPEED`, `POTENTIAL_DAMAGE`, `RETRIEVAL_READY`, `RETRIEVAL_REQUESTED` |
 | `message` | `string` | no | — |
 | `severity` | `enum` | no | One of: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
 | `custody_id` | `uuid` | no | Also accepted as `custody_session_id`. |
@@ -8462,8 +8474,6 @@ The same shape as `GET /api/v1/inspections/{custody_id}`, scoped to the staff su
 Metrics, charts and tables for a date range, composed server-side.
 
 `filter_options` is part of the response, so the filter dropdowns are built from what the backend can actually serve rather than from a hard-coded list in the client. `provenance` records what the numbers were computed from.
-
-The `tables.pending_disputes` queue is point-in-time and includes open custody disputes regardless of the selected date range. Managers can open each condition report to resolve the dispute and complete custody; operators cannot complete a disputed session.
 
 | | |
 |---|---|

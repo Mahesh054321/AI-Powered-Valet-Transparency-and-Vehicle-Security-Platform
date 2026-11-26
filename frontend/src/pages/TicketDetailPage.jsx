@@ -14,6 +14,7 @@ import { Link, useParams } from 'react-router-dom'
 import {
   cancelTicket,
   completeTicket,
+  upgradeTicketQr,
   fetchTicket,
   updateCustodyStatus,
 } from '../services/ticketService'
@@ -31,6 +32,9 @@ import { formatDateTime } from '../utils/format'
 import { useHasRole } from '../hooks/useAuth'
 import { useToast } from '../context/ToastContext'
 import { ROLES } from '../utils/constants'
+import { requestVehicle } from '../services/dashboardService'
+import { fetchConditionReport } from '../services/inspectionService'
+import { getTicketPickupState } from '../utils/ticketPickupState'
 
 const VALET_STAFF = [ROLES.VALET_OPERATOR, ROLES.VALET_MANAGER, ROLES.ADMIN]
 
@@ -50,6 +54,7 @@ export function TicketDetailPage() {
   const { id } = useParams()
   const queryClient = useQueryClient()
   const isStaff = useHasRole(VALET_STAFF)
+  const isCustomer = useHasRole([ROLES.CUSTOMER])
 
   const [pickupOdometer, setPickupOdometer] = useState('')
   const [conditionAccepted, setConditionAccepted] = useState(true)
@@ -101,6 +106,28 @@ export function TicketDetailPage() {
       toast.error('Could not complete the pickup', normaliseError(error).message),
   })
 
+  const upgradeQr = useMutation({
+    mutationFn: () => upgradeTicketQr(id),
+    onSuccess: () => {
+      toast.success('QR upgraded', 'Scan the new QR for ticket details. Replace old printed codes.')
+      refresh()
+    },
+    onError: (error) => toast.error('Could not upgrade QR', normaliseError(error).message),
+  })
+
+  const pickup = useMutation({
+    mutationFn: (custodyId) => requestVehicle(custodyId),
+    onSuccess: (result) => {
+      toast.success('Pickup requested', result?.valet_notification?.alert_created
+        ? 'Valet staff have an in-app pickup alert (polled every 15 seconds).'
+        : 'Request is in the valet queue; separate alert could not be confirmed.')
+      refresh()
+      queryClient.invalidateQueries({ queryKey: ['customer-dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['retrieval-estimate'] })
+    },
+    onError: (error) => toast.error('Pickup request failed', normaliseError(error).message),
+  })
+
   const cancel = useMutation({
     mutationFn: () => cancelTicket(id, cancelReason || undefined),
     onSuccess: () => {
@@ -124,8 +151,20 @@ export function TicketDetailPage() {
   const isTicketClosed = activeCustodyStatus === 'CHECKED_OUT' ||
     activeTicketStatus === 'COMPLETED' ||
     activeTicketStatus === 'CANCELLED' ||
+    Boolean(query.data?.ticket?.actual_pickup_at) ||
     Boolean(query.data?.ticket?.custody_session?.picked_up_at)
   const showRetrievalEstimate = Boolean(activeCustodySessionId) && !isTicketClosed
+
+  // The same owner/role protected report used by the condition page, now
+  // previewed right on the QR destination. No comparison is inferred when
+  // either image set is missing. An inaccessible report must not block ticket
+  // visibility or the pickup action.
+  const conditionQuery = useQuery({
+    queryKey: ['condition-report', activeCustodySessionId],
+    queryFn: () => fetchConditionReport(activeCustodySessionId),
+    enabled: Boolean(activeCustodySessionId),
+    retry: false,
+  })
 
   const estimateQuery = useQuery({
     queryKey: ['retrieval-estimate', activeCustodySessionId],
@@ -161,6 +200,15 @@ export function TicketDetailPage() {
   const session = ticket.custody_session
   const open = ticket.status === 'CREATED' || ticket.status === 'IN_CUSTODY' || ticket.status === 'READY_FOR_PICKUP'
   const nextStates = session ? (NEXT_STATES[session.status] ?? []) : []
+  const pickupState = getTicketPickupState(ticket)
+  // Suppress the button immediately after a successful request, even before
+  // the server's updated custody projection has been fetched again.
+  const canRequestPickup = isCustomer && pickupState.canRequest &&
+    !(pickup.isSuccess && pickup.variables === session?.id)
+  const condition = conditionQuery.data
+  const findings = condition?.pickup?.detections ?? []
+  const comparisonReady = Boolean(condition?.comparison_ready)
+  const conditionPreview = findings.slice(0, 3)
 
   return (
     <div className="page">
@@ -178,6 +226,118 @@ export function TicketDetailPage() {
       </header>
 
       <TicketCard ticket={ticket} />
+
+      <Panel title="Vehicle details" subtitle="QR ticket overview · visible only to the authenticated owner or authorised staff">
+        <dl className="data-list">
+          <DataRow label="Registration number" value={ticket.vehicle?.plate_number ?? '—'} mono />
+          <DataRow label="Make / model" value={[ticket.vehicle?.make, ticket.vehicle?.model].filter(Boolean).join(' · ') || '—'} />
+          <DataRow label="Year / colour" value={[ticket.vehicle?.year, ticket.vehicle?.color].filter(Boolean).join(' · ') || '—'} />
+          <DataRow label="Custody status" value={session?.status ? CUSTODY_STATUS_LABELS[session.status] ?? session.status : 'Not checked in'} />
+          <DataRow label="Pickup estimate" value={isTicketClosed ? (activeTicketStatus === 'CANCELLED' ? 'Not applicable — ticket cancelled' : 'Not applicable — custody completed') : estimateQuery.data?.estimated_minutes != null ? `Approx. ${estimateQuery.data.estimated_minutes} minutes · synthetic-data prototype` : 'No current estimate available'} />
+        </dl>
+        {ticket.qr_payload && !/^https?:\/\//i.test(ticket.qr_payload) && (
+          <div className="btn-row" style={{ marginTop: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="muted">This older QR only contains a ticket number.</span>
+            <button type="button" className="btn btn--primary" disabled={upgradeQr.isPending}
+              onClick={() => upgradeQr.mutate()}>{upgradeQr.isPending ? 'Upgrading…' : 'Upgrade QR for phone scanning'}</button>
+          </div>
+        )}
+      </Panel>
+
+      {session && (
+        <Panel title="Damage detection & vehicle condition" subtitle="Before/after photos and verified or pending findings for this custody session">
+          {conditionQuery.isPending && <p className="muted" role="status">Checking captured vehicle condition…</p>}
+          {conditionQuery.isError && (
+            <p className="muted" role="status">Condition details are temporarily unavailable. You can still open the full report.</p>
+          )}
+          {condition && (
+            <div className="qr-condition">
+              <div className="qr-condition__summary" aria-label="Damage assessment summary">
+                <div className="qr-condition__stat">
+                  <span className="qr-condition__stat-value">{comparisonReady ? findings.length : '—'}</span>
+                  <span className="qr-condition__stat-label">Potential findings</span>
+                </div>
+                <div className="qr-condition__stat">
+                  <span className="qr-condition__stat-value">{comparisonReady ? condition.confirmed_count ?? 0 : '—'}</span>
+                  <span className="qr-condition__stat-label">Manager confirmed</span>
+                </div>
+                <div className="qr-condition__stat">
+                  <span className="qr-condition__stat-value">{comparisonReady ? condition.unverified_count ?? 0 : '—'}</span>
+                  <span className="qr-condition__stat-label">Awaiting review</span>
+                </div>
+              </div>
+              {!condition.drop_off && <p className="muted">Drop-off images have not been captured yet.</p>}
+              {condition.drop_off && !condition.pickup && (
+                <p className="muted">Drop-off photos are recorded. Damage comparison will be available after pickup photos are captured.</p>
+              )}
+              {comparisonReady && findings.length === 0 && (
+                <p className="muted">No candidate changes were detected in the available photo comparison. This does not guarantee that the vehicle is undamaged.</p>
+              )}
+              {comparisonReady && findings.length > 0 && (
+                <p className="muted">Potential image changes detected. These are not confirmed damage until reviewed by a manager.</p>
+              )}
+              {(condition.drop_off?.photos?.[0]?.url || condition.pickup?.photos?.[0]?.url) && (
+                <div className="qr-condition__photos">
+                  {condition.drop_off?.photos?.[0]?.url && (
+                    <figure>
+                      <img src={condition.drop_off.photos[0].url} alt="Vehicle at drop-off" loading="lazy" />
+                      <figcaption>Before · Drop-off</figcaption>
+                    </figure>
+                  )}
+                  {condition.pickup?.photos?.[0]?.url && (
+                    <figure>
+                      <img src={condition.pickup.photos[0].url} alt="Vehicle at pickup" loading="lazy" />
+                      <figcaption>After · Pickup</figcaption>
+                    </figure>
+                  )}
+                </div>
+              )}
+              {conditionPreview.length > 0 && (
+                <div className="qr-condition__findings" aria-label="Damage detection preview">
+                  {conditionPreview.map((finding) => (
+                    <div key={finding.id} className="qr-condition__finding">
+                      <strong>{(finding.damage_type ?? 'POTENTIAL CHANGE').replaceAll('_', ' ')} · {(finding.region ?? 'Unspecified area').replaceAll('_', ' ')}</strong>
+                      <span>{finding.verification_status === 'CONFIRMED' ? 'Confirmed by manager' : finding.verification_status === 'REJECTED' ? 'Rejected after review' : 'Potential damage — awaiting review'}</span>
+                      {finding.detection_reasoning && <p>{finding.detection_reasoning}</p>}
+                      {finding.confidence != null && <small>Image-change score: {Math.round(Number(finding.confidence) * 100)}% (heuristic, not validated accuracy)</small>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <Link className="btn btn--primary qr-condition__link" to={`/inspections/${session.id}`}>
+            View Full Before/After Damage Report
+          </Link>
+        </Panel>
+      )}
+
+      {isCustomer && (
+        <Panel
+          title={pickupState.code === 'completed' ? 'Custody completed' :
+            pickupState.code === 'cancelled' ? 'Ticket cancelled' :
+              pickupState.code === 'in-progress' ? 'Pickup already requested' :
+                pickupState.canRequest ? 'Need Vehicle?' : 'Pickup not available'}
+          subtitle={pickupState.canRequest ? 'Request pickup from the current active custody session' : 'Status of your vehicle pickup request'}
+        >
+          {canRequestPickup ? (
+            <div className="qr-pickup">
+              <div>
+                <strong>Ready to request your car?</strong>
+                <p className="muted">{pickupState.message} Valet staff receive the retrieval request through the queue and notification system.</p>
+              </div>
+              <button type="button" className="btn btn--primary btn--lg" disabled={pickup.isPending}
+                onClick={() => pickup.mutate(session.id)}>{pickup.isPending ? 'Sending request…' : 'Need Vehicle · Request Pickup'}</button>
+            </div>
+          ) : (
+            <p className="qr-pickup__closed" role="status">
+              {pickup.isSuccess && pickup.variables === session?.id
+                ? 'Pickup request sent. Follow the retrieval status; another request is not needed.'
+                : pickupState.message}
+            </p>
+          )}
+        </Panel>
+      )}
 
       {/* The stored status is shown deliberately: it makes the projection
           visible instead of asking a reviewer to take it on trust. */}

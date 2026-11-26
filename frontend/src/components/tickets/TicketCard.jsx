@@ -55,7 +55,7 @@ export function TicketCard({ ticket }) {
           <>
             <img src={ticket.qr_url} alt={`QR code for ticket ${ticket.ticket_code}`} />
             <div>
-              <div className="muted">Scan at the gate</div>
+              <div className="muted">{ticket.qr_payload?.startsWith('https://') || ticket.qr_payload?.startsWith('http://') ? 'Scan to open your ticket details (sign-in required)' : 'Legacy QR — ticket number only'}</div>
               <div className="mono">{ticket.qr_payload}</div>
               <div className="muted">
                 Rendered by the server at issue time; the stored digest is on the audit trail.

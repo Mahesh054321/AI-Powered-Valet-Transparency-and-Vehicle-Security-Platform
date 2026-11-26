@@ -898,6 +898,18 @@ def request_vehicle(
     )
     db.session.commit()
 
+    # Creating an alert is distinct from queueing. Only staff receive it.
+    pickup_alert_id = None
+    pickup_alert_error = None
+    try:
+        from services.alerts import raise_retrieval_requested
+        pickup_alert, _ = raise_retrieval_requested(session, actor=actor)
+        pickup_alert_id = str(pickup_alert.id) if pickup_alert else None
+    except Exception as exc:  # noqa: BLE001 - request must survive alert failure
+        db.session.rollback()
+        pickup_alert_error = "In-app alert could not be created. Staff can still see the retrieval queue."
+        logger.exception("Could not create pickup-request alert: %s", exc)
+
     estimate: dict[str, Any] | None = None
     estimate_error: str | None = None
     try:
@@ -927,14 +939,14 @@ def request_vehicle(
         "estimate_available": estimate is not None,
         "estimate_error": estimate_error,
         "already_requested": False,
-        # What "notify" actually means here, stated rather than implied.
         "valet_notification": {
-            "delivery": "polled",
+            "delivery": "in_app_polled" if pickup_alert_id else "queue_only",
             "queued": session.status == CustodyStatus.RETRIEVAL_REQUESTED.value,
+            "alert_id": pickup_alert_id,
+            "alert_created": pickup_alert_id is not None,
             "note": (
-                "The valet dashboard reads this queue on a short poll. There is "
-                "no websocket channel, so the request appears there within one "
-                "poll interval rather than instantly."
+                "A staff-only pickup alert was recorded; the notification bell polls every 15 seconds."
+                if pickup_alert_id else (pickup_alert_error or "The valet queue records this request; no separate alert was verified.")
             ),
         },
     }

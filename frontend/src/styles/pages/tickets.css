@@ -275,3 +275,32 @@
   }
   .ticket-list__table .table__link { overflow-wrap: anywhere; }
 }
+
+
+/* Authenticated QR landing screen: a compact photo-and-finding overview. */
+.qr-condition { display: grid; gap: var(--space-4); }
+.qr-condition__summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+.qr-condition__stat { display: flex; flex-direction: column; justify-content: center; gap: var(--space-1); min-width: 0; padding: var(--space-4); border: 1px solid var(--border-default); border-radius: var(--radius-md); background: var(--surface-sunken); }
+.qr-condition__stat-value { font-size: clamp(1.35rem, 2.5vw, 2rem); font-weight: var(--weight-bold); line-height: 1.2; font-variant-numeric: tabular-nums; }
+.qr-condition__stat-label { font-size: var(--text-sm); color: var(--text-secondary); }
+.qr-condition__photos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.qr-condition__photos figure { min-width: 0; margin: 0; overflow: hidden; border: 1px solid var(--border-default); border-radius: var(--radius-md); background: var(--surface-sunken); }
+.qr-condition__photos img { display: block; width: 100%; height: clamp(140px, 22vw, 240px); object-fit: contain; }
+.qr-condition__photos figcaption { padding: var(--space-2) var(--space-3); color: var(--text-secondary); font-size: var(--text-sm); }
+.qr-condition__findings { display: grid; gap: var(--space-2); }
+.qr-condition__finding { display: grid; gap: var(--space-1); padding: var(--space-3) var(--space-4); border: 1px solid var(--border-default); border-left: 3px solid var(--warning, #c78310); border-radius: var(--radius-md); }
+.qr-condition__finding strong { text-transform: capitalize; }
+.qr-condition__finding span, .qr-condition__finding small { color: var(--text-secondary); }
+.qr-condition__finding p { margin: 0; line-height: var(--leading-relaxed); overflow-wrap: anywhere; }
+.qr-condition__link { margin-top: var(--space-3); width: fit-content; }
+.qr-pickup { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); }
+.qr-pickup > div { flex: 1 1 260px; }
+.qr-pickup p { margin: var(--space-2) 0 0; }
+.qr-pickup__closed { margin: 0; padding: var(--space-3); background: var(--surface-sunken); border-radius: var(--radius-md); color: var(--text-secondary); }
+@media (max-width: 640px) {
+  .qr-condition__summary { grid-template-columns: 1fr 1fr; }
+  .qr-condition__stat:first-child { grid-column: 1 / -1; }
+  .qr-condition__photos { grid-template-columns: 1fr; }
+  .qr-condition__photos img { height: 200px; }
+  .qr-pickup .btn { width: 100%; }
+}

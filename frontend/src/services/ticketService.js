@@ -19,6 +19,10 @@ export function fetchTicket(id) {
   return apiGet(ENDPOINTS.ticket(id))
 }
 
+export function upgradeTicketQr(id) {
+  return apiPost(ENDPOINTS.ticketQrUpgrade(id), {})
+}
+
 /**
  * Issue a ticket for an already-registered vehicle.
  *

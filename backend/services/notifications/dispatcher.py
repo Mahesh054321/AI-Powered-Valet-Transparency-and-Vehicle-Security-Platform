@@ -244,6 +244,7 @@ def _title_for(alert: Alert) -> str:
         "OVERSPEED": "Vehicle moving too fast",
         "POTENTIAL_DAMAGE": "Potential damage found",
         "RETRIEVAL_READY": "Your vehicle is ready",
+        "RETRIEVAL_REQUESTED": "Vehicle pickup requested",
         "TAMPER_ALERT": "Vehicle tampering / sensor alert",
         "SECURITY_ALERT": "Security alert detected",
     }

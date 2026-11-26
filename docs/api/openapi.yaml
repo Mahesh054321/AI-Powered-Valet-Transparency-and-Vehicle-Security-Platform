@@ -1232,9 +1232,9 @@ paths:
 
 
         `?status=` filters on the **projected** status, because that is the vocabulary the client was
-        given. The stored value is an implementation detail of the backend. `?active_only=true`
-        returns open tickets only and excludes tickets for archived vehicles; completed tickets remain
-        available through history filters.'
+        given. The stored value is an implementation detail of the backend. `?active_only=true` returns
+        open tickets only and excludes tickets for archived vehicles; completed tickets remain available
+        through history filters.'
       tags:
       - Valet Tickets
       parameters:
@@ -1623,6 +1623,63 @@ paths:
                   request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
                   server_time: 1789225630.95
           x-note: No such ticket, or it is not yours.
+      x-auth: Bearer token required
+      x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
+  /api/v1/tickets/{ticket_id}/qr/upgrade:
+    post:
+      operationId: upgradeTicketQr
+      summary: Upgrade a legacy ticket QR to an authenticated URL
+      description: Only ticket owner or staff may regenerate a legacy QR as an HTTPS link to /tickets/{ticket_id}.
+        A QR does not authorize access. The rotation is audited; any printed old code must be replaced.
+      tags:
+      - Valet Tickets
+      parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        schema: *id007
+        description: Ticket UUID.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                data: {}
+                meta:
+                  request_id: 2336852f3fc14b8bbeb85e12cf6c85d7
+                  server_time: 1789225490.85
+        '401':
+          description: Unauthorized. Sign-in required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id002
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Sign-in required.
+        '404':
+          description: Not Found. Ticket not found or not yours.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                success: false
+                error: *id009
+                meta:
+                  request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
+                  server_time: 1789225630.95
+          x-note: Ticket not found or not yours.
       x-auth: Bearer token required
       x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
   /api/v1/tickets/{ticket_id}/check-in:
@@ -3660,12 +3717,6 @@ paths:
                   request_id: 9cbb50455cdc4fabb7832bd0c04f5fd3
                   server_time: 1789225630.95
           x-note: No such custody session.
-        '409':
-          description: Conflict. The custody session is already complete.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
         '422':
           description: Unprocessable Entity. Missing reason or invalid custody ID.
           content:
@@ -3681,75 +3732,6 @@ paths:
           x-note: Missing reason or invalid custody ID.
       x-auth: Bearer token required
       x-roles: 'Any authenticated role: `CUSTOMER`, `VALET_OPERATOR`, `VALET_MANAGER`, `ADMIN`.'
-  /api/v1/inspections/{custody_id}/resolve-dispute:
-    post:
-      operationId: resolveInspectionDispute
-      summary: Resolve a dispute and complete custody
-      description: Closes the disputed custody session, completes the ticket, frees the assigned parking
-        space, and records the manager's action in the custody audit trail.
-      tags:
-      - Inspections
-      parameters:
-      - name: custody_id
-        in: path
-        required: true
-        schema: *id007
-        description: The disputed custody session UUID.
-      security:
-      - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-              - notes
-              properties:
-                notes:
-                  type: string
-                  maxLength: 500
-            example:
-              notes: Reviewed with the customer and agreed the vehicle may be returned.
-      responses:
-        '200':
-          description: Dispute resolved and custody completed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessEnvelope'
-        '401':
-          description: Unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '403':
-          description: Only a manager or administrator may resolve a dispute.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '404':
-          description: Custody session not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '409':
-          description: The custody session is not currently disputed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '422':
-          description: Missing resolution notes or invalid custody ID.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-      x-auth: "****** required"
-      x-roles: '`VALET_MANAGER` or `ADMIN`.'
   /api/v1/inspections/{custody_id}/recompare:
     post:
       operationId: recompareInspection
@@ -6959,6 +6941,7 @@ paths:
           - OVERSPEED
           - POTENTIAL_DAMAGE
           - RETRIEVAL_READY
+          - RETRIEVAL_REQUESTED
       - name: severity
         in: query
         required: false
@@ -7057,6 +7040,7 @@ paths:
                   - OVERSPEED
                   - POTENTIAL_DAMAGE
                   - RETRIEVAL_READY
+                  - RETRIEVAL_REQUESTED
                 message:
                   type: string
                 severity:

@@ -51,6 +51,11 @@ describe('TicketCard', () => {
     expect(screen.getByText('VALET:VT-202609-K7M3QD')).toBeInTheDocument()
   })
 
+  it('explains that modern QR codes open a signed-in ticket page', () => {
+    render(<TicketCard ticket={{...TICKET, qr_payload: 'https://valet.example.com/tickets/123'}} />)
+    expect(screen.getByText(/sign-in required/i)).toBeInTheDocument()
+  })
+
   it('shows an em dash for timestamps that have not happened yet', () => {
     render(<TicketCard ticket={TICKET} />)
 

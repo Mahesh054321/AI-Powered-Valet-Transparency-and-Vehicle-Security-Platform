@@ -73,7 +73,7 @@ def test_issuing_a_ticket_generates_a_number_and_a_qr(client, pg_app):
     assert ticket["ticket_code"].startswith("VT-")
     assert len(ticket["ticket_code"]) == 16
     # Step 9: a QR code, rendered to storage and referenced, not inlined.
-    assert ticket["qr_payload"] == f"VALET:{ticket['ticket_code']}"
+    assert ticket["qr_payload"] == f"http://localhost:5173/tickets/{ticket['id']}"
     assert ticket["qr_code_path"].startswith("qr/")
     assert ticket["qr_url"] == f"/media/{ticket['qr_code_path']}"
     assert (storage_root() / ticket["qr_code_path"]).is_file()

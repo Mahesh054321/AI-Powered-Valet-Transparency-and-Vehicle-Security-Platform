@@ -79,6 +79,7 @@ export const ALERT_TYPES = [
   { value: 'OVERSPEED', label: 'Overspeed' },
   { value: 'POTENTIAL_DAMAGE', label: 'Potential damage' },
   { value: 'RETRIEVAL_READY', label: 'Retrieval ready' },
+  { value: 'RETRIEVAL_REQUESTED', label: 'Pickup requested' },
 ]
 
 export const ALERT_SEVERITIES = [

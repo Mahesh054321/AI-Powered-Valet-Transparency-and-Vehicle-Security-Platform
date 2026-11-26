@@ -5,6 +5,7 @@ const GUIDANCE = {
   OVERSPEED: 'Check the speed reading and GPS accuracy; confirm the driving context with staff.',
   POTENTIAL_DAMAGE: 'Open the vehicle condition report. A manager must verify any potential image-based damage.',
   RETRIEVAL_READY: 'Check the handover point and arrange vehicle collection.',
+  RETRIEVAL_REQUESTED: 'Check the retrieval queue, locate the vehicle and acknowledge the pickup request.',
 }
 
 export function alertGuidance(type) {

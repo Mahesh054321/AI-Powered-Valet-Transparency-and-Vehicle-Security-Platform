@@ -25,6 +25,7 @@ const ICONS = {
   OVERSPEED: '⇧',
   POTENTIAL_DAMAGE: '◇',
   RETRIEVAL_READY: '✓',
+  RETRIEVAL_REQUESTED: '🚗',
 }
 
 function previewType(alert) {

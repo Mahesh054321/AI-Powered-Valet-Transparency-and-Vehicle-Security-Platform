@@ -89,6 +89,14 @@ def create_tickets_blueprint() -> Blueprint:
         ticket = ticket_service.get_ticket(current_user(), ticket_id)
         return ok({"ticket": ticket_service.ticket_dict(ticket)})
 
+    @blueprint.post("/<ticket_id>/qr/upgrade")
+    @require_authentication
+    def upgrade_qr(ticket_id: str):
+        """Owner/staff opt-in: replace legacy text QR and audit the rotation."""
+        ticket = ticket_service.upgrade_ticket_qr(current_user(), ticket_id)
+        return ok({"ticket": ticket_service.ticket_dict(ticket),
+                   "message": "QR upgraded. Replace any previously printed QR code."})
+
     @blueprint.post("/<ticket_id>/check-in")
     @require_authentication
     def check_in(ticket_id: str):

@@ -41,6 +41,13 @@ vi.mock('../services/ticketService', async (original) => {
   }
 })
 
+vi.mock('../services/inspectionService', () => ({ fetchConditionReport: vi.fn() }))
+
+vi.mock('../services/dashboardService', async (original) => {
+  const actual = await original()
+  return { ...actual, requestVehicle: vi.fn() }
+})
+
 vi.mock('../services/retrievalService', async (original) => {
   const actual = await original()
   return {
@@ -50,6 +57,8 @@ vi.mock('../services/retrievalService', async (original) => {
   }
 })
 
+import { requestVehicle } from '../services/dashboardService'
+import { fetchConditionReport } from '../services/inspectionService'
 import {
   fetchTicket,
   updateCustodyStatus,
@@ -128,6 +137,14 @@ beforeEach(() => {
   vi.clearAllMocks()
   stubTicket()
   stubNoEstimate()
+  vi.mocked(fetchConditionReport).mockResolvedValue({
+    comparison_ready: false,
+    total_detections: 0,
+    confirmed_count: 0,
+    unverified_count: 0,
+    drop_off: null,
+    pickup: null,
+  })
 })
 
 function renderPage(role = 'VALET_MANAGER') {
@@ -141,6 +158,86 @@ function renderPage(role = 'VALET_MANAGER') {
     { route: `/tickets/${TICKET_ID}`, token: buildToken({ role }) },
   )
 }
+
+describe('TicketDetailPage QR deep-link actions', () => {
+  it('shows a condition report link and a pickup request for the owner', async () => {
+    vi.mocked(requestVehicle).mockResolvedValue({ valet_notification: { alert_created: true } })
+    const user = userEvent.setup()
+    renderPage('CUSTOMER')
+    expect(await screen.findByRole('link', { name: /view full before\/after damage report/i })).toBeInTheDocument()
+    const button = screen.getByRole('button', { name: /Need Vehicle.*Request Pickup/i })
+    await user.click(button)
+    await waitFor(() => expect(requestVehicle).toHaveBeenCalledWith(SESSION_ID))
+  })
+})
+
+describe('QR scan: custody-gated request and visible vehicle condition', () => {
+  it('shows car details and a real condition finding directly on the QR landing page', async () => {
+    vi.mocked(fetchConditionReport).mockResolvedValue({
+      comparison_ready: true,
+      total_detections: 1,
+      confirmed_count: 0,
+      unverified_count: 1,
+      drop_off: { photos: [{ url: '/media/before.jpg' }] },
+      pickup: { photos: [{ url: '/media/after.jpg' }], detections: [{
+        id: 'finding-1', damage_type: 'DENT', region: 'LEFT_FRONT_DOOR',
+        verification_status: 'UNVERIFIED', confidence: 0.83,
+        detection_reasoning: 'New surface region is visible after alignment.',
+      }] },
+    })
+    renderPage('CUSTOMER')
+    expect(await screen.findByText('Registration number')).toBeInTheDocument()
+    expect(screen.getAllByText('UP 78 AB 1234').length).toBeGreaterThan(0)
+    expect(await screen.findByText(/New surface region is visible after alignment/i)).toBeInTheDocument()
+    expect(screen.getByText(/DENT · LEFT FRONT DOOR/i)).toBeInTheDocument()
+    expect(screen.getByText(/Image-change score: 83%/i)).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /Vehicle at drop-off/i })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /Vehicle at pickup/i })).toBeInTheDocument()
+  })
+
+  it('does not offer Need Vehicle on a completed custody QR link', async () => {
+    stubTicket({ status: 'COMPLETED', custody_session: {
+      id: SESSION_ID, status: 'CHECKED_OUT', picked_up_at: '2026-09-11T11:15:00Z',
+    } })
+    renderPage('CUSTOMER')
+    expect(await screen.findByText(/Custody completed — the vehicle has been returned/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Need Vehicle/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('Need Vehicle?')).not.toBeInTheDocument()
+    expect(requestVehicle).not.toHaveBeenCalled()
+    expect(screen.getByRole('link', { name: /View Full Before\/After Damage Report/i })).toBeInTheDocument()
+  })
+
+  it('does not offer Need Vehicle on a cancelled ticket', async () => {
+    stubTicket({ status: 'CANCELLED' })
+    renderPage('CUSTOMER')
+    expect(await screen.findByText(/ticket was cancelled/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Need Vehicle/i })).not.toBeInTheDocument()
+  })
+
+  it('does not offer Need Vehicle if check-in has not started', async () => {
+    stubTicket({ status: 'CREATED', custody_session: null })
+    renderPage('CUSTOMER')
+    expect(await screen.findByText(/only after an active custody session/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Need Vehicle/i })).not.toBeInTheDocument()
+  })
+
+  it('does not duplicate a previously requested pickup', async () => {
+    const original = stubTicket()
+    stubTicket({ custody_session: {
+      ...original.custody_session,
+      retrieval_requested_at: '2026-09-11T10:00:00Z',
+    } })
+    renderPage('CUSTOMER')
+    expect(await screen.findByText(/Pickup has already been requested/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Need Vehicle/i })).not.toBeInTheDocument()
+  })
+
+  it('does not show the request button to staff even on an active custody ticket', async () => {
+    renderPage('VALET_OPERATOR')
+    await screen.findByText(/Registration number/i)
+    expect(screen.queryByRole('button', { name: /Need Vehicle/i })).not.toBeInTheDocument()
+  })
+})
 
 describe('TicketDetailPage pickup request', () => {
   it('loads the ticket and shows both vocabularies side by side', async () => {
@@ -237,7 +334,7 @@ describe('TicketDetailPage pickup request', () => {
     vi.clearAllMocks()
     stubTicket({ status: 'CANCELLED' })
     renderPage()
-    expect(await screen.findByText(/ticket cancelled/i)).toBeInTheDocument()
+    expect(await screen.findByText(/^Ticket cancelled$/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /estimate retrieval time/i })).not.toBeInTheDocument()
     expect(fetchRetrievalPrediction).not.toHaveBeenCalled()
   })

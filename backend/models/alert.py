@@ -42,6 +42,7 @@ class AlertCategory(StrEnum):
     OVERSPEED = "OVERSPEED"  # faster than the zone permits
     POTENTIAL_DAMAGE = "POTENTIAL_DAMAGE"  # detector flagged damage, unverified
     RETRIEVAL_READY = "RETRIEVAL_READY"  # car is staged for handover
+    RETRIEVAL_REQUESTED = "RETRIEVAL_REQUESTED"  # customer asked staff to fetch car
 
 
 #: How the geofence detector's precise types fold into the feed

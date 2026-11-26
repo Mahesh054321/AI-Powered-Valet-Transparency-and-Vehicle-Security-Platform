@@ -48,6 +48,7 @@ const TYPE_TONE = {
   OVERSPEED: 'badge--info',
   POTENTIAL_DAMAGE: 'badge--warning',
   RETRIEVAL_READY: 'badge--success',
+  RETRIEVAL_REQUESTED: 'badge--info',
 }
 
 function statusLabel(status) {
